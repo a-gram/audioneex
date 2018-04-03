@@ -1,6 +1,6 @@
 
 Audioneex is an audio content recognition engine specifically designed
-for real-time uses. It is general purpose, based on content-agnostic
+for real-time applications. It is general purpose, based on content-agnostic
 algorithms and runs on desktop, server, mobile and embedded devices.
 
 Features
