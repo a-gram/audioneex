@@ -1,0 +1,49 @@
+
+How to configure and build the Android demo apps
+================================================
+
+This folder contains demo apps for Android Studio to test the engine and
+show how to integrate it into Android applications. In order for the apps
+to successfully build there are some things to configure according to your
+environment and system.
+
+1. Get the header files for the Tokyo Cabinet drivers from
+   http://fallabs.com/tokyocabinet/ and extract the tc*.h 
+   files from the root directory into a 'tcabinet' folder
+   somewhere on your system.
+
+2. If you don't have it already, get the Boost library at
+   http://www.boost.org and install it into a directory
+   somewhere on your system.
+
+3. You need to build the required native libraries and put
+   them into a /lib folder in the source root directory with
+   the following structure
+
+   <sources_root>/lib/android-<arch>-<compiler>
+
+   Running the build_android script will do just that for
+   the Audioneex libraries. External ones you need to build
+   them yourself (you can use the android-configure script
+   for that). Patched sources for Android can be found at
+
+   https://www.dropbox.com/s/kg9sn42d80lt0gt/ext.tar.gz?dl=0
+
+3. Locate the Android.mk file in the app/src/main/jni directory
+   of the Studio project and set the /usr/... include paths in
+   the "User Config" section to the folders where you installed
+   the headers at step 1 and the Boost directory at step 2. If
+   other include paths are required just put them there.
+
+You will also have to set the Android Studio SDK and NDK paths
+according to your system in File->Project Structure. After that
+everything should be set to go. An internet connection is likely
+to be needed for Gradle to download some dependencies.
+The projects have been set to build for armeabi-v7a architectures
+only. If you need something different then modify the filter
+in the app's Gradle script.
+
+The apps have been tested with Android Studio 3.0.1, NDK r16b.
+Boost library version 1.66.0, but anything above 1.55 should also
+work.
+

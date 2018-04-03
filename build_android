@@ -1,0 +1,154 @@
+#!/bin/bash
+#
+# This script uses the Android NDK build system (ndk-build et al.) to
+# build the library without the need for exporting individual toolchains
+# for each architecture.
+#
+# Usage: build_android <arch> <comp> <api> <bmode> <btype>
+#
+#       where <arch> is one of the supported architectures (armeabi-v7a, 
+#       mips, x86, etc., or 'all' to build for all supported architectures),
+#       <comp> the compiler (gcc, clang), <bmode> the build mode (debug,
+#       release) and <btype> the lib binary type (static, dynamic)
+#
+# NOTE: The NDK is not really intended for building static libraries
+#       as the final product but "installable" modules (executables
+#       and shared libraries) that can be directly used by apps.
+#       However, it can also produce static libraries as part of the
+#       build process for an "installable" module and, with some
+#       adjustments, can be used to build only static libraries.
+#       The ndk-build script by default expects the source to be laid
+#       out according to the android application source structure.
+#       If you're building source that does not follow this convention
+#       then you need to specify some parameters in order for the build
+#       system to work:
+#       1) An 'AndroidManifest.xml' must be present in the source root
+#       directory alongside Android.mk; this is how the NDK recognizes
+#       the directory as the 'build root' for anything that doesn't follow
+#       the conventional Android source structure. The xml contents are not
+#       important as the file is not parsed. It can be just a dummy.
+#       2) Any variable usually defined in Application.mk needs to be
+#       explicitly defined in the environment (for non-standard source 
+#       layouts Application.mk is not parsed unless some specific NDK_*
+#       variables are set so that it can be found), and the path to the
+#       directories for the intermediate files and the output libraries.
+#       Passing these variables into the ndk-build call allow us to change
+#       the build without modifying the Application.mk everytime.
+#
+#       This script has been tested with NDK r16b. Eventually it must be
+#       revised once support for GCC is completely removed from the NDK.
+#
+# Author  : Alberto Gramaglia
+# Date    : 26-03-2018
+# Version : 1.1.0
+#
+
+set -e
+
+function error()
+{
+  echo ""
+  echo "ERROR: [build_android] ${AX_ERROR}"
+  echo ""
+  echo "Usage: build_android <arch> <comp> <api> <bmode> <btype>"
+  echo ""
+  echo "       arch  - Target architecure (armeabi-v7a, arm64-v8a,"
+  echo "                 x86, x86_64, mips, mips64)"
+  echo "       comp  - Supported compiler (gcc, clang)"
+  echo "       api   - Target Android API (21, 22, 23, 24, 26, 27)"
+  echo "       bmode - Build mode (debug, release)"
+  echo "       btype - Build binary type (dynamic, static)"
+  echo ""
+  exit 1
+}
+
+AX_ROOT_DIR=$(cd $(dirname "$0") && pwd)
+
+if [ "$#" != "5" ]; then AX_ERROR="Invalid command"; error; fi
+
+
+BUILD_ARCH=$1
+BUILD_COMP=$2
+BUILD_API=$3
+BUILD_MODE=$4
+BUILD_BTYPE=$5
+
+declare -A SUPPORTED_ARCH=(["x86"]=1 ["x86_64"]=1 ["arm64-v8a"]=1 ["armeabi-v7a"]=1 ["mips"]=1 ["mips64"]=1)
+declare -A SUPPORTED_COMP=(["gcc"]=1 ["clang"]=1)
+declare -A SUPPORTED_BMODE=(["debug"]=1 ["release"]=1)
+declare -A SUPPORTED_BTYPE=(["static"]=1 ["dynamic"]=1)
+declare -A SUPPORTED_API=(["21"]=1 ["22"]=1 ["23"]=1 ["24"]=1 ["26"]=1 ["27"]=1)
+
+if [[ ! ${SUPPORTED_ARCH["$BUILD_ARCH"]} ]] ; then
+   AX_ERROR="Invalid architecture '$BUILD_ARCH'"
+   error
+fi
+
+if [[ ! ${SUPPORTED_COMP["$BUILD_COMP"]} ]] ; then
+   AX_ERROR="Invalid compiler '$BUILD_COMP'"
+   error
+fi
+
+if [[ ! ${SUPPORTED_API["$BUILD_API"]} ]] ; then
+   AX_ERROR="Invalid API version '$BUILD_API'"
+   error
+fi
+
+if [[ ! ${SUPPORTED_BMODE["$BUILD_MODE"]} ]] ; then
+   AX_ERROR="Invalid build mode '$BUILD_MODE'"
+   error
+fi
+
+if [[ ! ${SUPPORTED_BTYPE["$BUILD_BTYPE"]} ]] ; then
+   AX_ERROR="Invalid binary type '$BUILD_BTYPE'"
+   error
+fi
+
+APP_BUILD_SCRIPT_VAR="APP_BUILD_SCRIPT=Android.mk"
+APP_ABI_VAR="APP_ABI=${BUILD_ARCH}"
+APP_PLATFORM_VAR="APP_PLATFORM=android-${BUILD_API}"
+APP_OPTIM_VAR="APP_OPTIM=${BUILD_MODE}"
+
+if [ "$BUILD_COMP" == "clang" ]; then
+
+   # Switch to libc++ for CLang builds
+   APP_STL_VAR="APP_STL=c++_shared"
+
+elif [ "$BUILD_COMP" == "gcc" ]; then
+
+   # GCC in the NDK toolchains is referred to as 4.9
+   BUILD_COMP="4.9";
+   APP_STL_VAR="APP_STL=gnustl_shared"
+
+fi
+
+# For static libs we have to explicitly specify the modules
+if [ "$BUILD_BTYPE" == "static" ]; then
+   APP_MODULES_VAR="APP_MODULES=audioneex"
+   AX_BUILD_BTYPE=
+else
+   AX_BUILD_BTYPE="AUDIONEEX_DLL=true"
+fi
+
+NDK_TOOLCHAIN_VERSION_VAR="NDK_TOOLCHAIN_VERSION=${BUILD_COMP}"
+# Path for the intermediate files (.obj)
+NDK_OUT_VAR="NDK_OUT=${AX_ROOT_DIR}/build/android-${BUILD_ARCH}-${BUILD_COMP}/${BUILD_MODE}/obj"
+# Path for the generated libraries
+NDK_LIBS_OUT_VAR="NDK_LIBS_OUT=${AX_ROOT_DIR}/build/android-${BUILD_ARCH}-${BUILD_COMP}/${BUILD_MODE}"
+
+# Call ndk-build
+${ANDROID_NDK_HOME}/ndk-build \
+                    $APP_BUILD_SCRIPT_VAR \
+                    $APP_ABI_VAR \
+                    $APP_PLATFORM_VAR \
+                    $APP_STL_VAR \
+                    $APP_MODULES_VAR \
+                    $APP_OPTIM_VAR \
+                    $NDK_OUT_VAR \
+                    $NDK_LIBS_OUT_VAR \
+                    $NDK_TOOLCHAIN_VERSION_VAR \
+                    $AX_BUILD_BTYPE 
+
+# Call the distribution lib build script              
+/bin/bash ./build_dist_libs android $BUILD_ARCH $BUILD_COMP $BUILD_MODE $BUILD_BTYPE
+

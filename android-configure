@@ -1,0 +1,269 @@
+#!/bin/bash
+#
+# Android cross-compilation environment setup script.
+# Run it in place of the standard ./configure to prepare the environment
+# with all the necessary settings to compile native binaries for Android
+# on different architectures and platforms (API).
+# 
+# Usage: android-configure <arch> <comp> <api> [config_params]
+#
+# Where: <arch> is one of arm|arm64|x86(x32)|x86_64(x64)|mips|mips64
+#        <comp> the compiler (gcc|clang)
+#        <api> the Android Platform API Level
+#        [config_params] optional parameters to pass to ./configure
+#
+# Hints: Make sure that the specified API supports the specified
+#        architecture (for example 64-bit archs are not supported
+#        by all APIs and will produce errors).
+#        Some libraries may come with outdated configure scripts
+#        that do not recognize specific Android architectures and
+#        will produce errors. In such cases the problem may be solved
+#        by replacing the shipped config.sub and config.guess with
+#        updated ones.
+#
+#   BUG: When compiling C libraries with CLang for newer platforms
+#        (API >= 20) using NDK r16b you will face runtime errors for
+#        'symbols not found'. This is because on such platforms the
+#        binaries no longer support older functionalities. One option
+#        to fix this problem is to statically link the libraries with
+#        libandroid_support (which also requires libc++). So you can,
+#        for example, export linker flags before running this script,
+#        like so
+#
+#        export LDFLAGS="-L<support_lib_dir> -lc++ -landroid_support"
+#        
+#        where <support_lib_dir> in NDK r16b is a directory located at
+#        <ndk_root>/sources/cxx-stl/llvm-libc++/libs/<arch>
+#        More info on this bug at https://github.com/android-ndk/ndk/issues/544
+#
+# 
+# Author  : Alberto Gramaglia
+# Date    : 26-03-2018
+# Version : 1.1.0
+#
+
+set -e
+
+function error()
+{
+  echo ""
+  echo "ERROR: ${AX_ERROR}"
+  echo ""
+  echo $AX_ERROR > build_dist_libs_errors.log
+  exit 1
+}
+
+function usage()
+{
+  echo ""
+  echo "Usage: android-configure <arch> <comp> <api> [config_params]"
+  echo ""
+  echo "       Where: <arch> is one of arm|arm64|x86(x32)|x86_64(x64)|mips|mips64"
+  echo "              <comp> the compiler, one of gcc|clang"
+  echo "              <api> the Android Platform API Level"
+  echo "              [config_params] optional parameters for ./configure"
+  echo ""
+  exit 1
+}
+
+# -----------------------------------------------------------------------------
+
+if [ "$#" -lt "3" ]; then usage; fi
+
+BUILD_ARCH=$1
+BUILD_COMP=$2
+BUILD_API=$3
+
+# x86/x86_64 archs are also referred to as x32/x64
+if [ "$BUILD_ARCH" == "x32" ]; then BUILD_ARCH=x86; fi
+if [ "$BUILD_ARCH" == "x64" ]; then BUILD_ARCH=x86_64; fi
+
+# Get the parameters that should be passed to ./configure, if any.
+CONFIG_PARAMS=${*: 4:$#-3}
+
+# GCC support may vary for different NDK versions, so make sure the
+# one you're specifying is actually supported by your installed NDK.
+declare -A SUPPORTED_GCC=( ["gcc"]=1 ["clang"]=1)
+
+# Maps architecture names to their corresponding GCC toolchain dirs.
+declare -A SUPPORTED_ARCH=( \
+    ["arm"]="arm-linux-androideabi" \
+    ["arm64"]="aarch64-linux-android" \
+    ["x86"]="x86" \
+    ["x86_64"]="x86_64" \
+    ["mips"]="mipsel-linux-android" \
+    ["mips64"]="mips64el-linux-android" \
+)
+
+# Maps architecture names to "triples" used for binary prefixes,
+# some include directories, etc.
+declare -A SUPPORTED_ARCH_TRIPLE=( \
+    ["arm"]="arm-linux-androideabi" \
+    ["arm64"]="aarch64-linux-android" \
+    ["x86"]="i686-linux-android" \
+    ["x86_64"]="x86_64-linux-android" \
+    ["mips"]="mipsel-linux-android" \
+    ["mips64"]="mips64el-linux-android" \
+)
+
+# Maps architecture names to clang's target "triples" (quadruples?).
+declare -A SUPPORTED_ARCH_CLANG=( \
+    ["arm"]="armv7-none-linux-androideabi" \
+    ["arm64"]="aarch64-none-linux-android" \
+    ["x86"]="i686-none-linux-android" \
+    ["x86_64"]="x86_64-none-linux-android" \
+    ["mips"]="mipsel-none-linux-android" \
+    ["mips64"]="mips64el-none-linux-android" \
+)
+
+# Maps architecture names to ABI names used in the NDK.
+declare -A SUPPORTED_ABI=( \
+    ["arm"]="armeabi-v7a" \
+    ["arm64"]="arm64-v8a" \
+    ["x86"]="x86" \
+    ["x86_64"]="x86_64" \
+    ["mips"]="mips" \
+    ["mips64"]="mips64" \
+)
+
+
+if [[ ! ${SUPPORTED_ARCH["$BUILD_ARCH"]} ]] ; then
+   AX_ERROR="Invalid architecture '$BUILD_ARCH'"
+   error
+fi
+
+if [[ ! ${SUPPORTED_GCC["$BUILD_COMP"]} ]] ; then
+   AX_ERROR="Invalid compiler '$BUILD_COMP'"
+   error
+fi
+
+
+# This is the folder where your Android stuffs are located.
+ANDROID_ROOT=/opt/android
+
+# This script assume that you are building on a 64-bit Linux x86 machine.
+# If that's not the case, set this variable according to your machine.
+BUILD_SYS=x86_64-linux-gnu
+
+# This is the directory where all the prebuilt NDK binaries for 64-bit Linux
+# machines are stored. If you're on a different machine, set accordingly.
+NDK_BUILD_SYS=linux-x86_64
+
+# This is the NDK directory where all the toolchain binaries can be found.
+# NOTE: Currently, the NDK still offers dual support for both gcc and clang,
+#       and clang still needs gcc modules in order to work, so we need to
+#       specify both toolchain locations.
+NDK_TOOLCHAIN_CLANG=${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/$NDK_BUILD_SYS
+NDK_TOOLCHAIN_GCC=${ANDROID_NDK_HOME}/toolchains/${SUPPORTED_ARCH[$BUILD_ARCH]}-4.9/prebuilt/${NDK_BUILD_SYS}
+
+# Set the primary toolchain based on given compiler.
+if [ "$BUILD_COMP" == "clang" ]; then
+   NDK_TOOLCHAIN=$NDK_TOOLCHAIN_CLANG
+else
+   NDK_TOOLCHAIN=$NDK_TOOLCHAIN_GCC
+fi
+
+# This is the path to the SYSROOT where libs for the specified API Level are found.
+NDK_SYSROOT=${ANDROID_NDK_HOME}/platforms/android-${BUILD_API}/arch-${BUILD_ARCH}
+
+# This is the path to the SYSROOT where headers are found for all API levels.
+NDK_SYSROOT_H=${ANDROID_NDK_HOME}/sysroot/usr/include
+
+# This is the path to the SYSROOT where headers for specific architectures are found,
+NDK_SYSROOT_H_ARCH=${NDK_SYSROOT_H}/${SUPPORTED_ARCH_TRIPLE[$BUILD_ARCH]}
+
+# GCC's binaries (ld, ar, strip, etc.) also used by CLang.
+NDK_TOOLCHAIN_PREFIX=${NDK_TOOLCHAIN_GCC}/bin/${SUPPORTED_ARCH_TRIPLE[$BUILD_ARCH]}
+
+# CLang's compiler scripts
+NDK_TOOLCHAIN_PREFIX_CLANG="${NDK_TOOLCHAIN}/bin/${SUPPORTED_ABI[$BUILD_ARCH]}/analyzer \
+                           -D__ANDROID_API__=${BUILD_API} -gcc-toolchain $NDK_TOOLCHAIN_GCC"
+NDK_TOOLCHAIN_PREFIX_CLANGXX="${NDK_TOOLCHAIN}/bin/${SUPPORTED_ABI[$BUILD_ARCH]}/analyzer++ \
+                           -D__ANDROID_API__=${BUILD_API} -gcc-toolchain $NDK_TOOLCHAIN_GCC"
+
+# Check that all the NDK paths actually exist, just in case Google breaks
+# the layout once again ...
+
+if [ ! -d "$NDK_TOOLCHAIN" ]; then
+   AX_ERROR="The NDK binaries directory $NDK_TOOLCHAIN does not exist." && error
+fi
+if [ ! -d "$NDK_SYSROOT" ]; then
+   AX_ERROR="The NDK sysroot lib directory $NDK_SYSROOT does not exist." && error
+fi
+if [ ! -d "$NDK_SYSROOT_H" ]; then
+   AX_ERROR="The NDK sysroot include directory $NDK_SYSROOT_H does not exist." && error
+fi
+if [ ! -d "$NDK_SYSROOT_H_ARCH" ]; then
+   AX_ERROR="The NDK sysroot include directory $NDK_SYSROOT_H_ARCH does not exist." && error
+fi
+
+# Compiler and linker flags required by Android. Add your own flags here.
+NDK_CFLAGS="-fPIE -fPIC"
+NDK_CPPFLAGS=""
+NDK_CXXFLAGS=""
+NDK_LDFLAGS="-pie"
+
+# For ARM ABI, only v7a versions are built, which need specific flags, as indicated
+# by the NDK website in the Standalone Toolchains section.
+if [ "$BUILD_ARCH" == "arm" ]; then
+   NDK_CFLAGS="${NDK_CFLAGS} -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16"
+   NDK_LDFLAGS="${NDK_LDFLAGS} -march=armv7-a -Wl,--fix-cortex-a8"
+fi
+
+echo ""
+echo "TOOLCHAIN (compiler)  -> $NDK_TOOLCHAIN"
+echo "BINARIES (prefixes)   -> $NDK_TOOLCHAIN_PREFIX"
+echo "SYSROOT (libs)        -> $NDK_SYSROOT"
+echo "SYSROOT (headers)     -> $NDK_SYSROOT_H"
+echo "SYSROOT (arch-haders) -> $NDK_SYSROOT_H_ARCH"
+echo ""
+
+export AR=${NDK_TOOLCHAIN_PREFIX}-ar
+export AS=${NDK_TOOLCHAIN_PREFIX}-as
+export LD=${NDK_TOOLCHAIN_PREFIX}-ld
+export NM=${NDK_TOOLCHAIN_PREFIX}-nm
+
+if [ "$BUILD_COMP" == "clang" ]; then
+   export CC=$NDK_TOOLCHAIN_PREFIX_CLANG
+   export CXX=$NDK_TOOLCHAIN_PREFIX_CLANGXX
+else
+   export CC=${NDK_TOOLCHAIN_PREFIX}-gcc
+   export CXX=${NDK_TOOLCHAIN_PREFIX}-g++
+fi
+
+export CPP=${NDK_TOOLCHAIN_PREFIX}-cpp
+export STRIP=${NDK_TOOLCHAIN_PREFIX}-strip
+export RANLIB=${NDK_TOOLCHAIN_PREFIX}-ranlib
+export STRINGS=${NDK_TOOLCHAIN_PREFIX}-strings
+
+# These compiler flags assume that the module being compiled is self-contained
+# and does not depend on external modules. If not, then you may need to add additional
+# include and library paths here.
+
+export CFLAGS="${CFLAGS} \
+               ${NDK_CFLAGS} \
+               -I${NDK_SYSROOT_H} \
+               -I${NDK_SYSROOT_H_ARCH} \
+               -I${ANDROID_ROOT}/include"
+
+export CPPFLAGS="${CFLAGS} ${NDK_CPPFLAGS}"
+export CXXFLAGS="${CFLAGS} ${NDK_CXXFLAGS}"
+
+export LDFLAGS="${LDFLAGS} \
+                --sysroot=${NDK_SYSROOT} \
+                -L${ANDROID_ROOT}/lib/${SUPPORTED_ABI[$BUILD_ARCH]} \
+                ${NDK_LDFLAGS}"
+
+# If there is a configure script in the current directory then run it,
+# otherwise run make straight away.
+if [ -f ./configure ]; then
+
+./configure --build=${BUILD_SYS} --host=${SUPPORTED_ARCH[$BUILD_ARCH]}  --prefix=${ANDROID_ROOT} --libdir=${ANDROID_ROOT}/lib/${SUPPORTED_ABI[$BUILD_ARCH]} ${CONFIG_PARAMS}
+
+else
+   echo -e "WARNING: configure script not found in the current directory. Running make ...\n"
+   make
+fi
+
+
+
