@@ -47,38 +47,6 @@ import com.audioneex.audio.AudioSourceServiceListener;
 import com.audioneex.audio.BufferQueue;
 
 
-enum MatchType {
-	
-    MSCALE(0),
-    XSCALE(1);
-    
-    private int value;
-    MatchType(int value){ this.value = value; }
-    public int toInt() { return value; }
-}
-
-enum IdentificationType {
-	
-    FUZZY(0),
-    BINARY(1);
-    
-    private int value;
-    IdentificationType(int value){ this.value = value; }
-    public int toInt() { return value; }
-}
-
-enum IdentificationMode {
-	
-    STRICT(0),
-    EASY(1);
-    
-    private int value;
-    IdentificationMode(int value){ this.value = value; }
-    public int toInt() { return value; } 
-}
-
-
-
 public class RecognitionService implements Runnable, AudioSourceServiceListener {
 
 	private boolean mSessionComplete = true;
@@ -118,9 +86,6 @@ public class RecognitionService implements Runnable, AudioSourceServiceListener 
 		
 		// Create the recognizer
 		mRecognizer = new Recognizer();
-	        mRecognizer.SetMatchType( MatchType.MSCALE.toInt() );
-	        mRecognizer.SetIdentificationType( IdentificationType.BINARY.toInt() );
-                //mRecognizer.SetIdentificationMode( IdentificationType.FUZZY.toInt() );
 	        mRecognizer.SetBinaryIdThreshold( 0.6f );
 
 		// Create a queue of 2-second long buffers, 11025Hz, mono

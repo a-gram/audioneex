@@ -148,16 +148,6 @@ public class OTAFragment extends Fragment implements AudioIdentificationListener
             dbfiles[1] = new File(dbdir, "data.met");
 
             // Extract datastore files from assets
-            /*
-            for (int i = 0; i < dbfiles.length; ++i) {
-                String dbfile = dbfiles[i].getName();
-                is = getActivity().getAssets().open(dbfile);
-                os = new FileOutputStream(dbfiles[i]);
-                Log.i("TestApp", "writing db file: " + dbfile);
-                while ((bytes_read = is.read(buffer)) != -1)
-                      os.write(buffer, 0, bytes_read);
-            }
-            */
             for(File db: dbfiles) {
                 String dbfile = db.getName();
                 is = getActivity().getAssets().open(dbfile);
