@@ -1,15 +1,15 @@
 
 Audioneex is an audio content recognition engine specifically designed
-for real-time uses. It is general purpose, based on content-agnostic
+for real-time applications. It is general purpose, based on content-agnostic
 algorithms and runs on desktop, server, mobile and embedded devices.
 
 Features
 
-- Compact fingerprints - 1 hr of audio encoded in less than a MB
-- Content-agnostic - recognition of audio of different nature
-- Real-time identification - can be used for Over-The-Air recognitions
-- Cross-platform - runs anywhere there is a decent C++ compiler
-- IoT & Mobile-ready - runs well on small devices for on-device ACR
+- **Compact fingerprints** - 1 hr of audio encoded in less than a MB
+- **Content-agnostic** - recognition of audio of different nature
+- **Real-time identification** - can be used for Over-The-Air recognitions
+- **Cross-platform** - runs anywhere there is a decent C++ compiler
+- **IoT & Mobile-ready** - runs well on small devices for on-device ACR
 
 Limitations
 
@@ -58,7 +58,7 @@ for few specific tweaks that may occur.
 Compile the [FFTSS library](http://www.ssisc.org/fftss/) in static
 mode and install it somewhere in your system. You can set this path in
 the CMake build script if it's not in a standard location. Remember
-to compile the library with the `-fPIC flag` (on Linux) otherwise linking
+to compile the library with the `-fPIC` flag (on Linux) otherwise linking
 errors will occur. If you want to build the examples as well, then you
 will need to get the Tokyo Cabinet library (there is also a port to Windows
 called 'tcejdb'). Alternatively, you can use the Couchbase database (requires
@@ -85,7 +85,7 @@ On Linux, open a shell and issue the following commands
     make
 
 where `[options]` is one or more of the following command line parameters in
-the form -D<var=value>
+the form `-D<var=value>`
 
     ARCH            = x32|x64
     TOOLCHAIN       = gcc64|vc14|...
@@ -142,12 +142,14 @@ more information (especially for how to fix some bugs present in r16b).
 
 This code is released under the Mozilla Public License 2.0.
 
-In a nutshell, it means that you can freely use it, modify it, compile it and
-run it as you wish, even in commercial settings without publishing your closed
-source code, so long as you make available its code including any modifications
-under the same license when distributed.
+In a nutshell:
 
-
+- You can use it in commercial projects without publishing your closed source code
+- If you distribute it publicly under any form (code or binary, stand-alone or linked) you 
+  must make available its source code, including any modification you have made, under the 
+  same license and retain all copyright notices.
+  
+  
 ## TODO
 
 1. More drivers for other databases would be nice
