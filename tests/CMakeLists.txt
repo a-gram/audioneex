@@ -37,9 +37,9 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 
-    set(TEST_CXX_FLAGS "")
+    set(TEST_CXX_FLAGS "/Od")
     # On Windows some libraries have different namings.
-    set(DATASTORE_LIB_NAME tcejdbdll)
+    set(DATASTORE_LIB_NAME libejdb)
 
 endif()
 

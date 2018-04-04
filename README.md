@@ -60,13 +60,13 @@ mode and install it somewhere in your system. You can set this path in
 the CMake build script if it's not in a standard location. Remember
 to compile the library with the `-fPIC` flag (on Linux) otherwise linking
 errors will occur. If you want to build the examples as well, then you
-will need to get the Tokyo Cabinet library (there is also a port to Windows
-called 'tcejdb'). Alternatively, you can use the Couchbase database (requires
+will need to get the Tokyo Cabinet library (for Windows there is a port from
+the EJDB project). Alternatively, you can use the Couchbase database (requires
 the libcouchbase driver). Optionally, should you need ID3 tag support to
 extract metadata from audio files, then get the TagLib library.
 Audioneex requires the header-only part of Boost, but the examples will
-need some compiled modules (thread, filesystem), so you can just compile
-those ones.
+need some compiled modules (thread, filesystem and their dependencies), 
+so you can just compile those ones.
 
 **Step 2.**
 

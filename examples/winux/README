@@ -16,6 +16,7 @@ in the "User Config" section of the CMakeLists file.
    have to download, build and install it. The headers should
    go into a 'tcabinet' folder somewhere in your include path.
    On some Linux distros it's already installed by default.
+   On Windows you can use libejdb, a port by the EJDB project.
    Then set the include and lib paths in the "User Config".
 
 2. The Boost library is also required. From version 1.55 it

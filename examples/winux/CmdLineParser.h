@@ -38,7 +38,7 @@ struct CmdLineOptions_t{
         db_url   ("./data"),
         db_op    (KVDataStore::BUILD),
         FID_base (0),
-        b_thresh (0.7),
+        b_thresh (0.6),
         list_dev (false),
         offset   (0)
     {}

@@ -48,7 +48,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
    
    # On Windows some libraries have different namings.
    if(DATASTORE_T STREQUAL "TCDataStore")
-      set(DATASTORE_LIB_NAME tcejdbdll)
+      set(DATASTORE_LIB_NAME libejdb)
    elseif(DATASTORE_T STREQUAL "CBDataStore")
       set(DATASTORE_LIB_NAME libcouchbase)
    endif()

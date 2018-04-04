@@ -44,7 +44,7 @@ list(APPEND MY_LIBRARY_x32_RELEASE_DIRS
 list(APPEND MY_LIBRARY_x64_RELEASE_DIRS
 
     "c:/dev/cpp/lib/fftss/x64/vc141/release"
-    "c:/dev/cpp/lib/tcejdb/x64/vc141/release"
+    "c:/dev/cpp/lib/ejdb/x64/vc141/release"
     "c:/dev/cpp/lib/taglib/x64/vc141/release"
     "/usr/local/lib/7"
 
@@ -154,13 +154,13 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 
    add_definitions(-DWIN32)
    
-   set(COMP_FLAGS "/EHsc /Gd")
+   set(COMP_FLAGS "/WX- /EHsc /Gd")
    
    # Build-specific flags
    if(BUILD_MODE STREQUAL "debug")
-      set(COMP_FLAGS "${COMP_FLAGS} /WX- /W3 /RTC1 /Zi /MDd")
+      set(COMP_FLAGS "${COMP_FLAGS} /W3 /RTC1 /Zi /MDd")
    elseif(BUILD_MODE STREQUAL "release")
-      set(COMP_FLAGS "${COMP_FLAGS} /WX- /W1 /MD")
+      set(COMP_FLAGS "${COMP_FLAGS} /W1 /MD")
    endif()
    
    set(PLATFORM win)
