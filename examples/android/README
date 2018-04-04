@@ -10,11 +10,11 @@ environment and system.
 1. Get the header files for the Tokyo Cabinet drivers from
    http://fallabs.com/tokyocabinet/ and extract the tc*.h 
    files from the root directory into a 'tcabinet' folder
-   somewhere on your system.
+   somewhere in your system.
 
 2. If you don't have it already, get the Boost library at
    http://www.boost.org and install it into a directory
-   somewhere on your system.
+   somewhere in your system.
 
 3. You need to build the required native libraries and put
    them into a /lib folder in the source root directory with
@@ -23,7 +23,7 @@ environment and system.
    <sources_root>/lib/android-<arch>-<compiler>
 
    Running the build_android script will do just that for
-   the Audioneex libraries. External ones you need to build
+   the Audioneex libraries. External ones, you need to build
    them yourself (you can use the android-configure script
    for that). Patched sources for Android can be found at
 
