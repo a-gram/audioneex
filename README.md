@@ -146,8 +146,8 @@ In a nutshell:
 
 - You can use it in commercial projects without publishing your closed source code
 - If you distribute it publicly under any form (code or binary, stand-alone or linked) you 
-  must make available its source code, including any modification you have made, under the 
-  same license and retain all copyright notices.
+  must make its source code available, including any modification you have made, under the 
+  same license, retain all copyright notices and inform the users where they can get it.
   
   
 ## TODO
