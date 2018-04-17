@@ -145,7 +145,7 @@ This code is released under the Mozilla Public License 2.0.
 In a nutshell:
 
 - You can use it in commercial projects without publishing your closed source code
-- If you distribute it publicly under any form (code or binary, stand-alone or linked) you 
+- If you distribute it publicly under any form (code or binary, stand-alone or combined) you 
   must make its source code available, including any modification you have made, under the 
   same license, retain all copyright notices and inform the users where they can get it.
   
