@@ -39,19 +39,6 @@ AX_SOURCES := \
     src/quant/Codebook.cpp \
     src/audiocodes/AudioCodes.cpp
 
-# Audioneex audio codes includes & co.
-
-#AX_CODES_INCLUDE := audiocodes
-#AX_CODES_SOURCES := audiocodes/AudioCodes.cpp
-
-# Audioneex audio codes module
-
-#include $(CLEAR_VARS)
-#LOCAL_MODULE := axcodes
-#LOCAL_SRC_FILES := $(AX_CODES_SOURCES)
-#LOCAL_C_INCLUDES := $(AX_CODES_INCLUDE)
-#LOCAL_CPPFLAGS += -std=c++11 -fexceptions -fvisibility=hidden -fno-rtti
-#include $(BUILD_STATIC_LIBRARY)
 
 ifdef AUDIONEEX_DLL
 # SHARED LIB
