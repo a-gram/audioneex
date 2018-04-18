@@ -58,7 +58,7 @@ list(APPEND MY_LIBRARY_x64_DEBUG_DIRS
 
 set(MY_BOOST_INCLUDE_DIR
 
-    "/use/local/share/boost_1_66_0"
+    "/usr/local/share/boost_1_66_0"
 )
 
 set(MY_BOOST_LIBRARY_x32_DIR
