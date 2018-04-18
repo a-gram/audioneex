@@ -26,7 +26,7 @@ in [this paper](https://www.dropbox.com/s/0qvfq2o53uudaqx/agramaglia_acr_paper_2
 
 ## Prerequisites
 
-The code has been extensively tested with the following software
+The code has been extensively tested with the following dependencies
 
 - Boost 1.66
 - FFTSS 3.0
@@ -39,12 +39,8 @@ Optional (required by the examples)
 - TagLib
 - FFMpeg
 
-However, it should also work with the following minimum requirements
-
-- Boost 1.55+
-- GCC 4.8+, VC 10+
-- CMake 3.5+
-- Android NDK 14b
+However, it should also work with the following minimum requirements:
+Boost 1.55+, GCC 4.8+, VC 10+, CMake 3.5+, Android NDK 14b+
 
 
 ## How to build on Linux and Windows
@@ -53,29 +49,28 @@ The project uses CMake to build the modules on both Linux and Windows.
 The steps to follow are pretty much the same on both platforms, aside
 for few specific tweaks that may occur.
 
-**Step 1.**
+**Step 1. Set up the build environment**
 
-Compile the [FFTSS library](http://www.ssisc.org/fftss/) in static
-mode and install it somewhere in your system. You can set this path in
-the CMake build script if it's not in a standard location. Remember
-to compile the library with the `-fPIC` flag (on Linux) otherwise linking
-errors will occur. If you want to build the examples as well, then you
-will need to get the Tokyo Cabinet library (for Windows there is a port from
-the EJDB project). Alternatively, you can use the Couchbase database (requires
-the libcouchbase driver). Optionally, should you need ID3 tag support to
-extract metadata from audio files, then get the TagLib library.
-Audioneex requires the header-only part of Boost, but the examples will
-need some compiled modules (thread, filesystem and their dependencies), 
-so you can just compile those ones.
+- Install Boost. The library requires the header-only part, but the examples 
+will need some compiled modules (thread, filesystem, regex and their dependencies).
+- Get the [FFTSS library](http://www.ssisc.org/fftss/), compile it in static
+mode and install it somewhere in your system (remember to compile with the
+`-fPIC` flag on Linux otherwise linking errors will occur).
+- Get the Tokyo Cabinet library (for Windows there is a port from the EJDB 
+project). Alternatively, you can use the Couchbase database (requires
+the libcouchbase driver).
+- Get the TagLib library for ID3 tag support (used by the examples to 
+extract metadata from audio files).
+- Get the FFmpeg executable and install it in a location visible from PATH
+(used by the examples to decode and read audio).
 
-**Step 2.**
+**Step 2. Set include and library paths**
 
-Set the include and library paths in the CMake build script. This step
-is not mandatory but it will most likely be necessary since these paths
-are system-dependent. You can do so in the "User Configuration" section
-of the build script.
+This step is not mandatory but it will most likely be necessary since these paths
+are system-dependent. You can set them in the "User Configuration" section
+of the CMake build script located in the root directory.
 
-**Step 3.**
+**Step 3. Build**
 
 On Linux, open a shell and issue the following commands
 
