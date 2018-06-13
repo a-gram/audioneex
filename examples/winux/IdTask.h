@@ -39,17 +39,20 @@ public:
 
     virtual AudioSource* GetAudioSource() = 0;
 
-    void SetIndexer(Audioneex::Indexer* indexer) {
+    void SetIndexer(Audioneex::Indexer* indexer)
+	{
         assert(indexer);
         m_Indexer.reset( indexer );
     }
 
-    void SetRecognizer(Audioneex::Recognizer* recognizer) {
+    void SetRecognizer(Audioneex::Recognizer* recognizer)
+	{
         assert(recognizer);
         m_Recognizer.reset( recognizer );
     }
 
-    void SetDataStore(Audioneex::DataStore* datastore) {
+    void SetDataStore(Audioneex::DataStore* datastore)
+	{
         m_DataStore =  datastore;
     }
 

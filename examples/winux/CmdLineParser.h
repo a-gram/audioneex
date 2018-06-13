@@ -25,7 +25,8 @@ class bad_cmd_line_exception : public std::logic_error {
 
 
 /// This structure defines all the supported options
-struct CmdLineOptions_t{
+struct CmdLineOptions_t
+{
     std::string                 apath;
     std::string                 db_url;
     KVDataStore::eOperation     db_op;
@@ -83,7 +84,8 @@ class CmdLineParser
 
  public:
 
-    CmdLineParser(){
+    CmdLineParser()
+	{
         m_SupportedOptions.insert("-f");
         m_SupportedOptions.insert("-b");
         m_SupportedOptions.insert("-l");

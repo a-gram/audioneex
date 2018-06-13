@@ -29,7 +29,8 @@ class bad_cmd_exception : public std::logic_error {
 };
 
 /// Abstract Command.
-class Command{
+class Command
+{
 protected:
     std::set<std::string>    m_SupportedArgs;
     std::vector<std::string> m_Args;
@@ -73,7 +74,8 @@ protected:
         return true;
     }
 
-    void PrintUsageAndThrow(const std::string& emsg){
+    void PrintUsageAndThrow(const std::string& emsg)
+	{
         throw bad_cmd_exception(emsg + m_Usage);
     }
 

@@ -15,7 +15,6 @@
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/container/flat_map.hpp>
-#include <boost/foreach.hpp>
 
 #include "Fingerprint.h"
 #include "Codebook.h"
@@ -72,7 +71,8 @@ struct AUDIONEEX_API_TEST HistoBin_t
 
     HistoBin_t() : score(0), last_T(0), torder(0), scored(false) {}
 
-    void Reset(){
+    void Reset()
+	{
         score=0;
         last_T=0;
         torder=0;
@@ -90,26 +90,33 @@ struct AUDIONEEX_API_TEST Qhisto_t
 
     Qhisto_t(size_t size=0) : Bmax(0), Qi(0), Ht(size) {}
 
-    void Reset(){
-        BOOST_FOREACH(HistoBin_t &bin, Ht)
+    void Reset()
+	{
+        for(HistoBin_t &bin : Ht) {
             bin.Reset();
+		}
         Bmax=0; Qi=0;
     }
 
-    void ResetBinScoredFlag(){
-        BOOST_FOREACH(HistoBin_t &bin, Ht)
+    void ResetBinScoredFlag()
+	{
+        for(HistoBin_t &bin : Ht) {
             bin.scored = false;
+		}
     }
 
-    HistoBin_t& operator[](size_t bin){
+    HistoBin_t& operator[](size_t bin)
+	{
         return Ht[bin];
     }
 
-    const HistoBin_t& operator[](size_t bin) const{
+    const HistoBin_t& operator[](size_t bin) const
+	{
         return Ht[bin];
     }
 
-    void operator+=(const Qhisto_t &Qh){
+    void operator+=(const Qhisto_t &Qh)
+	{
          assert(Qh.Ht.size() == Ht.size());
          for(size_t bin=0; bin<Ht.size(); bin++)
              Ht[bin].score += Qh.Ht[bin].score;
@@ -135,7 +142,8 @@ struct AUDIONEEX_API_TEST MatchResults_t
     hashtable_Qi   Top_K;   // list of top-k Qi matches <score, tie list>
 
     /// Get the k-th elements (tie list)
-    std::list<int> GetTop(int k) const {
+    std::list<int> GetTop(int k) const 
+	{
         if(Top_K.empty() || k>Top_K.size())
            return std::list<int>();
         else{
@@ -146,7 +154,8 @@ struct AUDIONEEX_API_TEST MatchResults_t
     }
 
     /// Get the k-th score
-    int GetTopScore(int k) const {
+    int GetTopScore(int k) const 
+	{
         if(Top_K.empty() || k>Top_K.size())
            return 0;
         else{

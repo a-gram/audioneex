@@ -13,7 +13,6 @@
 #include <cerrno>
 
 #include "gnuplot.h"
-#include <boost/foreach.hpp>
 
 //
 // initialize static data

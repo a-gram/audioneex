@@ -25,7 +25,8 @@ namespace Audioneex
 {
 
 /// Identification accumulator/integrator
-struct IdAcc_t{
+struct IdAcc_t
+{
     float Conf;
     float Time;
     float Steps;

@@ -22,7 +22,6 @@
 #include "BVQuantizer.h"
 #include "Utils.h"
 
-using namespace std;
 
 
 namespace Audioneex
@@ -58,9 +57,12 @@ void BVQuantizer::RandomSeeding()
     boost::unordered::unordered_set<int> points;
 
     // Randomly select K points from data set
-    while(m_Clusters.size() < m_K){
+    while(m_Clusters.size() < m_K)
+	{
         int h = rndNumber();
-        if(points.find(h) == points.end()){
+		
+        if(points.find(h) == points.end())
+		{
            points.insert(h);
            Cluster clust;
            clust.Centroid = m_Points[h];
@@ -89,7 +91,7 @@ void BVQuantizer::KmeansPP()
 
     m_Clusters.push_back(clust);
 
-    vector<float> p(m_Points.size(), std::numeric_limits<float>::max());
+    std::vector<float> p(m_Points.size(), std::numeric_limits<float>::max());
 
     // Compute remaining centroids
 
@@ -101,7 +103,8 @@ void BVQuantizer::KmeansPP()
 
         // Update data points' p.d.f.
 
-        for(size_t h=0; h<m_Points.size(); h++) {
+        for(size_t h=0; h<m_Points.size(); h++) 
+		{
             d = Utils::Dh(m_Points[h], m_Clusters[cj-1].Centroid);
             p[h] = d<p[h] ? d : p[h];
             psum += p[h];
@@ -113,12 +116,15 @@ void BVQuantizer::KmeansPP()
         float u = real_rnd();
 
         for(size_t v=0; v<p.size(); v++)
-            if( (cum += p[v] / psum) > u ){
+		{
+            if( (cum += p[v] / psum) > u )
+			{
                 clust.ID = cj;
                 clust.Centroid = m_Points[v];
                 m_Clusters.push_back(clust);
                 break;
             }
+		}
 
         DEBUG_MSG("c[" << cj <<"] ")
     }
@@ -130,10 +136,12 @@ void BVQuantizer::KmeansPP()
 
 // Function object executed by the parallel threads.
 
-class PointsClusterer_t {
+class PointsClusterer_t 
+{
  public:
-    vector<BinaryVector>*  Points;
-    vector<Cluster>*       Clusters;
+ 
+    std::vector<BinaryVector>*  Points;
+    std::vector<Cluster>*       Clusters;
 
     void operator()(tbb::blocked_range<size_t> &r) const {
 
@@ -180,7 +188,7 @@ std::shared_ptr <Codebook> BVQuantizer::Kmedians()
     size_t Nx = m_Points[0].size();
 
     // Create data structures
-    vector<vector< array_2D > >  BitCounter(m_K, vector<array_2D>(Nx));
+    std::vector<std::vector< array_2D > >  BitCounter(m_K, std::vector<array_2D>(Nx));
 
     std::shared_ptr <Codebook> codebook(new Codebook);
 
@@ -213,7 +221,7 @@ std::shared_ptr <Codebook> BVQuantizer::Kmedians()
 
             m_Clusters[c].Npoints++;
             m_Clusters[c].SumD += m_Points[i].distance();
-            m_Clusters[c].Points.push_back(pair<int,int>(m_Points[i].FID, m_Points[i].LID));
+            m_Clusters[c].Points.push_back(std::pair<int,int>(m_Points[i].FID, m_Points[i].LID));
 			
             for(size_t x=0; x<Nx; x++)
                 m_Points[i][x] ? BitCounter[c][x][1]++
@@ -234,12 +242,14 @@ std::shared_ptr <Codebook> BVQuantizer::Kmedians()
         // stop clustering otherwise.
         if(clusters_change > 1 && it<=30)
         {
-           for(size_t j=0; j<m_Clusters.size(); j++) {
+           for(size_t j=0; j<m_Clusters.size(); j++) 
+		   {
                m_Clusters[j].Npoints = 0;
                m_Clusters[j].SumD = 0;
                m_Clusters[j].Points.clear();
 			   
-               for(size_t x=0; x<Nx; x++){
+               for(size_t x=0; x<Nx; x++)
+			   {
                    if(BitCounter[j][x][0] > BitCounter[j][x][1])
                       m_Clusters[j].Centroid[x] = 0;
                    if(BitCounter[j][x][0] < BitCounter[j][x][1])

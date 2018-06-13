@@ -10,7 +10,6 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
-#include <boost/foreach.hpp>
 
 #include "common.h"
 #include "Parameters.h"
@@ -27,10 +26,14 @@ void Audioneex::Codebook::FindDuplicates()
 
     DEBUG_MSG("Checking for codebook dupes...")
 
-    BOOST_FOREACH(Cluster &clust, m_Clusters){
+    for(Cluster &clust : m_Clusters)
+	{
         bool exists = false;
-        BOOST_FOREACH(BinaryVector &uw, uwords){
-             if(clust.Centroid == uw){
+		
+        for(BinaryVector &uw : uwords)
+		{
+             if(clust.Centroid == uw)
+			 {
                  exists=true;
                  ndupes++;
                  break;
@@ -56,7 +59,7 @@ void Audioneex::Codebook::Analyze()
 
     of.open("c:\\temp\\clusters.dat");
 
-    BOOST_FOREACH(Cluster &c, m_Clusters){
+    for(Cluster &c : m_Clusters){
 
         of << "ID      = " << c.ID << "\n"
            << "Npoints = " << c.Npoints << "\n"
@@ -113,7 +116,8 @@ Audioneex::Codebook::deserialize(const uint8_t *data, size_t data_size)
 
     std::unique_ptr <Codebook> cbook (new Codebook);
 
-    for(size_t w=0; w<Nwords; w++){
+    for(size_t w=0; w<Nwords; w++)
+	{
         Cluster c;
         c.ID = *reinterpret_cast<const int*>(data);
         data += sizeof(uint32_t);

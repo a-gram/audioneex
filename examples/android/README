@@ -27,7 +27,7 @@ environment and system.
    them yourself (you can use the android-configure script
    for that). Patched sources for Android can be found at
 
-   https://www.dropbox.com/s/kg9sn42d80lt0gt/ext.tar.gz?dl=0
+   https://www.dropbox.com/s/kg9sn42d80lt0gt/audioneex_android_ext_libs.tar.gz?dl=0
 
 3. Locate the Android.mk file in the app/src/main/jni directory
    of the Studio project and set the /usr/... include paths in

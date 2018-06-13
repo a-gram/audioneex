@@ -7,7 +7,7 @@
 
 */
 
-/// This is an implementation of the DataStore interface that uses Tokyo Cabinet
+/// This is an implementation of the DataStore interface that uses Couchbase
 /// as the data storage backend. It is solely provided as an example of how to
 /// implement custom drivers with the Audioneex data storage interface without
 /// claims of fitness for any specific purposes.
@@ -22,25 +22,23 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
 #include "CBDataStore.h"
 
-using namespace std;
 using namespace Audioneex;
 
 #define ToString(x) boost::lexical_cast<std::string>(x)
 
 #define THROW_ON_FAIL(db,res,msg)                           \
     if (res != LCB_SUCCESS && res!=LCB_KEY_ENOENT){         \
-        string emsg = "[Couchbase] - ";                     \
+        std::string emsg = "[Couchbase] - ";                \
         emsg.append(msg);                                   \
         emsg.append(" Database '" + db->GetName() + "'. "); \
         emsg.append(lcb_strerror((*db), res));              \
-        throw runtime_error(emsg);                          \
+        throw std::runtime_error(emsg);                     \
     }                                                       \
 
 
@@ -59,16 +57,16 @@ static void store_callback(lcb_t instance,
 
     if (error != LCB_SUCCESS) {
 
-        string emsg = "[Couchbase] - The store request was not executed: " +
-                       string(lcb_strerror(instance, error)); + "\n" +
-                       string("SENDER :") + sresp->sender;
+        std::string emsg = "[Couchbase] - The store request was not executed: " +
+                           std::string(lcb_strerror(instance, error)); + "\n" +
+                           std::string("SENDER :") + sresp->sender;
 
         std::cout << emsg << std::endl;
 
         // Temporary failure (server unavailable). May retry.
         if (LCB_EIFTMP(error)) {
-            string emsg = "[Couchbase] - Transient error. May retry. " +
-                           string(lcb_strerror(instance, error));
+            std::string emsg = "[Couchbase] - Transient error. May retry. " +
+                               std::string(lcb_strerror(instance, error));
             std::cout << emsg << std::endl;
         }
     }
@@ -125,15 +123,15 @@ static void get_callback(lcb_t instance,
                break;
            // Some other negative response
            default:
-            string emsg = "[Couchbase] - The get request was not executed: " +
-                           string(lcb_strerror(instance, error));
+               std::string emsg = "[Couchbase] - The get request was not executed: " +
+                                  std::string(lcb_strerror(instance, error));
                std::cout << emsg << std::endl;
                break;
         }
     }
     else if (LCB_EIFTMP(error)) {
-        string emsg = "[Couchbase] - Transient error. May retry. " +
-                       string(lcb_strerror(instance, error));
+        std::string emsg = "[Couchbase] - Transient error. May retry. " +
+                           std::string(lcb_strerror(instance, error));
         std::cout << emsg << std::endl;
     }
 
@@ -173,7 +171,7 @@ static void http_done_callback(lcb_http_request_t,
 
 // ----------------------------------------------------------------------------
 
-CBDataStore::CBDataStore(const string &url) :
+CBDataStore::CBDataStore(const std::string &url) :
     m_DBURL         (url),
     m_ServerName    ("localhost"),
     m_ServerPort    (8091),
@@ -276,7 +274,7 @@ const uint8_t* CBDataStore::GetPListBlock(int list_id, int block, size_t &data_s
 void CBDataStore::OnIndexerStart()
 {
     if(m_Op == GET)
-       throw invalid_argument("OnIndexerStart(): Invalid operation");
+       throw std::invalid_argument("OnIndexerStart(): Invalid operation");
 
     if(m_Op == BUILD_MERGE)
        m_DeltaIndex.Open(OPEN_READ_WRITE);
@@ -355,7 +353,7 @@ PListHeader CBDataStore::OnIndexerListHeader(int list_id)
     else if(m_Op == BUILD)
        return m_MainIndex.GetPListHeader(list_id);
     else
-       throw invalid_argument("OnIndexerListHeader(): Invalid operation");
+       throw std::invalid_argument("OnIndexerListHeader(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -373,7 +371,7 @@ PListBlockHeader CBDataStore::OnIndexerBlockHeader(int list_id, int block)
     else if(m_Op == BUILD)
        return m_MainIndex.GetPListBlockHeader(list_id, block);
     else
-       throw invalid_argument("OnIndexerBlockHeader(): Invalid operation");
+       throw std::invalid_argument("OnIndexerBlockHeader(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -388,7 +386,7 @@ void CBDataStore::OnIndexerChunk(int list_id,
     else if(m_Op == BUILD)
        m_MainIndex.AppendChunk(list_id, lhdr, hdr, data, data_size);
     else
-       throw invalid_argument("OnIndexerChunkAppend(): Invalid operation");
+       throw std::invalid_argument("OnIndexerChunkAppend(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -403,7 +401,7 @@ void CBDataStore::OnIndexerNewBlock(int list_id,
     else if(m_Op == BUILD)
        m_MainIndex.AppendChunk(list_id, lhdr, hdr, data, data_size, true);
     else
-       throw invalid_argument("OnIndexerChunkNewBlock(): Invalid operation");
+       throw std::invalid_argument("OnIndexerChunkNewBlock(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -457,7 +455,7 @@ CBCollection::~CBCollection()
 void CBCollection::Open(int mode)
 {
     if(m_Datastore==nullptr)
-       throw runtime_error("No datastore set");
+       throw std::runtime_error("No datastore set");
    
     // Close current database if open
     if(m_IsOpen)
@@ -469,11 +467,11 @@ void CBCollection::Open(int mode)
 
     cropts.version = 3;
 
-    string server = m_Datastore->GetServerName();
-    string user = m_Datastore->GetUsername();
-    string pass = m_Datastore->GetPassword();
+    std::string server = m_Datastore->GetServerName();
+    std::string user = m_Datastore->GetUsername();
+    std::string pass = m_Datastore->GetPassword();
     
-    string conn_str = "couchbase://" + server + "/" + m_DBName;
+    std::string conn_str = "couchbase://" + server + "/" + m_DBName;
 
     cropts.v.v3.connstr = conn_str.c_str();
     cropts.v.v3.username = user.empty() ? 0 : user.c_str();
@@ -525,7 +523,7 @@ void CBCollection::Drop()
 {
     if(m_DBHandle==NULL) return;
 
-    string uri = "/pools/default/buckets/" + m_DBName + "/controller/doFlush";
+    std::string uri = "/pools/default/buckets/" + m_DBName + "/controller/doFlush";
 
     lcb_http_cmd_st cmd;
     memset(&cmd, 0, sizeof cmd);
@@ -559,11 +557,11 @@ void CBCollection::Drop()
 uint64_t CBCollection::GetRecordsCount() const
 {
     if(m_DBHandle==NULL)
-       throw runtime_error("No connection to database '"+m_DBName+"'");
+       throw std::runtime_error("No connection to database '"+m_DBName+"'");
 
     size_t fp_count = 0;
 
-    string uri = "/pools/default/buckets/" + m_DBName;
+    std::string uri = "/pools/default/buckets/" + m_DBName;
 
     lcb_http_cmd_st cmd;
     memset(&cmd, 0, sizeof cmd);
@@ -597,7 +595,7 @@ uint64_t CBCollection::GetRecordsCount() const
     boost::property_tree::ptree pt;
     boost::property_tree::read_json(json, pt);
 
-    string icount = pt.get<string>("basicStats.itemCount");
+    std::string icount = pt.get<std::string>("basicStats.itemCount");
     fp_count = boost::lexical_cast<uint64_t>(icount);
 
     return fp_count;
@@ -621,7 +619,7 @@ CBIndex::CBIndex(CBDataStore *dstore) :
 PListHeader CBIndex::GetPListHeader(int list_id)
 {
     if(m_DBHandle==NULL)
-       throw runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error("Database '"+m_DBName+"' not open");
 
     PListHeader hdr = {};
 
@@ -675,7 +673,7 @@ PListHeader CBIndex::GetPListHeader(int list_id)
 PListBlockHeader CBIndex::GetPListBlockHeader(int list_id, int block_id)
 {
     if(m_DBHandle==NULL)
-       throw runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error("Database '"+m_DBName+"' not open");
 
     PListBlockHeader hdr = {};
 
@@ -726,10 +724,10 @@ PListBlockHeader CBIndex::GetPListBlockHeader(int list_id, int block_id)
 
 // ----------------------------------------------------------------------------
 
-size_t CBIndex::ReadBlock(int list_id, int block_id, vector<uint8_t> &buffer, bool headers)
+size_t CBIndex::ReadBlock(int list_id, int block_id, std::vector<uint8_t> &buffer, bool headers)
 {
     if(m_DBHandle==NULL)
-       throw runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error("Database '"+m_DBName+"' not open");
 
     size_t off=0;
 
@@ -781,7 +779,7 @@ size_t CBIndex::ReadBlock(int list_id, int block_id, vector<uint8_t> &buffer, bo
 void CBIndex::WriteBlock(int list_id, int block_id, std::vector<uint8_t> &buffer, size_t data_size)
 {
     if(m_DBHandle==NULL)
-       throw runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error("Database '"+m_DBName+"' not open");
 
     assert(!buffer.empty());
     assert(data_size <= buffer.size());
@@ -848,7 +846,7 @@ void CBIndex::AppendChunk(int list_id,
           lcb_error_t rstatus = static_cast<lcb_error_t>(m_StoreResp.status);
 
           if (rstatus != LCB_SUCCESS)
-             throw runtime_error("Bulk load error. Indexing failed.");
+             throw std::runtime_error("Bulk load error. Indexing failed.");
 
           m_BlocksCache.accum = 0;
          // DEBUG_MSG("   Done.")
@@ -861,7 +859,7 @@ void CBIndex::AppendChunk(int list_id,
     m_BlocksCache.accum += chunk_size;
 
     // Get block from cache (create new one if not found)
-    vector<uint8_t> &block = m_BlocksCache.buffer[hdr.ID];
+    std::vector<uint8_t> &block = m_BlocksCache.buffer[hdr.ID];
 
     // Read block from database if not in cache and not new
     if(block.empty() && !new_block)
@@ -903,7 +901,7 @@ void CBIndex::AppendChunk(int list_id,
 void CBIndex::UpdateListHeader(int list_id, PListHeader &lhdr)
 {
     // Try the cache first
-    vector<uint8_t> &block = m_BlocksCache.buffer[1];
+    std::vector<uint8_t> &block = m_BlocksCache.buffer[1];
 
     // Read from database if cache miss
     if(block.empty())
@@ -946,10 +944,10 @@ void CBIndex::Merge(CBCollection* plidx)
 
     //DEBUG_MSG(m_KeyCache.size()<<" cached keys")
 
-    vector<uint8_t> lblock(32768), dblock(32768);
+    std::vector<uint8_t> lblock(32768), dblock(32768);
 
     // For each key in the delta store
-    BOOST_FOREACH(CBKey &key, m_KeyCache)
+    for(CBKey &key : m_KeyCache)
     {
         int list_id     = key.k1;
         int block_id = key.k2;
@@ -1107,7 +1105,7 @@ size_t CBFingerprints::ReadFingerprintSize(uint32_t FID)
     /// copying the data.
 
     if(m_DBHandle==NULL)
-       throw runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error("Database '"+m_DBName+"' not open");
 
     // Create response structure
     CBGetResp gresp = {};
@@ -1139,7 +1137,7 @@ size_t CBFingerprints::ReadFingerprint(uint32_t FID, std::vector<uint8_t> &buffe
                                        size_t size, uint32_t bo)
 {
     if(m_DBHandle==NULL)
-       throw runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error("Database '"+m_DBName+"' not open");
 
     // Create response structure
     CBGetResp gresp = {};
@@ -1177,7 +1175,7 @@ void CBFingerprints::WriteFingerprint(uint32_t FID, const uint8_t *data, size_t 
     assert(data);
 
     if(m_DBHandle==NULL)
-       throw runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error("Database '"+m_DBName+"' not open");
 
     CBSetResp sresp;
     sresp.sender = __FUNCTION__;
@@ -1215,9 +1213,9 @@ CBMetadata::CBMetadata(CBDataStore *dstore) :
 {
 }
 
-string CBMetadata::Read(uint32_t FID)
+std::string CBMetadata::Read(uint32_t FID)
 {   
-    string str;
+    std::string str;
 
     if(m_DBHandle)
     {
@@ -1252,10 +1250,10 @@ string CBMetadata::Read(uint32_t FID)
 
 // ----------------------------------------------------------------------------
 
-void CBMetadata::Write(uint32_t FID, const string &meta)
+void CBMetadata::Write(uint32_t FID, const std::string &meta)
 {
     if(m_DBHandle==NULL)
-       throw runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error("Database '"+m_DBName+"' not open");
 
     if(meta.empty())
        return;
@@ -1297,7 +1295,7 @@ CBInfo::CBInfo(CBDataStore *dstore) :
 DBInfo_t CBInfo::Read()
 {
     if(m_DBHandle==nullptr)
-       throw runtime_error("Info database not open");
+       throw std::runtime_error("Info database not open");
 
     DBInfo_t dbinfo = {-1};
     int key = 0;
@@ -1336,7 +1334,7 @@ DBInfo_t CBInfo::Read()
 void CBInfo::Write(const DBInfo_t &info)
 {
     if(m_DBHandle==NULL)
-       throw runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error("Database '"+m_DBName+"' not open");
     
     int key = 0;
 

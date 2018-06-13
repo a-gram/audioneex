@@ -56,7 +56,8 @@ int Audioneex::Matcher::Process(const lf_vector &lfs)
     // Append LF stream to query sequence
     QLocalFingerprint_t QLF;
 	
-    BOOST_FOREACH(LocalFingerprint_t *lf, lfs){
+    for(LocalFingerprint_t *lf : lfs)
+	{
         Codebook::QResults quant = m_AudioCodes->quantize(*lf);
         QLF.T = lf->T;
         QLF.F = lf->F;
@@ -65,7 +66,7 @@ int Audioneex::Matcher::Process(const lf_vector &lfs)
         Xk.push_back(QLF);
 
         m_XkSeq.push_back(lf->ID);
-        delete lf;
+        delete lf; // TODO 
     }
 
     // Validate query sequence
@@ -197,9 +198,12 @@ void Audioneex::Matcher::DoMatch(int ko, int kn)
     if(!m_TopKMc.empty())
     {
 
-        BOOST_FOREACH(hashtable_Qhisto::value_type &e, m_TopKMc) {
+        for(hashtable_Qhisto::value_type &e : m_TopKMc) 
+		{
             std::list<Qhisto_t> &tlist = e.second;
-            BOOST_FOREACH(Qhisto_t &H, tlist) {
+			
+            for(Qhisto_t &H : tlist) 
+			{
                  Ac_t& Accum = m_Results.Qc[H.Qi];
                  Accum.Ac += H.Ht[H.Bmax].score;
                  Accum.Tmatch = (Pms::Tk * H.Bmax + Pms::Tk / 2) * Pms::dt;
@@ -210,10 +214,12 @@ void Audioneex::Matcher::DoMatch(int ko, int kn)
 
         m_Results.Top_K.clear();
 
-        BOOST_FOREACH(hashtable_Qc::value_type &e, m_Results.Qc){
+        for(hashtable_Qc::value_type &e : m_Results.Qc)
+		{
             int Qi = e.first;
             int score = e.second.Ac;
             m_Results.Top_K[score].push_back(Qi);
+			
             if(m_Results.Top_K.size() > Pms::TopK)
                m_Results.Top_K.erase(--(m_Results.Top_K.end()) );
         }

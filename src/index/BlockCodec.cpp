@@ -13,13 +13,11 @@
 
 #include <list>
 #include <vector>
-#include <boost/foreach.hpp>
 
 #include "common.h"
 #include "BlockCodec.h"
 #include "Parameters.h"
 
-using namespace std;
 
 namespace Audioneex
 {
@@ -41,7 +39,8 @@ int BlockEncoder::Encode(const uint32_t* const* plist_chunk,
 
     size_t m_ser_chunk_size = 0;
 
-    for(size_t pp=0; pp<plist_chunk_size; pp++){
+    for(size_t pp=0; pp<plist_chunk_size; pp++)
+	{
         const uint32_t* p = plist_chunk[pp];
         m_ser_chunk_size += 2/*FID,tf*/ + *(p+1) * 3/*LID,T,E*/;
     }
@@ -122,13 +121,16 @@ void BlockEncoder::Serialize(const uint32_t * const *plist_chunk,
         ser_chunk[vpos++] = tf;
 
         // Serialize and delta-encode the payload <{LID},{T},{E}>
-        for(size_t i=0; i<tf; i++, vpos++){
+        for(size_t i=0; i<tf; i++, vpos++)
+		{
             poff1 = i * 3;
+			
             if(i==0 || !delta_encode){
                ser_chunk[vpos] = *(p+2+poff1);       // LID
                ser_chunk[vpos+1*tf] = *(p+3+poff1);  // T
                ser_chunk[vpos+2*tf] = *(p+4+poff1);  // E
-            }else{
+            }
+			else{
                poff0 = (i-1) * 3;
 
                // LIDs must be strict increasing, Ts are not

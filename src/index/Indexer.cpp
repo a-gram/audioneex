@@ -172,7 +172,7 @@ void Audioneex::IndexerImpl::Index(uint32_t FID)
            // quantize the LFs
            QLocalFingerprint_t qlf;
 		   
-           BOOST_FOREACH(LocalFingerprint_t *lf, lfs){
+           for(LocalFingerprint_t *lf : lfs){
                Codebook::QResults quant = m_AudioCodes->quantize(*lf);
                qlf.T = lf->T;
                qlf.F = lf->F;
@@ -322,7 +322,7 @@ void Audioneex::IndexerImpl::DoFlush()
     IndexCache::buffer_type &buffer = m_Cache.GetBuffer();
 
 
-    BOOST_FOREACH(IndexCache::buffer_type::value_type &elem, buffer)
+    for(IndexCache::buffer_type::value_type &elem : buffer)
     {
         int term = elem.first;
         std::vector<uint32_t> &plist = elem.second;
@@ -338,8 +338,10 @@ void Audioneex::IndexerImpl::DoFlush()
         // Get the last block header. If we get a null list header then we
         // assume the postings list does not exist, else we must receive a
         // non-null block's header. If not we have an inconsistent index.
-        if(!IsNull(lhdr)){
+        if(!IsNull(lhdr))
+		{
            hdr = m_DataStore->OnIndexerBlockHeader(term, lhdr.BlockCount);
+		   
            if(IsNull(hdr))
                throw Audioneex::InvalidIndexDataException
                    ("Got an empty header for existing block ?");
@@ -396,7 +398,8 @@ void Audioneex::IndexerImpl::DoFlush()
                    hdr.BodySize += ebytes;
                    hdr.FIDmax = *plchunk.back();
                    m_DataStore->OnIndexerChunk(term, lhdr, hdr, bchunk_ptr, ebytes);
-               }else{
+               }
+			   else{
                    blockEncoder.Encode(plchunk_ptr, plchunk_nposts,
                                        bchunk_ptr, bchunk_size,
                                        ebytes, 0);
@@ -420,7 +423,7 @@ void Audioneex::IndexerImpl::DoFlush()
         assert(plchunk.empty());
         //plist.clear();
 
-    }//end foreach(list,buffer)
+    }//end for(list,buffer)
 
 }
 

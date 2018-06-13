@@ -39,17 +39,20 @@ class PosixPipe
     PosixPipe() : m_Pipe() {}
     ~PosixPipe() { Close(); }
 
-    bool Open(PipeType type) {
+    bool Open(PipeType type) 
+	{
         return Open( m_ProgramPath + m_ArgsList, type );
     }
 
-    bool Open(const std::string &cmd, PipeType type) {
+    bool Open(const std::string &cmd, PipeType type) 
+	{
         if(IsOpen()) Close();
         m_Pipe = popen(cmd.c_str(), type==INPUT_PIPE ? "r" : "w");
         return m_Pipe!=nullptr;
     }
 
-    int Close(){
+    int Close()
+	{
         int ret = 0;
         if(m_Pipe){
            ret = pclose(m_Pipe);
@@ -60,7 +63,8 @@ class PosixPipe
         return ret;
     }
 
-    bool Read(void* buffer, size_t nbytes, size_t &read){
+    bool Read(void* buffer, size_t nbytes, size_t &read)
+	{
         read = fread(buffer, 1, nbytes, m_Pipe);
         return ferror(m_Pipe) ? false : true;
     }
@@ -69,7 +73,8 @@ class PosixPipe
 
     bool IsOpen() const { return m_Pipe!=nullptr; }
 
-    void SetProgramPath(const std::string& progPath){
+    void SetProgramPath(const std::string& progPath)
+	{
         if(progPath.empty()) return;
         if(progPath.find(' ')!=std::string::npos &&
            progPath.front()!='"' && progPath.back()!='"')
@@ -78,7 +83,8 @@ class PosixPipe
            m_ProgramPath = ( progPath );
     }
 
-    void AddCmdArg(const std::string& arg){
+    void AddCmdArg(const std::string& arg)
+	{
         if(!arg.empty())
            m_ArgsList += " " + arg;
     }

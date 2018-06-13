@@ -47,7 +47,8 @@ Audioneex::RecognizerImpl::RecognizerImpl() :
 
 // ----------------------------------------------------------------------------
 
-Audioneex::RecognizerImpl::~RecognizerImpl(){
+Audioneex::RecognizerImpl::~RecognizerImpl()
+{
 }
 
 // ----------------------------------------------------------------------------
@@ -145,7 +146,8 @@ void Audioneex::RecognizerImpl::ProcessMatchResults(int processed, float dt_proc
 
        // Here we use the instantaneous confidence
        // TODO Revise this classification method
-       BOOST_FOREACH(int Qi, BestQis){
+       for(int Qi : BestQis)
+	   {
           IdAcc_t& Ac = m_MatchAcc[Qi];
           Ac.Conf = conf;
           Ac.Steps = 1;
@@ -190,7 +192,8 @@ void Audioneex::RecognizerImpl::FillResults()
 
     int best_score = mresults.GetTopScore(1);
 
-    BOOST_FOREACH(int Qi, best_matches){
+    for(int Qi : best_matches)
+	{
         match.FID = Qi;
         // Scores may get very big, so do some scaling
         match.Score = best_score / 1000.f;

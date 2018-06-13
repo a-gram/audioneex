@@ -139,13 +139,15 @@ public:
 
     /// Terminate the stream monitoring task.
     /// Wait for the audio thread to finish and stop the event loop.
-    void Terminate(){
+    void Terminate()
+	{
         m_AudioSource.StopCapture( true );
         m_AudioSource.Close();
         m_event_loop.stop();
     }
 
-    void Connect(IdentificationResultsListener *listener){
+    void Connect(IdentificationResultsListener *listener)
+	{
         m_Listener = listener;
     }
 

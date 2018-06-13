@@ -31,18 +31,21 @@ int main(int argc, char** argv)
         std::cout << "Done" << std::endl;
     }
     // Command line exceptions
-    catch(const bad_cmd_line_exception &ex){
+    catch(const bad_cmd_line_exception &ex)
+	{
         std::cout << "ERROR: " << ex.what() << std::endl;
         PrintUsage();
         return -1;
     }
     // Command-specific exceptions
-    catch(const bad_cmd_exception &ex){
+    catch(const bad_cmd_exception &ex)
+	{
         std::cout << "ERROR: " << ex.what() << std::endl;
         return -1;
     }
     // Any other exception
-    catch(const std::exception &ex){
+    catch(const std::exception &ex)
+	{
         std::cout << "ERROR: " << ex.what() << std::endl;
         return -1;
     }

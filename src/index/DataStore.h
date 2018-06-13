@@ -100,7 +100,8 @@ class AUDIONEEX_API_TEST PListIterator
                                                            m_NextBlock,
                                                            block_size);
 
-        if(pblock && block_size){
+        if(pblock && block_size)
+		{
             size_t decsize = BlockEncoder::GetDecodedSizeEstimate(block_size);
 
             if(m_BlockDecoded.capacity() < decsize)
@@ -124,7 +125,8 @@ class AUDIONEEX_API_TEST PListIterator
             m_end   = m_begin + m_BlockDecoded_size;
             m_NextBlock++;
             return true;
-        }else{
+        }
+		else{
             m_Cursor.reset();
             m_EOL   = true;
             return false;
@@ -140,8 +142,10 @@ class AUDIONEEX_API_TEST PListIterator
             m_Cursor.LID = m_begin; m_begin+=m_Cursor.tf;
             m_Cursor.T   = m_begin; m_begin+=m_Cursor.tf;
             m_Cursor.E   = m_begin; m_begin+=m_Cursor.tf;
-        }else
+        }
+		else {
             m_Cursor.reset();
+		}
     }
 
 public:

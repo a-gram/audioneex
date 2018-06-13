@@ -24,7 +24,8 @@ class CommandMakeAudioCodes : public Command
 
 public:
 
-    CommandMakeAudioCodes(){
+    CommandMakeAudioCodes()
+	{
         m_Usage = "\nSyntax: --make-audiocodes -i <codes_file> -o <cpp_file>\n";;
         m_SupportedArgs.insert("-i");
         m_SupportedArgs.insert("-o");

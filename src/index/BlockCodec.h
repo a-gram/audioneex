@@ -115,13 +115,17 @@ public:
         const uint32_t * const initout(vdec);
         uint32_t * iout = vdec;
 
-        while (endbyte > inbyte) {
+        while (endbyte > inbyte)
+		{
             unsigned int shift = 0;
 
-            for (uint32_t e = 0; endbyte > inbyte; shift += 7) {
+            for (uint32_t e = 0; endbyte > inbyte; shift += 7)
+			{
                 uint8_t c = *inbyte++;
                 e += ((c & 127) << shift);
-                if ((c & 128)) {
+				
+                if ((c & 128))
+				{
                     if(iout >= vdec + vdec_size)
                        return 0; //<- or throw ?
                     *iout++ = e;
@@ -212,7 +216,8 @@ public:
         uint32_t bfid   = base_FID;
         uint32_t tf,i,j;
 
-        while(begin < end){
+        while(begin < end)
+		{
             *begin += bfid;
             bfid = *begin;
             begin++;

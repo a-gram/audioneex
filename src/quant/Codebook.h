@@ -83,7 +83,8 @@ class Codebook
 
 
 // Clusters comparator
-inline bool operator==(const Cluster &cluster1, const Cluster &cluster2){
+inline bool operator==(const Cluster &cluster1, const Cluster &cluster2)
+{
     return (cluster1.ID == cluster2.ID &&
             cluster1.SumD == cluster2.SumD &&
             cluster1.Npoints == cluster2.Npoints &&

@@ -36,8 +36,6 @@
 #include "performance.h"
 #include "CmdLineParser.h"
 
-using namespace std;
-using namespace boost;
 using namespace Audioneex;
 
 
@@ -59,11 +57,11 @@ int main(int argc, char** argv)
         PerformanceTask ptask (opts.apath);
 
         // Get a connection instance to the datastore
-        unique_ptr<KVDataStore> dstore ( new DATASTORE_T (opts.db_url) );
+        std::unique_ptr<KVDataStore> dstore ( new DATASTORE_T (opts.db_url) );
         dstore->Open( KVDataStore::GET, true, true );
 
         // Create and set up the recognizer
-        unique_ptr<Recognizer> recognizer ( Recognizer::Create() );
+        std::unique_ptr<Recognizer> recognizer ( Recognizer::Create() );
         recognizer->SetDataStore( dstore.get() );
         recognizer->SetMatchType( opts.mtype );
         recognizer->SetIdentificationType( opts.id_type );

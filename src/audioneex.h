@@ -52,7 +52,8 @@ namespace Audioneex
 /// Structure for identified best matches returned by the Recognizer. Clients
 /// will use this information to link the identified audio to its metadata and
 /// to verify the degree of confidence of the identification.
-struct IdMatch{
+struct IdMatch
+{
     uint32_t FID;          ///< The fingerprint's unique identifier
     float    Confidence;   ///< A measure of the confidence of match
     float    Score;        ///< The score assigned to the match
@@ -75,19 +76,22 @@ struct PListBlockHeader
 // ----------------------------------------------------------------------------
 
 /// Convenience functions to check for null id match results
-inline bool IsNull(const IdMatch& res){
+inline bool IsNull(const IdMatch& res)
+{
     return res.FID == 0 &&
            res.Score == 0 &&
            res.Confidence == 0;
 }
 
 /// Convenience functions to check for null list headers
-inline bool IsNull(const PListHeader& hdr){
+inline bool IsNull(const PListHeader& hdr)
+{
     return hdr.BlockCount == 0;
 }
 
 /// Convenience functions to check for null block headers
-inline bool IsNull(const PListBlockHeader& hdr){
+inline bool IsNull(const PListBlockHeader& hdr)
+{
     return hdr.ID == 0 &&
            hdr.BodySize == 0 &&
            hdr.FIDmax == 0;

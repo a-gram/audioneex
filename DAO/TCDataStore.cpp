@@ -26,7 +26,6 @@
 
 #include "TCDataStore.h"
 
-using namespace std;
 using namespace Audioneex;
 
 
@@ -40,7 +39,7 @@ inline std::string ToString(const T &val)
 
 // ----------------------------------------------------------------------------
 
-TCDataStore::TCDataStore(const string &url) :
+TCDataStore::TCDataStore(const std::string &url) :
     m_DBURL         (url),
     m_MainIndex     (this),
     m_QFingerprints (this),
@@ -158,7 +157,7 @@ const uint8_t* TCDataStore::GetPListBlock(int list_id, int block, size_t &data_s
 void TCDataStore::OnIndexerStart()
 {
     if(m_Op == GET)
-       throw invalid_argument("OnIndexerStart(): Invalid operation (GET)");
+       throw std::invalid_argument("OnIndexerStart(): Invalid operation (GET)");
 
      if(m_Op == BUILD_MERGE)
         m_DeltaIndex.Open(OPEN_READ_WRITE);
@@ -239,7 +238,7 @@ PListHeader TCDataStore::OnIndexerListHeader(int list_id)
     else if(m_Op == BUILD)
        return m_MainIndex.GetPListHeader(list_id);
     else
-       throw invalid_argument("OnIndexerListHeader(): Invalid operation");
+       throw std::invalid_argument("OnIndexerListHeader(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -257,7 +256,7 @@ PListBlockHeader TCDataStore::OnIndexerBlockHeader(int list_id, int block)
     else if(m_Op == BUILD)
        return m_MainIndex.GetPListBlockHeader(list_id, block);
     else
-       throw invalid_argument("OnIndexerBlockHeader(): Invalid operation");
+       throw std::invalid_argument("OnIndexerBlockHeader(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -272,7 +271,7 @@ void TCDataStore::OnIndexerChunk(int list_id,
     else if(m_Op == BUILD)
        m_MainIndex.AppendChunk(list_id, lhdr, hdr, data, data_size);
     else
-       throw invalid_argument("OnIndexerChunkAppend(): Invalid operation");
+       throw std::invalid_argument("OnIndexerChunkAppend(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -287,7 +286,7 @@ void TCDataStore::OnIndexerNewBlock(int list_id,
     else if(m_Op == BUILD)
        m_MainIndex.AppendChunk(list_id, lhdr, hdr, data, data_size, true);
     else
-       throw invalid_argument("OnIndexerChunkNewBlock(): Invalid operation");
+       throw std::invalid_argument("OnIndexerChunkNewBlock(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -321,11 +320,11 @@ const uint8_t* TCDataStore::GetFingerprint(uint32_t FID, size_t &read, size_t nb
 
 
 
-#define CHECK_OP(db)       string estr = "[TokyoCabinet] - ";   \
-                           int err = tchdbecode(db);            \
-                           estr.append(tchdberrmsg(err));       \
-                           if(err!=TCESUCCESS)                  \
-                              throw runtime_error(estr);        \
+#define CHECK_OP(db)       std::string estr = "[TokyoCabinet] - ";   \
+                           int err = tchdbecode(db);                 \
+                           estr.append(tchdberrmsg(err));            \
+                           if(err!=TCESUCCESS)                       \
+                              throw std::runtime_error(estr);        \
 
 
 TCCollection::TCCollection(TCDataStore *datastore) :
@@ -355,7 +354,7 @@ void TCCollection::Open(int mode)
             mode == OPEN_READ_WRITE)
        db_mode = HDBOWRITER|HDBOCREAT;
     else
-       throw logic_error("Unrecognized database opening mode");
+       throw std::logic_error("Unrecognized database opening mode");
 
     // Close current database if open
     if(m_IsOpen)
@@ -366,17 +365,17 @@ void TCCollection::Open(int mode)
     tchdbtune(m_DBHandle, 1000000, 4, 10, HDBTLARGE);
     tchdbsetcache(m_DBHandle, 1000000);
 
-    string full_url = m_DBURL + m_DBName;
+    std::string full_url = m_DBURL + m_DBName;
 
     if(tchdbopen(m_DBHandle, full_url.c_str(), db_mode)){
         //mDbMode = mode;
     }else{
         int err = tchdbecode(m_DBHandle);
-        string estr = tchdberrmsg(err);
+        std::string estr = tchdberrmsg(err);
         estr += " " + full_url;
         tchdbdel(m_DBHandle);
         m_DBHandle = nullptr;
-        throw runtime_error(estr);
+        throw std::runtime_error(estr);
     }
 
     m_IsOpen = true;
@@ -490,7 +489,7 @@ PListBlockHeader TCIndex::GetPListBlockHeader(int list_id, int block_id)
 
 // ----------------------------------------------------------------------------
 
-size_t TCIndex::ReadBlock(int list_id, int block_id, vector<uint8_t> &buffer, bool headers)
+size_t TCIndex::ReadBlock(int list_id, int block_id, std::vector<uint8_t> &buffer, bool headers)
 {
     int bsize;
     void *block;
@@ -571,7 +570,7 @@ void TCIndex::AppendChunk(int list_id,
     }
 
     // Get block from cache (create new one if not found)
-    vector<uint8_t> &block = m_BlocksCache.buffer[hdr.ID];
+    std::vector<uint8_t> &block = m_BlocksCache.buffer[hdr.ID];
 
     // Read block from database if not in cache and not new
     if(block.empty() && !new_block)
@@ -609,7 +608,7 @@ void TCIndex::AppendChunk(int list_id,
 void TCIndex::UpdateListHeader(int list_id, PListHeader &lhdr)
 {
     // Try the cache first
-    vector<uint8_t> &block = m_BlocksCache.buffer[1];
+    std::vector<uint8_t> &block = m_BlocksCache.buffer[1];
 
     // Read from database if cache miss
     if(block.empty())
@@ -638,7 +637,7 @@ void TCIndex::Merge(TCCollection* plidx)
 
     tchdbiterinit(m_DBHandle);
 
-    vector<uint8_t>& lblock = m_Buffer;
+    std::vector<uint8_t>& lblock = m_Buffer;
 
 
     while((key = tchdbiternext(m_DBHandle, &ksize)))
@@ -850,9 +849,9 @@ TCMetadata::TCMetadata(TCDataStore *dstore) :
 
 // ----------------------------------------------------------------------------
 
-string TCMetadata::Read(uint32_t FID)
+std::string TCMetadata::Read(uint32_t FID)
 {
-    string str;
+    std::string str;
     if(m_DBHandle){
        str = ToString(FID);
        char* pstr = tchdbget2(m_DBHandle, str.c_str());
@@ -864,12 +863,12 @@ string TCMetadata::Read(uint32_t FID)
 
 // ----------------------------------------------------------------------------
 
-void TCMetadata::Write(uint32_t FID, const string &meta)
+void TCMetadata::Write(uint32_t FID, const std::string &meta)
 {
     if(m_DBHandle==nullptr)
-       throw runtime_error("Metadata database not open");
+       throw std::runtime_error("Metadata database not open");
 
-    string str = ToString(FID);
+    std::string str = ToString(FID);
     if(!tchdbput2(m_DBHandle, str.c_str(), meta.c_str())){
        CHECK_OP(m_DBHandle);
     }
@@ -893,7 +892,7 @@ TCInfo::TCInfo(TCDataStore *dstore) :
 DBInfo_t TCInfo::Read()
 {
     if(m_DBHandle==nullptr)
-       throw runtime_error("Info database not open");
+       throw std::runtime_error("Info database not open");
 
     int dsize, key = 0;
     void *data;
@@ -914,7 +913,7 @@ DBInfo_t TCInfo::Read()
 void TCInfo::Write(const DBInfo_t &info)
 {
     if(m_DBHandle==nullptr)
-       throw runtime_error("Metadata database not open");
+       throw std::runtime_error("Metadata database not open");
 
     int key = 0;
     if(!tchdbput(m_DBHandle, &key, sizeof(int), &info, sizeof(DBInfo_t))){

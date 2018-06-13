@@ -61,11 +61,15 @@ public:
 
             // Generate random LFs points in the t-f spectrum interval
             // starting at current time toffset.
-            for(int i=1; i<=nlf; i++){
+            for(int i=1; i<=nlf; i++)
+			{
                 bool exists = false;
-                while(!exists){
+				
+                while(!exists)
+				{
                     int T = m_rand_number(0, DT-1);
                     int F = m_rand_number(0, DF-1);
+					
                     if(spec[T][F]==0){
                        spec[T][F]=1;
                        exists=true;
@@ -74,9 +78,12 @@ public:
             }
 
             // create QLFs
-            for(int t=0; t<DT; t++){
-                for(int k=0; k<DF; k++){
-                    if(spec[t][k]!=0){
+            for(int t=0; t<DT; t++)
+			{
+                for(int k=0; k<DF; k++)
+				{
+                    if(spec[t][k]!=0)
+					{
                        Audioneex::QLocalFingerprint_t QLF;
                        QLF.T = toffset + t;
                        QLF.F = Audioneex::Pms::Kmin + k;

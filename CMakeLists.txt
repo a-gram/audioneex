@@ -45,6 +45,7 @@ list(APPEND MY_LIBRARY_x64_RELEASE_DIRS
 
     "c:/dev/cpp/lib/fftss/x64/vc141/release"
     "c:/dev/cpp/lib/ejdb/x64/vc141/release"
+	"c:/dev/cpp/lib/libcouchbase/x64/vc141/release"
     "c:/dev/cpp/lib/taglib/x64/vc141/release"
     "/usr/local/lib/7"
 

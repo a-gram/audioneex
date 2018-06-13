@@ -81,73 +81,74 @@ class AudioIndexingTask : public IdTask,
     {
         if(m_Terminated) return;
 
+		if(bfs::is_regular_file(audiofile))
+		{
+		   std::string filename = bfs::path(audiofile).filename().string();
+		   std::string ext = filename.substr(filename.find_last_of(".")+1);
 
-	if(bfs::is_regular_file(audiofile))
-	{
-           std::string filename = bfs::path(audiofile).filename().string();
-           std::string ext = filename.substr(filename.find_last_of(".")+1);
+		   if(AudioSource::IsFormatSupported(ext))
+		   {
+			  m_AudioSource.Open(audiofile);
 
-           if(AudioSource::IsFormatSupported(ext))
-           {
-              m_AudioSource.Open(audiofile);
+			  std::cout << "[FID:"<<(m_FID+1)<<"] - " << filename << " ... ";
+			  std::cout.flush();
 
-              std::cout << "[FID:"<<(m_FID+1)<<"] - " << filename << " ... ";
-              std::cout.flush();
+			  // Assign a strict increasing FID to the recordings.
+			  m_FID++;
 
-              // Assign a strict increasing FID to the recordings.
-              m_FID++;
+			  // You may want to catch indexing errors here for recoverable failures
+			  // to avoid aborting the whole indexing process.
+			  // Invalid fingerprint exceptions are thrown if a fingerprint cannot be
+			  // extracted for some reason, such as invalid audio or incorrect FIDs.
+			  // These errors may be recovered by just skipping the failed fingerprint.
+			  // Anything else is a serious error and indexing should be aborted.
+			  try{
+				  // Start indexing of current audio file.
+				  // This call is synchronous. It will call OnAudioData() repeatedly
+				  // and will return once all audio for the current recording has been
+				  // consumed (this must be signalled in OnAudioData() by returning 0).
+				  m_Indexer->Index(m_FID);
 
-              // You may want to catch indexing errors here for recoverable failures
-              // to avoid aborting the whole indexing process.
-              // Invalid fingerprint exceptions are thrown if a fingerprint cannot be
-              // extracted for some reason, such as invalid audio or incorrect FIDs.
-              // These errors may be recovered by just skipping the failed fingerprint.
-              // Anything else is a serious error and indexing should be aborted.
-              try{
-                  // Start indexing of current audio file.
-                  // This call is synchronous. It will call OnAudioData() repeatedly
-                  // and will return once all audio for the current recording has been
-                  // consumed (this must be signalled in OnAudioData() by returning 0).
-                  m_Indexer->Index(m_FID);
+				  // Here, after the recording has been successfully indexed,
+				  // you may want to store the FID and associated metadata in
+				  // a database ...
 
-                  // Here, after the recording has been successfully indexed,
-                  // you may want to store the FID and associated metadata in
-                  // a database ...
-
-                  std::string meta;
+				  std::string meta;
 
 #ifdef ID3_TAG_SUPPORT
-                  if(m_AudioSource.GetID3Tags().GetTitle().empty() &&
-                     m_AudioSource.GetID3Tags().GetArtist().empty())
-                     meta = filename;
-                  else
-                     meta = m_AudioSource.GetID3Tags().GetTitle() + " by " +
-                     m_AudioSource.GetID3Tags().GetArtist();
+				  if(m_AudioSource.GetID3Tags().GetTitle().empty() &&
+					 m_AudioSource.GetID3Tags().GetArtist().empty())
+					 meta = filename;
+				  else
+					 meta = m_AudioSource.GetID3Tags().GetTitle() + " by " +
+					 m_AudioSource.GetID3Tags().GetArtist();
 
-                  static_cast<KVDataStore*>(m_DataStore)->PutMetadata( m_FID, meta );
+				  static_cast<KVDataStore*>(m_DataStore)->PutMetadata( m_FID, meta );
 #endif
 
-                  std::cout << "OK. (" << m_AudioSource.GetFormattedDuration() << ")"
-                                       << (meta.empty()?"":" (ID3)") << std::endl;
-              }
-              catch(const Audioneex::InvalidFingerprintException &ex){
-                  std::cout << "FAILED. " << ex.what() << std::endl;
-                  m_FID--; // reuse FID
-              }
+				  std::cout << "OK. (" << m_AudioSource.GetFormattedDuration() << ")"
+									   << (meta.empty()?"":" (ID3)") << std::endl;
+			  }
+			  catch(const Audioneex::InvalidFingerprintException &ex)
+			  {
+				  std::cout << "FAILED. " << ex.what() << std::endl;
+				  m_FID--; // reuse FID
+			  }
 
-              // Reset all resources for next audio file
-              m_AudioSource.Close();
-           }
-           else {
-              std::cout << "Unsupported format: " << filename << std::endl;
-           }
-	}
-	else if(bfs::is_directory(audiofile))
-	{
-	   bfs::directory_iterator it(audiofile);
-	   for(; it!=bfs::directory_iterator(); ++it)
-	       DoIndexing(it->path().string());
-	}
+			  // Reset all resources for next audio file
+			  m_AudioSource.Close();
+		   }
+		   else 
+		   {
+			  std::cout << "Unsupported format: " << filename << std::endl;
+		   }
+		}
+		else if(bfs::is_directory(audiofile))
+		{
+		   bfs::directory_iterator it(audiofile);
+		   for(; it!=bfs::directory_iterator(); ++it)
+			   DoIndexing(it->path().string());
+		}
     }
 
 public:

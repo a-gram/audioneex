@@ -138,8 +138,9 @@ class Tester
 	    DEBUG_MSG("T : "<<lf.T)
 	    DEBUG_MSG("F : "<<lf.F)
 	    DEBUG_MSG("D : ")
-	    BOOST_FOREACH(unsigned char v,lf.D)
+	    for(unsigned char v : lf.D) {
 	       DEBUG_MSG(int(v)<<" ")
+		}
 	    DEBUG_MSG("")
 	}
 	
@@ -149,13 +150,13 @@ class Tester
 	{
 	    std::string str;
 	
-	    BOOST_FOREACH(const hashtable_Qi::value_type &e, res.Top_K){
+	    for(const hashtable_Qi::value_type &e : res.Top_K){
 	        int score = e.first;
 	        str.append("*** score: ")
 	           .append(Utils::ToString(score))
 	           .append("\t");
             std::list<int> tie_list = e.second;
-	        BOOST_FOREACH(int Qi, tie_list){
+	        for(int Qi : tie_list){
 	            str.append(" Q").append(Utils::ToString(Qi));
 	        }
 	        str.append("\n");
@@ -169,13 +170,13 @@ class Tester
 	void Dump(const hashtable_Qhisto &table)
 	{
 	    std::string str;
-	    BOOST_FOREACH(const hashtable_Qhisto::value_type &e, table){
+	    for(const hashtable_Qhisto::value_type &e : table){
 	        int score = e.first;
 	        str.append(" score: ")
 	           .append(Utils::ToString(score))
 	           .append("\t");
             const std::list<Qhisto_t> &tie_list = e.second;
-	        BOOST_FOREACH(Qhisto_t H, tie_list){
+	        for(Qhisto_t H : tie_list){
 	            str.append(" Q").append(Utils::ToString(H.Qi));
 	        }
 	        str.append("\n");
@@ -188,10 +189,10 @@ class Tester
 	void Dump(const hashtable_Qi &table)
 	{
 	    std::string str;
-	    BOOST_FOREACH(const hashtable_Qi::value_type &e, table){
+	    for(const hashtable_Qi::value_type &e : table){
 	        int score = e.first;
             const std::list<int> &tie_list = e.second;
-	        BOOST_FOREACH(int Qi, tie_list){
+	        for(int Qi : tie_list){
 	            str.append(" Q").append(Utils::ToString(Qi));
 	        }
 	        str.append("\tscore: ")
@@ -206,7 +207,7 @@ class Tester
 	void Dump(const hashtable_Qc &table)
 	{
 	    std::string str;
-	    BOOST_FOREACH(const hashtable_Qc::value_type &e, table){
+	    for(const hashtable_Qc::value_type &e : table){
 	        int Qi = e.first;
             const Ac_t &H = e.second;
 	        str.append(" Q").append(Utils::ToString(Qi));
@@ -222,9 +223,11 @@ class Tester
 	void Dump(const std::vector< std::vector<float> > &mat)
 	{
 	    std::string str;
-        BOOST_FOREACH(const std::vector<float> &col, mat)
-	         BOOST_FOREACH(float row, col)
+        for(const std::vector<float> &col : mat) {
+	         for(float row : col) {
 	              str.append(Utils::ToString(row)).append("   ");
+			 }
+		}
 	    DEBUG_MSG(str)
 	}
 	
@@ -240,7 +243,7 @@ class Tester
 	
 	    std::vector<float> point(2);
 	
-	    BOOST_FOREACH(LocalFingerprint_t *lf, fp.m_LF){
+	    for(LocalFingerprint_t *lf : fp.m_LF){
 	        int m = lf->T;
 	        int k = lf->F;
 	        point[0] = m * Pms::dt;

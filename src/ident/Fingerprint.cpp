@@ -17,7 +17,6 @@
  #include "Tester.h"
 #endif
 
-using namespace std;
 
 TEST_HERE( namespace { Audioneex::Tester TEST; } )
 
@@ -150,7 +149,7 @@ void Audioneex::Fingerprint::FindPeaks()
 
     int nbins = Pms::Kmax - Pms::Kmin + 1;
 
-    vector< vector<float> > &X = m_Spectrum;
+    std::vector< std::vector<float> > &X = m_Spectrum;
 
     m_Peak.resize(X.size());
     for(size_t i=0; i<X.size(); i++)
@@ -199,8 +198,8 @@ void Audioneex::Fingerprint::FindPeaks()
 void Audioneex::Fingerprint::ExtractPOI()
 {
 
-    vector< vector<float> > &X = m_Spectrum;
-    vector< vector<float> > &P = m_Peak;
+    std::vector< std::vector<float> > &X = m_Spectrum;
+    std::vector< std::vector<float> > &P = m_Peak;
 
 #ifdef PLOTTING_ENABLED
     m_POI.resize(X.size());
@@ -251,8 +250,8 @@ void Audioneex::Fingerprint::ExtractPOI()
 void Audioneex::Fingerprint::ComputeDescriptors()
 {
 
-    vector< vector<float> > &X = m_Spectrum;
-    vector< vector<float> > &P = m_Peak;// m_POI;
+    std::vector< std::vector<float> > &X = m_Spectrum;
+    std::vector< std::vector<float> > &P = m_Peak;// m_POI;
 
     size_t Tmax = X.size();
     size_t Fmax = X[0].size();
@@ -274,7 +273,7 @@ void Audioneex::Fingerprint::ComputeDescriptors()
                 int WcoF = NpoF + Pms::rWcF;
 
                 // the descriptor for current N(p)
-                vector<unsigned char> D;
+                std::vector<unsigned char> D;
 
                 unsigned char Vc=0, SH=1/*SD shift*/, csd=1;
 
@@ -309,14 +308,14 @@ void Audioneex::Fingerprint::ComputeDescriptors()
                         float TL=0.25;//0.3
                         float TLmin=2;//3
 
-                        float LRatioMax = max<float>(EWc,EWcN[0]) /
-                                          min<float>(EWc,EWcN[0]);
+                        float LRatioMax = std::max<float>(EWc,EWcN[0]) /
+                                          std::min<float>(EWc,EWcN[0]);
                         float Lmax = fabs(EWc - EWcN[0]);
 
                         for(int wi=1; wi<=3; wi++){
-                            LRatioMax = max<float>(LRatioMax, max<float>(EWc,EWcN[wi]) /
-                                                              min<float>(EWc,EWcN[wi]) );
-                            Lmax = max<float>(Lmax, fabs(EWc - EWcN[wi]));
+                            LRatioMax = std::max<float>(LRatioMax, std::max<float>(EWc,EWcN[wi]) /
+                                                                   std::min<float>(EWc,EWcN[wi]) );
+                            Lmax = std::max<float>(Lmax, fabs(EWc - EWcN[wi]));
                         }
 
                         if(LRatioMax > TLmin)
@@ -369,7 +368,7 @@ void Audioneex::Fingerprint::ComputeDescriptors()
 
 // compute energy within a window of X(t,f), given the window's center coordinates and its radii
 float Audioneex::Fingerprint::ComputeWindowEnergy(int WoT, int WoF, int rWT, int rWF,
-                                                  vector< vector<float> > &X)
+                                                  std::vector< std::vector<float> > &X)
 {
     float EW = 0.0f;
     for(int u=WoT-rWT; u<=WoT+rWT; u++)
@@ -382,7 +381,7 @@ float Audioneex::Fingerprint::ComputeWindowEnergy(int WoT, int WoF, int rWT, int
 // ----------------------------------------------------------------------------
 
 float Audioneex::Fingerprint::ComputeMeanWindowEnergy(int WoT, int WoF, int rWT, int rWF,
-                                                      vector< vector<float> > &X)
+                                                      std::vector< std::vector<float> > &X)
 {
     float EW = 0.0f;
     float nW=0;

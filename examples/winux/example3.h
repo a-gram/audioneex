@@ -138,7 +138,8 @@ public:
 
     void Terminate() { m_Terminated = true; }
 
-    void Connect(IdentificationResultsListener *listener){
+    void Connect(IdentificationResultsListener *listener)
+	{
         m_Listener = listener;
     }
 
@@ -192,10 +193,12 @@ class FileIdentificationResultsParser : public IdentificationResultsListener
            std::cout << "-----------------------------------" << std::endl;
         }
         // There are ties for the best match
-        else if(BestMatch.size() > 1){
+        else if(BestMatch.size() > 1)
+		{
             std::cout << "There are " << BestMatch.size() << " ties for the best match" << std::endl;
         }
-        else{
+        else
+		{
             std::cout << "NO MATCH FOUND" << std::endl;
         }
 

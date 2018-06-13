@@ -44,33 +44,39 @@ class BinaryVector
             m_Vector(vec)
         {}
 
-        BitAccessor& eval_bit(size_t pos){
+        BitAccessor& eval_bit(size_t pos)
+		{
             m_BlockIdx = pos / BITBLOCK_SIZE;
             m_BitOffset = pos % BITBLOCK_SIZE;
             return *this;
         }
 
-        const BitAccessor& eval_bit(size_t pos) const{
+        const BitAccessor& eval_bit(size_t pos) const
+		{
             m_BlockIdx = pos / BITBLOCK_SIZE;
             m_BitOffset = pos % BITBLOCK_SIZE;
             return *this;
         }
 
-        BitAccessor& operator=(const bool &val){
+        BitAccessor& operator=(const bool &val)
+		{
             if(val) m_Vector->m_Data[m_BlockIdx] |= (1<<m_BitOffset);
             else    m_Vector->m_Data[m_BlockIdx] &= ~(1<<m_BitOffset);
             return *this;
         }
 
-        BitAccessor& operator=(const int &val){
+        BitAccessor& operator=(const int &val)
+		{
             return operator=(val?true:false);
         }
 
-        operator bool(){
+        operator bool()
+		{
             return (m_Vector->m_Data[m_BlockIdx] & (1<<m_BitOffset)) ? true : false;
         }
 
-        operator bool() const{
+        operator bool() const
+		{
             return (m_Vector->m_Data[m_BlockIdx] & (1<<m_BitOffset)) ? true : false;
         }
 
@@ -173,19 +179,22 @@ class BinaryVector
     }
 
 
-    BitAccessor& operator[](size_t n){
+    BitAccessor& operator[](size_t n)
+	{
         assert(0<=n && n<m_Size);
         return m_BitAccessor.eval_bit(n);
     }
 
 
-    const BitAccessor& operator[](size_t n) const{
+    const BitAccessor& operator[](size_t n) const
+	{
         assert(0<=n && n<m_Size);
         return m_BitAccessor.eval_bit(n);
     }
 
 
-    BinaryVector& operator=(const BinaryVector &vec){
+    BinaryVector& operator=(const BinaryVector &vec)
+	{
         if(vec.m_Size > 0){
            // Check whether it needs reallocation
            if(m_Data==nullptr || vec.m_BlockCount != this->m_BlockCount){
@@ -218,7 +227,8 @@ class BinaryVector
 
 
 // Binary vector comparator
-inline bool operator==(const BinaryVector &vec1, const BinaryVector &vec2) {
+inline bool operator==(const BinaryVector &vec1, const BinaryVector &vec2) 
+{
     assert(vec1.size() == vec2.size());
     // TODO: It would be faster checking that all buffer blocks
     // in both vectors are equal rather than checking each

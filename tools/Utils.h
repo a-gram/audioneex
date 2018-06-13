@@ -82,27 +82,31 @@ inline uint32_t Dh(uint8_t* str1, size_t str1_len,
 
 #ifdef AUDIONEEX_API_EXPORT
 
-inline size_t Dh(BinaryVector &vec1, BinaryVector &vec2){
+inline size_t Dh(BinaryVector &vec1, BinaryVector &vec2)
+{
     assert(vec1.size() == vec2.size());
     assert(vec1.bcount() == vec2.bcount());
     return Dh(vec1.data(), vec1.bcount(),
               vec2.data(), vec2.bcount());
 }
 
-inline size_t Dh(BinaryVector *vec1, BinaryVector *vec2){
+inline size_t Dh(BinaryVector *vec1, BinaryVector *vec2)
+{
     assert(vec1->size() == vec2->size());
     assert(vec1->bcount() == vec2->bcount());
     return Dh(vec1->data(), vec1->bcount(),
               vec2->data(), vec2->bcount());
 }
 
-inline size_t Dh(LocalFingerprint_t &lf1, LocalFingerprint_t &lf2){
+inline size_t Dh(LocalFingerprint_t &lf1, LocalFingerprint_t &lf2)
+{
     assert(lf1.D.size() == lf2.D.size());
     return Dh(lf1.D.data(), lf1.D.size(),
               lf2.D.data(), lf2.D.size());
 }
 
-inline size_t Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2){
+inline size_t Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2)
+{
     assert(lf1->D.size() == lf2->D.size());
     return Dh(lf1->D.data(), lf1->D.size(),
               lf2->D.data(), lf2->D.size());
@@ -137,7 +141,8 @@ inline size_t Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2){
 		static const size_t MILLISECOND = 1000;
 		static const size_t MICROSECOND = 1000000;
 
-		HighResolutionTimer() {
+		HighResolutionTimer() 
+		{
 			int res = QueryPerformanceFrequency(&m_freq);
 			if(res==0)
 				throw std::runtime_error("QueryPerformanceFrequency() failed");
@@ -145,7 +150,8 @@ inline size_t Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2){
 
 		// Return time in specified unit
 		template <size_t T>
-		double now(){
+		double now()
+		{
 			QueryPerformanceCounter(&m_ticks);
 			return m_ticks.QuadPart * T / m_freq.QuadPart;
 		}
@@ -227,7 +233,8 @@ inline size_t Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2){
 
 
     // log2(x)
-    inline double log2(double x){
+    inline double log2(double x)
+	{
         return log(x)/log(2.0);
     }
 
