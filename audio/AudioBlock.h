@@ -27,10 +27,10 @@ class AudioBlock
 {
  public:
 
-    /// Construct a null audio block.
+    /// Construct an empty audio block.
     AudioBlock();
 
-    /// Constructor.
+    /// Construct an audio block with the given parameters.
     /// @param nsamples Maximum size (capacity) of the audio block.
     /// @param sampleRate Sampling frequency of the audio.
     /// @param nchans Number of audio channels.

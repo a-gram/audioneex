@@ -7,9 +7,9 @@
 # Usage: build_android <arch> <comp> <api> <bmode> <btype>
 #
 #       where <arch> is one of the supported architectures (armeabi-v7a, 
-#       mips, x86, etc., or 'all' to build for all supported architectures),
-#       <comp> the compiler (gcc, clang), <bmode> the build mode (debug,
-#       release) and <btype> the lib binary type (static, dynamic)
+#       mips, x86, etc.), <comp> the compiler (gcc, clang), <bmode> the 
+#       build mode (debug, release) and <btype> the lib binary type 
+#       (static, dynamic)
 #
 # NOTE: The NDK is not really intended for building static libraries
 #       as the final product but "installable" modules (executables
