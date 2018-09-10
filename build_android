@@ -11,30 +11,6 @@
 #       build mode (debug, release) and <btype> the lib binary type 
 #       (static, dynamic)
 #
-# NOTE: The NDK is not really intended for building static libraries
-#       as the final product but "installable" modules (executables
-#       and shared libraries) that can be directly used by apps.
-#       However, it can also produce static libraries as part of the
-#       build process for an "installable" module and, with some
-#       adjustments, can be used to build only static libraries.
-#       The ndk-build script by default expects the source to be laid
-#       out according to the android application source structure.
-#       If you're building source that does not follow this convention
-#       then you need to specify some parameters in order for the build
-#       system to work:
-#       1) An 'AndroidManifest.xml' must be present in the source root
-#       directory alongside Android.mk; this is how the NDK recognizes
-#       the directory as the 'build root' for anything that doesn't follow
-#       the conventional Android source structure. The xml contents are not
-#       important as the file is not parsed. It can be just a dummy.
-#       2) Any variable usually defined in Application.mk needs to be
-#       explicitly defined in the environment (for non-standard source 
-#       layouts Application.mk is not parsed unless some specific NDK_*
-#       variables are set so that it can be found), and the path to the
-#       directories for the intermediate files and the output libraries.
-#       Passing these variables into the ndk-build call allow us to change
-#       the build without modifying the Application.mk everytime.
-#
 #       This script has been tested with NDK r16b. Eventually it must be
 #       revised once support for GCC is completely removed from the NDK.
 #
