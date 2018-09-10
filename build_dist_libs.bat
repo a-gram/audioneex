@@ -29,11 +29,11 @@ SET BUILD_COMP=
 SET BUILD_MODE=
 SET BUILD_BTYPE=
 
-for %%a in (win)                   do  if /i "%1"=="%%a" SET BUILD_PLAT=%1
-for %%a in (x32 x64)               do  if /i "%2"=="%%a" SET BUILD_ARCH=%2
-for %%a in (vc11 vc12 vc141)       do  if /i "%3"=="%%a" SET BUILD_COMP=%3
-for %%a in (debug release)         do  if /i "%4"=="%%a" SET BUILD_MODE=%4
-for %%a in (static dynamic)        do  if /i "%5"=="%%a" SET BUILD_BTYPE=%5
+for %%a in (win)              do  if /i "%1"=="%%a" SET BUILD_PLAT=%1
+for %%a in (x32 x64)          do  if /i "%2"=="%%a" SET BUILD_ARCH=%2
+for %%a in (vc11 vc12 vc141)  do  if /i "%3"=="%%a" SET BUILD_COMP=%3
+for %%a in (debug release)    do  if /i "%4"=="%%a" SET BUILD_MODE=%4
+for %%a in (static dynamic)   do  if /i "%5"=="%%a" SET BUILD_BTYPE=%5
 
 
 if "%BUILD_PLAT%"=="" (
