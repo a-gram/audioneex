@@ -243,9 +243,10 @@ class Tester
 	
 	    std::vector<float> point(2);
 	
-	    for(LocalFingerprint_t *lf : fp.m_LF){
-	        int m = lf->T;
-	        int k = lf->F;
+	    for(const LocalFingerprint_t &lf : fp.m_LF)
+		{
+	        int m = lf.T;
+	        int k = lf.F;
 	        point[0] = m * Pms::dt;
 	        point[1] = k * Pms::df;
 	        DESCRIPTORS_POIS.push_back(point);
@@ -253,7 +254,7 @@ class Tester
 	        Plot2DBox(m*Pms::dt-Pms::dTNp/2, ((k*Pms::df)+Pms::dFNp/2)-Pms::dFWc, (m*Pms::dt-Pms::dTNp/2)+Pms::dTWc, (k*Pms::df)+Pms::dFNp/2);
 	        Plot2DBox(m*Pms::dt-Pms::dTNp/2+((Pms::bt/100.f)*Pms::dTWc), ((k*Pms::df)+Pms::dFNp/2)-Pms::dFWc, (m*Pms::dt-Pms::dTNp/2)+Pms::dTWc+((Pms::bt/100.f)*Pms::dTWc), (k*Pms::df)+Pms::dFNp/2);
 	        Plot2DBox(m*Pms::dt-Pms::dTNp/2, ((k*Pms::df)+Pms::dFNp/2)-Pms::dFWc-((Pms::bf/100.f)*Pms::dFWc), (m*Pms::dt-Pms::dTNp/2)+Pms::dTWc, (k*Pms::df)+Pms::dFNp/2-((Pms::bf/100.f)*Pms::dFWc));
-	        Plot2DLabel(Utils::ToString<int>(lf->ID), m*Pms::dt+Pms::dTNp/10, Pms::Fmin+k*Pms::df+Pms::dFNp/10);
+	        Plot2DLabel(Utils::ToString<int>(lf.ID), m*Pms::dt+Pms::dTNp/10, Pms::Fmin+k*Pms::df+Pms::dFNp/10);
 	    }
 	
 	}

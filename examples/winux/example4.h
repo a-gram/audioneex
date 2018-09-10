@@ -39,9 +39,9 @@ class StreamMonitoringTask : public IdTask,
                              public AudioSourceDataListener
 {
 
-    AudioSourceDevice  m_AudioSource;
-    AudioBlock<Sfloat> m_AudioSnippet;
-    RingBuffer<S16bit> m_RingBuffer;
+    AudioSourceDevice   m_AudioSource;
+    AudioBlock<float>   m_AudioSnippet;
+    RingBuffer<int16_t> m_RingBuffer;
 
     boost::asio::io_service                        m_event_loop;
     std::unique_ptr<boost::asio::io_service::work> m_work;
@@ -55,9 +55,9 @@ class StreamMonitoringTask : public IdTask,
     /// returning. It's only job is to put the audio data in the accumulator
     /// and signal the identification thread if there is enough audio to
     /// perform the identification.
-    void OnAudioSourceData(AudioBlock<S16bit> &audio)
+    void OnAudioSourceData(AudioBlock<int16_t> &audio)
     {
-        AudioBlock<S16bit> *abuffer = m_RingBuffer.GetHead();
+        AudioBlock<int16_t> *abuffer = m_RingBuffer.GetHead();
 
         if(abuffer)
         {
@@ -76,7 +76,7 @@ class StreamMonitoringTask : public IdTask,
     /// the event loop) whenever a new event is received from the audio thread.
     void DoIdentification()
     {
-        AudioBlock<S16bit> *block = m_RingBuffer.Pull();
+        AudioBlock<int16_t> *block = m_RingBuffer.Pull();
 
         if(block == nullptr)
             return;
@@ -116,7 +116,7 @@ public:
 
         // Create 3 second audio buffers
         m_AudioSnippet.Create(11025 * 3, 11025, 1);
-        AudioBlock<S16bit> buffer (11025 * 3, 11025, 1, 0);
+        AudioBlock<int16_t> buffer (11025 * 3, 11025, 1, 0);
         m_RingBuffer.Set(10, buffer );
     }
 

@@ -50,8 +50,8 @@ TEST_CASE("Fingerprint processing") {
     Audioneex::Tester TESTER;
 #endif
 
-    AudioBlock<S16bit>  iblock(Srate*2, Srate, Nchan);
-    AudioBlock<Sfloat>  audio(Srate*2, Srate, Nchan);
+    AudioBlock<int16_t> iblock(Srate*2, Srate, Nchan);
+    AudioBlock<float>   audio(Srate*2, Srate, Nchan);
 
     AudioSourceFile     asource;
 

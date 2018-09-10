@@ -68,17 +68,17 @@ class AudioProcessor
 #ifdef HAVE_LIBRESAMPLE
     /// Resample the given audio block to the specified sample rate into a new block.
     /// Audio must be mono channel.
-    AudioBlock<Sfloat> *Resample(AudioBlock<T> &block, float newRate);
+    AudioBlock<float> *Resample(AudioBlock<T> &block, float newRate);
 
     /// Resample the given audio block to the specified sample rate into the specified
     /// audio block. Audio must be mono channel.
-    void Resample(AudioBlock<T> &inBlock, AudioBlock<Sfloat> &outBlock, float newRate);
+    void Resample(AudioBlock<T> &inBlock, AudioBlock<float> &outBlock, float newRate);
 #endif
 
     /// Performs the DFT of the input block using FFT. Input block's size must be a
     /// power of 2 for efficiency. Return the FFT in the given vector of float.
     /// The type of FFT returned is specified in the parameter <type>.
-    void FFT_Transform(AudioBlock<Sfloat> &inBlock, std::vector<float> &fft, int type=FFT::MagnitudeSpectrum);
+    void FFT_Transform(AudioBlock<float> &inBlock, std::vector<float> &fft, int type=FFT::MagnitudeSpectrum);
 
     /// Set FFT params
     void SetFFT(FFT* fft);
@@ -236,7 +236,7 @@ void AudioProcessor<T>::Mix(AudioBlock<T> &block1, AudioBlock<T> &block2, AudioB
 #ifdef HAVE_LIBRESAMPLE
 
 template <typename T>
-AudioBlock<Sfloat> *AudioProcessor<T>::Resample(AudioBlock<T> &block, float newRate)
+AudioBlock<float> *AudioProcessor<T>::Resample(AudioBlock<T> &block, float newRate)
 {
     assert(block.Channels() == 1);
 
@@ -254,9 +254,9 @@ AudioBlock<Sfloat> *AudioProcessor<T>::Resample(AudioBlock<T> &block, float newR
     size_t inBufferLen = block.Size();
     size_t outBufferLen = inBufferLen * factor;
 
-    AudioBlock<Sfloat>* pOutBlock = new AudioBlock<Sfloat>(outBufferLen + 64,
-                                                           block.SampleRate(),
-                                                           block.Channels());
+    AudioBlock<float>* pOutBlock = new AudioBlock<float>(outBufferLen + 64,
+                                                         block.SampleRate(),
+                                                         block.Channels());
 
     /// input block needs to be normalized in [-1,1]
 
@@ -296,7 +296,7 @@ AudioBlock<Sfloat> *AudioProcessor<T>::Resample(AudioBlock<T> &block, float newR
 
 
 template <typename T>
-void AudioProcessor<T>::Resample(AudioBlock<T> &inBlock, AudioBlock<Sfloat> &outBlock, float newRate)
+void AudioProcessor<T>::Resample(AudioBlock<T> &inBlock, AudioBlock<float> &outBlock, float newRate)
 {
     assert(!inBlock.IsNull());
     assert(inBlock.Channels() == 1);
@@ -323,7 +323,7 @@ void AudioProcessor<T>::Resample(AudioBlock<T> &inBlock, AudioBlock<Sfloat> &out
     // libresample needs the audio data in float format normalized in the range [-1,1],
     // so check whether the input block is already in this format and, if not, normalize it.
 
-    AudioBlock<Sfloat> *normBlock = inBlock.Normalize();
+    AudioBlock<float> *normBlock = inBlock.Normalize();
 
     if(normBlock == nullptr){
         outBlock.Resize(0);
@@ -357,7 +357,7 @@ void AudioProcessor<T>::Resample(AudioBlock<T> &inBlock, AudioBlock<Sfloat> &out
 #endif
 
 template <typename T>
-void AudioProcessor<T>::FFT_Transform(AudioBlock<Sfloat> &inBlock, std::vector<float> &fft, int type)
+void AudioProcessor<T>::FFT_Transform(AudioBlock<float> &inBlock, std::vector<float> &fft, int type)
 {
     assert(mFFT.get());
 

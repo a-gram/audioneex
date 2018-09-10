@@ -49,21 +49,21 @@ struct Performance_t
 
 class PerformanceTask : public IdTask
 {
-    AudioSourceFile    m_AudioSource;
-	AudioBlock<S16bit> m_iblock;
-	AudioBlock<Sfloat> m_iaudio;   ///< the input audio snippets
-	AudioBlock<Sfloat> m_noise;    ///< the noise sample
-	AudioBlock<Sfloat> m_inoise;   ///< the noise added to the in audio
+    AudioSourceFile     m_AudioSource;
+	AudioBlock<int16_t> m_iblock;
+	AudioBlock<float>   m_iaudio;   ///< the input audio snippets
+	AudioBlock<float>   m_noise;    ///< the noise sample
+	AudioBlock<float>   m_inoise;   ///< the noise added to the in audio
 
-    std::string        m_Audiofile;
-	Performance_t      m_performance;
-	std::ofstream      m_logfile;
+    std::string         m_Audiofile;
+	Performance_t       m_performance;
+	std::ofstream       m_logfile;
 
-	size_t             m_noise_offset;
-	float              m_mean_SNR;
-	size_t             m_nclips;
-	bool               m_process_iaudio;
-	float              m_input_gain;
+	size_t              m_noise_offset;
+	float               m_mean_SNR;
+	size_t              m_nclips;
+	bool                m_process_iaudio;
+	float               m_input_gain;
 
 	util::rng::natural<size_t> m_rng;
 
@@ -189,7 +189,7 @@ class PerformanceTask : public IdTask
 
 	// ------------------------------------------------------------------------
 
-	void Process(AudioBlock<Sfloat> &iaudio)
+	void Process(AudioBlock<float> &iaudio)
 	{
 		m_noise.GetSubBlock(m_noise_offset, iaudio.Size(), m_inoise);
 		iaudio.MixTo( m_inoise );
@@ -249,8 +249,8 @@ public:
 		{
 			DEBUG_MSG("Loading noise sample ...")
 
-				AudioSourceFile noise;
-			AudioBlock<S16bit> iblock;
+			AudioSourceFile noise;
+			AudioBlock<int16_t> iblock;
 
 			int duration = AudioSourceFile::GetID3TagsFromFile(NOISE_FILE).GetDuration() ;
 

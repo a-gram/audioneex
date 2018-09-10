@@ -27,13 +27,13 @@ namespace bfs = boost::filesystem;
 
 class CommandExtractAudioClips : public Command
 {
-	AudioSourceFile    m_AudioSource;
-	AudioBlock<S16bit> m_iblock;
-    std::string        m_AudioInPath;
-    std::string        m_AudioOutPath;
-	int                m_ClipsNum;
-	int                m_ClipStart;
-	int                m_ClipLength;
+	AudioSourceFile     m_AudioSource;
+	AudioBlock<int16_t> m_iblock;
+    std::string         m_AudioInPath;
+    std::string         m_AudioOutPath;
+	int                 m_ClipsNum;
+	int                 m_ClipStart;
+	int                 m_ClipLength;
 
 	Audioneex::Utils::rng::natural<int> m_rnd;
 

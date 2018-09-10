@@ -37,12 +37,12 @@ namespace bfs = boost::filesystem;
 class AudioIndexingTask : public IdTask,
                           public Audioneex::AudioProvider
 {
-    std::string        m_AudioDatabaseDir;
-    uint32_t           m_FID;
-    bool               m_Terminated;
-    AudioSourceFile    m_AudioSource;
-    AudioBlock<S16bit> m_InputBlock;
-    AudioBlock<Sfloat> m_AudioBlock;
+    std::string         m_AudioDatabaseDir;
+    uint32_t            m_FID;
+    bool                m_Terminated;
+    AudioSourceFile     m_AudioSource;
+    AudioBlock<int16_t> m_InputBlock;
+    AudioBlock<float>   m_AudioBlock;
 
 
     int OnAudioData(uint32_t FID, float *buffer, size_t nsamples)

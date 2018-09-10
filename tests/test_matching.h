@@ -17,8 +17,8 @@
 
 
 inline void GetAudio(AudioSourceFile& source,
-                     AudioBlock<S16bit>& ibuf,
-                     AudioBlock<Sfloat>& obuf)
+                     AudioBlock<int16_t>& ibuf,
+                     AudioBlock<float>& obuf)
 {
     REQUIRE_NOTHROW( source.GetAudioBlock(ibuf) );
     REQUIRE( ibuf.Size() > 0 );

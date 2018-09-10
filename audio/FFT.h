@@ -108,7 +108,7 @@ class FFT
 
     ~FFT(){}
 
-    void Compute(AudioBlock<Sfloat> &block){
+    void Compute(AudioBlock<float> &block){
 		
         assert(block.Size() <= mWindowSize);
 
@@ -134,6 +134,7 @@ class FFT
 
         optr+=2;
         fftdata++;
+		
         // extract frequency coefficients and compute energy content
         for(; optr < rptr; optr+=2)
             *fftdata++ = optr[0] * optr[0] + optr[1] * optr[1];

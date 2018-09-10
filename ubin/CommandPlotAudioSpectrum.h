@@ -35,8 +35,8 @@ class CommandPlotAudioSpectrum : public Command
 	{
         Audioneex::Tester TESTER;
 
-        AudioBlock<S16bit>  iblock(11025*m_time_length, 11025, 1);
-        AudioBlock<Sfloat>  audio(11025*m_time_length, 11025, 1);
+        AudioBlock<int16_t>  iblock(11025*m_time_length, 11025, 1);
+        AudioBlock<float>    audio(11025*m_time_length, 11025, 1);
 
         AudioSourceFile     asource;
 

@@ -21,7 +21,8 @@
 TEST_HERE( namespace { Audioneex::Tester TEST; } )
 
 
-Audioneex::Fingerprint::Fingerprint(size_t bufferSize) :
+Audioneex::Fingerprint::Fingerprint(size_t bufferSize)
+:
     m_OSBuffer (bufferSize, Pms::Fs, Pms::Ca, 0),
     m_OSWindow (Pms::OrigWindowSize, Pms::Fs, Pms::Ca, 0),
     m_fftFrame (Pms::OrigWindowSize + 1),
@@ -40,7 +41,7 @@ Audioneex::Fingerprint::~Fingerprint()
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::Fingerprint::Process(AudioBlock<Sfloat> &audio, bool flush)
+void Audioneex::Fingerprint::Process(AudioBlock<float> &audio, bool flush)
 {
     assert(audio.SampleRate() == Pms::Fs);
     assert(audio.Channels() == Pms::Ca);
@@ -62,10 +63,10 @@ void Audioneex::Fingerprint::Process(AudioBlock<Sfloat> &audio, bool flush)
        // This reallocation should never happen, but just in case...
        if( m_OSBuffer.Capacity() < audio.Size() + Pms::OrigWindowSize ){
           WARNING_MSG("O&S buffer reallocation.");
-          m_OSBuffer = AudioBlock<Sfloat>(audio.Size() + Pms::OrigWindowSize,
-                                          Pms::Fs,
-                                          Pms::Ca,
-                                          0);
+          m_OSBuffer = AudioBlock<float>(audio.Size() + Pms::OrigWindowSize,
+                                         Pms::Fs,
+                                         Pms::Ca,
+                                         0);
        }
 
        ComputeSpectrum(audio, flush);
@@ -95,12 +96,12 @@ void Audioneex::Fingerprint::Reset()
 
 void Audioneex::Fingerprint::SetBufferSize(size_t size)
 {
-    m_OSBuffer = AudioBlock<Sfloat>(size + Pms::OrigWindowSize, Pms::Fs, Pms::Ca, 0);
+    m_OSBuffer = AudioBlock<float>(size + Pms::OrigWindowSize, Pms::Fs, Pms::Ca, 0);
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::Fingerprint::ComputeSpectrum(AudioBlock<Sfloat> &audio, bool flush)
+void Audioneex::Fingerprint::ComputeSpectrum(AudioBlock<float> &audio, bool flush)
 {
     // Prepend the last O&S window to current audio block
     m_OSBuffer.Append(m_OSWindow).Append(audio);
@@ -349,12 +350,12 @@ void Audioneex::Fingerprint::ComputeDescriptors()
                 assert(D.size()*8 == Pms::IDI);
 
                 // We have a descriptor for the current POI, now
-                // create local fingerprint struct
-                LocalFingerprint_t *lf = new LocalFingerprint_t;
-                lf->ID = m_LID++;
-                lf->T = m_DeltaT + m;
-                lf->F = Pms::Kmin + k;
-                lf->D = D;
+                // create the local fingerprint
+                LocalFingerprint_t lf;
+                lf.ID = m_LID++;
+                lf.T = m_DeltaT + m;
+                lf.F = Pms::Kmin + k;
+                lf.D = D;
 
                 // Add local fingerprint to stream
                 m_LF.push_back(lf);

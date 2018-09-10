@@ -56,17 +56,15 @@ int Audioneex::Matcher::Process(const lf_vector &lfs)
     // Append LF stream to query sequence
     QLocalFingerprint_t QLF;
 	
-    for(LocalFingerprint_t *lf : lfs)
+    for(const LocalFingerprint_t &lf : lfs)
 	{
-        Codebook::QResults quant = m_AudioCodes->quantize(*lf);
-        QLF.T = lf->T;
-        QLF.F = lf->F;
+        Codebook::QResults quant = m_AudioCodes->quantize(lf);
+        QLF.T = lf.T;
+        QLF.F = lf.F;
         QLF.W = quant.word;
         QLF.E = quant.dist; // Clipped. See NOTE in Codebook::quantize()
         Xk.push_back(QLF);
-
-        m_XkSeq.push_back(lf->ID);
-        delete lf; // TODO 
+        m_XkSeq.push_back(lf.ID);
     }
 
     // Validate query sequence
@@ -119,11 +117,14 @@ int Audioneex::Matcher::Flush()
     }
 
     int Xk_T = Xk[m_ko + Nlf - 1].T;
+	
     TEST_HERE( DEBUG_MSG( "INPUT: Flushing "<<Nlf<<" LFs ("<<(Xk_T - m_ko_T)*Pms::dt<<" s)" ) )
+	
     DoMatch(m_ko, m_ko+Nlf);
     m_ko += Nlf;
     m_ko_T = Xk_T;
     m_Nsteps++;
+	
     return Nlf;
 }
 

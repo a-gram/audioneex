@@ -42,9 +42,9 @@ class IndexingTest : public Audioneex::AudioProvider
     uint32_t     m_FID;
     uint32_t     m_NQFs;
 
-    AudioSourceFile    m_AudioSource;
-    AudioBlock<S16bit> m_InputBlock;
-    AudioBlock<Sfloat> m_AudioBlock;
+    AudioSourceFile     m_AudioSource;
+    AudioBlock<int16_t> m_InputBlock;
+    AudioBlock<float>   m_AudioBlock;
 
     // AudioProvider implementation
     int OnAudioData(uint32_t FID, float *buffer, size_t nsamples)

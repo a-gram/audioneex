@@ -57,8 +57,8 @@ class IdentificationTask : public IdTask
 
            const Audioneex::IdMatch* results = NULL;
 
-           AudioBlock<S16bit>     iblock;
-           AudioBlock<Sfloat>     iaudio;
+           AudioBlock<int16_t> iblock;
+           AudioBlock<float>   iaudio;
 
            m_AudioSource.Open(audioclip);
 

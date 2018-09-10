@@ -40,8 +40,8 @@ namespace Utils
 {
 
 /// Hamming distance
-inline uint32_t Dh(uint8_t* str1, size_t str1_len,
-                   uint8_t* str2, size_t str2_len)
+inline uint32_t Dh(const uint8_t* str1, size_t str1_len,
+                   const uint8_t* str2, size_t str2_len)
 {
     assert(str1_len == str2_len);
 

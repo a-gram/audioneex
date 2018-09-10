@@ -37,7 +37,7 @@ struct IdAcc_t
 
 class AUDIONEEX_API_TEST RecognizerImpl : public Audioneex::Recognizer
 {
-    AudioBlock<Sfloat>                m_AudioBuffer;
+    AudioBlock<float>                 m_AudioBuffer;
     Fingerprint                       m_Fingerprint;
     Matcher                           m_Matcher;
     std::vector<Audioneex::IdMatch>   m_IdMatches;

@@ -10,7 +10,6 @@
 #ifndef FINGERPRINT_H
 #define FINGERPRINT_H
 
-#include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/unordered_map.hpp>
 #include <list>
 #include <vector>
@@ -43,13 +42,11 @@ struct AUDIONEEX_API_TEST LocalFingerprint_t
     LocalFingerprint_t() : ID(0), T(0), F(0) { }
 };
 
-typedef boost::ptr_vector<LocalFingerprint_t> plf_list;
-
 /// Fingerprint structure
 struct AUDIONEEX_API_TEST Fingerprint_t
 {
     uint32_t ID;
-    plf_list LFs;
+    std::vector<LocalFingerprint_t> LFs;
 
     Fingerprint_t() : ID(0) {}
 };
@@ -65,7 +62,7 @@ struct AUDIONEEX_API_TEST QLocalFingerprint_t
 
 // ----------------------------------------------------
 
-typedef std::vector<LocalFingerprint_t*>                      lf_vector;
+typedef std::vector<LocalFingerprint_t>                       lf_vector;
 typedef std::pair<LocalFingerprint_t*, LocalFingerprint_t*>   lf_pair;
 typedef std::pair<QLocalFingerprint_t*, QLocalFingerprint_t*> qlf_pair;
 
@@ -85,9 +82,9 @@ class AUDIONEEX_API_TEST Fingerprint
 {
     static const int POI_LOCATION = -1;
 
-    AudioProcessor<S16bit>           m_AudioProcessor;
-    AudioBlock<Sfloat>               m_OSBuffer;
-    AudioBlock<Sfloat>               m_OSWindow;
+    AudioProcessor<int16_t>          m_AudioProcessor;
+    AudioBlock<float>                m_OSBuffer;
+    AudioBlock<float>                m_OSWindow;
     std::vector<std::vector<float> > m_Spectrum;
     std::vector<std::vector<float> > m_Peak;
     std::vector<float>               m_fftFrame;
@@ -99,7 +96,7 @@ class AUDIONEEX_API_TEST Fingerprint
     std::vector<std::vector<float> > m_POI;  // For display purposes only
 #endif
 
-    void  ComputeSpectrum(AudioBlock<Sfloat> &audio, bool flush);
+    void  ComputeSpectrum(AudioBlock<float> &audio, bool flush);
     void  FindPeaks();
     void  ExtractPOI();
     void  ComputeDescriptors();
@@ -129,7 +126,7 @@ class AUDIONEEX_API_TEST Fingerprint
     /// piece in a stream of known length (i.e. a file).
     /// The max amount of residual audio equals the size of the
     /// O&S window (about 93 ms with the current settings).
-    void Process(AudioBlock<Sfloat> &audio, bool flush=false);
+    void Process(AudioBlock<float> &audio, bool flush=false);
 
     /// Reset the fingerprinter.
     void Reset();

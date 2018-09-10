@@ -120,8 +120,8 @@ void Audioneex::IndexerImpl::Index(uint32_t FID)
     std::vector<Audioneex::QLocalFingerprint_t> QLFs;
     QLFs.reserve(4096);
 
-    AudioBlock<Sfloat> buffer;
-    AudioBlock<Sfloat> block;
+    AudioBlock<float> buffer;
+    AudioBlock<float> block;
 
     // Set a buffer large enough to fingerprint about 60 seconds of audio
     size_t bufferSize = static_cast<int>(Pms::Fs * 66) * Pms::Ca;
@@ -172,18 +172,16 @@ void Audioneex::IndexerImpl::Index(uint32_t FID)
            // quantize the LFs
            QLocalFingerprint_t qlf;
 		   
-           for(LocalFingerprint_t *lf : lfs){
-               Codebook::QResults quant = m_AudioCodes->quantize(*lf);
-               qlf.T = lf->T;
-               qlf.F = lf->F;
+           for(const LocalFingerprint_t &lf : lfs)
+		   {
+               Codebook::QResults quant = m_AudioCodes->quantize(lf);
+               qlf.T = lf.T;
+               qlf.F = lf.F;
                qlf.W = quant.word;
                qlf.E = quant.dist; // Clipped. See NOTE in Codebook::quantize()
                QLFs.push_back(qlf);
                // Just check that we have a correct LF ID sequence
-               assert(lf->ID == QLFs.size()-1);
-               // We no longer need the raw LF so we can delete it here.
-               // TODO: Make the list a list of smart pointers instead
-               delete lf;
+               assert(lf.ID == QLFs.size()-1);
            }
 
            buffer.Resize(0);

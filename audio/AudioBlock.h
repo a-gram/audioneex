@@ -18,21 +18,9 @@
 #include <iostream>
 #include <sstream>
 
-typedef int8_t   S8bit;
-typedef int16_t  S16bit;
-typedef int32_t  S32bit;
-typedef uint8_t  U8bit;
-typedef uint16_t U16bit;
-typedef uint32_t U32bit;
-typedef float    Sfloat;
-
-
-template <class T> class AudioBlock;
-
-
 /// A no-frills class for manipulating audio buffers. It is intended to be
 /// used in contexts where audio buffers are mostly fixed size and dynamic
-/// growths are exceptional events.
+/// reallocations are exceptional events.
 
 template <class T>
 class AudioBlock
@@ -118,14 +106,14 @@ class AudioBlock
     /// @param nblock An audio block of float samples in which the normalized version
     /// of this audio block is computed. It must have the same size of this block, and
     /// the same sample rate and number of channels.
-    void Normalize(AudioBlock<Sfloat> &nblock);
+    void Normalize(AudioBlock<float> &nblock);
 
     /// This method returns a normalized version of this audio block in the range [-1,1].
     ///
     /// @return A new audio block of float samples normalized in [-1,1]. If this block is
     /// already in float format, the returned block is a mere copy of it. The clients are
     /// responsible for deleting the returned blocks.
-    AudioBlock<Sfloat>* Normalize();
+    AudioBlock<float>* Normalize();
 
 	/// Mix this audio block to the given one
 	void MixTo(AudioBlock<T> &block);
@@ -148,12 +136,12 @@ class AudioBlock
 
  private:
 
-    size_t  mCapacity;     ///< Maximum size (fixed) of the audio block.
-    float   mDuration;     ///< Time lenght of the available data (seconds)
-    size_t  mSize;         ///< Amount of data available in the block.
-    float   mSampleRate;
-    size_t  mChannels;
-    T*      mData;
+    size_t   mCapacity;     ///< Maximum size (fixed) of the audio block.
+    float    mDuration;     ///< Time lenght of the available data (seconds)
+    size_t   mSize;         ///< Amount of data available in the block.
+    float    mSampleRate;
+    size_t   mChannels;
+    T*       mData;
 
     int32_t  mID;          ///< Audio block identifier (whatever it means)
     uint64_t mTimestamp;   ///< Timestamp [ms] (i.e. the time at which the block was read in the stream)
@@ -293,49 +281,64 @@ inline T& AudioBlock<T>::operator[](size_t i)
 
 
 template <class T>
-inline size_t  AudioBlock<T>::Capacity() const       { return mCapacity; }
+inline size_t  AudioBlock<T>::Capacity() const
+{ return mCapacity; }
 
 template <class T>
-inline size_t  AudioBlock<T>::Size() const           { return mSize; }
+inline size_t  AudioBlock<T>::Size() const
+{ return mSize; }
 
 template <class T>
-inline size_t  AudioBlock<T>::SizeInBytes() const    { return mSize * sizeof(T); }
+inline size_t  AudioBlock<T>::SizeInBytes() const
+{ return mSize * sizeof(T); }
 
 template <class T>
-inline float   AudioBlock<T>::Duration() const       { return mDuration; }
+inline float   AudioBlock<T>::Duration() const
+{ return mDuration; }
 
 template <class T>
-inline float   AudioBlock<T>::MaxDuration()          { return IsNull() ? 0 : mCapacity/(mChannels*mSampleRate);}
+inline float   AudioBlock<T>::MaxDuration()
+{ return IsNull() ? 0 : mCapacity/(mChannels*mSampleRate); }
 
 template <class T>
-inline float   AudioBlock<T>::SampleRate() const     { return mSampleRate; }
+inline float   AudioBlock<T>::SampleRate() const
+{ return mSampleRate; }
 
 template <class T>
-inline size_t  AudioBlock<T>::Channels() const       { return mChannels; }
+inline size_t  AudioBlock<T>::Channels() const
+{ return mChannels; }
 
 template <class T>
-inline size_t  AudioBlock<T>::BytesPerSample() const { return sizeof(T); }
+inline size_t  AudioBlock<T>::BytesPerSample() const
+{ return sizeof(T); }
 
 template <class T>
-inline bool    AudioBlock<T>::IsNull() const         { return (mData == nullptr); }
+inline bool    AudioBlock<T>::IsNull() const
+{ return (mData == nullptr); }
 
 template <class T>
-inline int32_t AudioBlock<T>::ID() const             { return mID; }
+inline int32_t AudioBlock<T>::ID() const
+{ return mID; }
 
 template <class T>
-inline int64_t AudioBlock<T>::Timestamp() const      { return mTimestamp; }
+inline int64_t AudioBlock<T>::Timestamp() const
+{ return mTimestamp; }
 
 template <class T>
-inline float   AudioBlock<T>::NormFactor() const     { return mNormFactor; }
+inline float   AudioBlock<T>::NormFactor() const
+{ return mNormFactor; }
 
 template <class T>
-inline void    AudioBlock<T>::SetID(int32_t id)      { mID = id; }
+inline void    AudioBlock<T>::SetID(int32_t id)
+{ mID = id; }
 
 template <class T>
-inline void    AudioBlock<T>::SetTimestamp(int64_t tstamp) { mTimestamp = tstamp; }
+inline void    AudioBlock<T>::SetTimestamp(int64_t tstamp)
+{ mTimestamp = tstamp; }
 
 template <class T>
-inline void    AudioBlock<T>::SetChannels(int nchans) { assert(nchans>0); mChannels = nchans; }
+inline void    AudioBlock<T>::SetChannels(int nchans)
+{ assert(nchans>0); mChannels = nchans; }
 
 
 template <class T>
@@ -353,10 +356,12 @@ inline void    AudioBlock<T>::Resize(size_t newsize)
 
 
 template <class T>
-inline T*  AudioBlock<T>::Data()  { return mData; }
+inline T*  AudioBlock<T>::Data()
+{ return mData; }
 
 template <class T>
-inline const T*  AudioBlock<T>::Data() const  { return mData; }
+inline const T*  AudioBlock<T>::Data() const
+{ return mData; }
 
 template <class T>
 inline size_t  AudioBlock<T>::SetData(const T* data, size_t nsamples)
@@ -373,7 +378,7 @@ inline size_t  AudioBlock<T>::SetData(const T* data, size_t nsamples)
 
 
 template <class T>
-inline void AudioBlock<T>::Normalize(AudioBlock<Sfloat> &nblock)
+inline void AudioBlock<T>::Normalize(AudioBlock<float> &nblock)
 {
     assert(!IsNull() && !nblock.IsNull());
 
@@ -387,11 +392,11 @@ inline void AudioBlock<T>::Normalize(AudioBlock<Sfloat> &nblock)
 
 
 template <class T>
-inline AudioBlock<Sfloat>* AudioBlock<T>::Normalize()
+inline AudioBlock<float>* AudioBlock<T>::Normalize()
 {
     assert(!IsNull());
 
-    AudioBlock<Sfloat> *nblock = new AudioBlock<Sfloat>(mSize, mSampleRate, mChannels);
+    AudioBlock<float> *nblock = new AudioBlock<float>(mSize, mSampleRate, mChannels);
 
     for(size_t i=0; i<mSize; i++)
         nblock->Data()[i] = mData[i] / mNormFactor;
@@ -401,11 +406,11 @@ inline AudioBlock<Sfloat>* AudioBlock<T>::Normalize()
 
 
 template <>
-inline AudioBlock<Sfloat>* AudioBlock<Sfloat>::Normalize()
+inline AudioBlock<float>* AudioBlock<float>::Normalize()
 {
     assert(!IsNull());
 
-    AudioBlock<Sfloat> *nblock = new AudioBlock<Sfloat>(mSize, mSampleRate, mChannels);
+    AudioBlock<float> *nblock = new AudioBlock<float>(mSize, mSampleRate, mChannels);
 
     if(nblock!=nullptr)
        nblock->SetData(mData, mSize);
@@ -422,7 +427,7 @@ inline void AudioBlock<T>::ComputeNormalizationFactor()
 
 
 template <>
-inline void AudioBlock<Sfloat>::ComputeNormalizationFactor(){}
+inline void AudioBlock<float>::ComputeNormalizationFactor(){}
 
 
 template<typename T>
@@ -460,7 +465,7 @@ inline void AudioBlock<T>::ApplyGain(float gain)
 
 
 template<>
-inline void AudioBlock<Sfloat>::ApplyGain(float gain)
+inline void AudioBlock<float>::ApplyGain(float gain)
 {
 	assert(gain>=0);
 

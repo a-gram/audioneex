@@ -24,14 +24,14 @@ namespace bfs = boost::filesystem;
 
 class CommandFingerprintGenAnalysis : public Command
 {
-    AudioSourceFile    m_audio_source;
-	AudioBlock<S16bit> m_iblock;
-	AudioBlock<Sfloat> m_iaudio;
+    AudioSourceFile     m_audio_source;
+	AudioBlock<int16_t> m_iblock;
+	AudioBlock<float>   m_iaudio;
 
-	std::string        m_AudioFile;
-	float              m_iblock_len;
-	std::vector<int>   m_lfs_pdf;
-	int                m_nblocks;
+	std::string         m_AudioFile;
+	float               m_iblock_len;
+	std::vector<int>    m_lfs_pdf;
+	int                 m_nblocks;
 
 
 	void Analyse(const std::string &audiofile)

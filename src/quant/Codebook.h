@@ -74,7 +74,7 @@ class Codebook
     /// Load a codebook from a file
     static std::unique_ptr <Codebook> Load(const std::string &filename);
 
-    QResults  quantize(LocalFingerprint_t &lf);
+    QResults  quantize(const LocalFingerprint_t &lf);
 
     void FindDuplicates();
     void Analyze();

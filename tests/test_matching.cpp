@@ -48,9 +48,9 @@ TEST_CASE("Matcher processing") {
     int Srate = Audioneex::Pms::Fs;
     int Nchan = Audioneex::Pms::Ca;
 
-    AudioBlock<S16bit>  iblock(Srate*2, Srate, Nchan);
-    AudioBlock<Sfloat>  audio(Srate*2, Srate, Nchan);
-    AudioSourceFile     asource;
+    AudioBlock<int16_t>  iblock(Srate*2, Srate, Nchan);
+    AudioBlock<float>    audio(Srate*2, Srate, Nchan);
+    AudioSourceFile      asource;
 
     TCDataStore dstore ( "./data/db" );
 

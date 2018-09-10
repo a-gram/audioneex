@@ -68,7 +68,7 @@ class AudioSourceDataListener
 {
  public:
 
-    virtual void OnAudioSourceData(AudioBlock<S16bit> &block) = 0;
+    virtual void OnAudioSourceData(AudioBlock<int16_t> &block) = 0;
 };
 
 // ----------------------------------------------------------------------------

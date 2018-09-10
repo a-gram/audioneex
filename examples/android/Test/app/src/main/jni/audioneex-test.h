@@ -34,8 +34,8 @@ class IndexingTask : public Audioneex::AudioProvider
     std::string         m_AudioDir;
     uint32_t            m_FID;
     AudioSourceWavFile  m_AudioSource;
-    AudioBlock<S16bit>  m_InputBlock;
-    AudioBlock<Sfloat>  m_AudioBlock;
+    AudioBlock<int16_t> m_InputBlock;
+    AudioBlock<float>   m_AudioBlock;
 
 
     int OnAudioData(uint32_t FID, float *buffer, size_t nsamples)
@@ -150,8 +150,8 @@ class IdentificationTask
 
 	   const Audioneex::IdMatch* results = nullptr;
 
-	   AudioBlock<S16bit>     iblock;
-	   AudioBlock<Sfloat>     iaudio;
+	   AudioBlock<int16_t> iblock;
+	   AudioBlock<float>   iaudio;
 
 	   m_AudioSource.Open( audioclip );
 

@@ -255,7 +255,7 @@ void Audioneex::RecognizerImpl::SetAudioBufferSize(float seconds)
              ("Invalid buffer size. Must be >= 1 s");
 
     size_t bufferSize = Pms::Fs * seconds * Pms::Ca;
-    m_AudioBuffer = AudioBlock<Sfloat>(bufferSize, Pms::Fs, Pms::Ca, 0);
+    m_AudioBuffer = AudioBlock<float>(bufferSize, Pms::Fs, Pms::Ca, 0);
 
 }
 

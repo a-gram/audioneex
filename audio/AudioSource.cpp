@@ -256,12 +256,12 @@ void AudioSourceDevice::Open(const std::string &source_name)
 void AudioSource::CaptureThread::Run()
 {
     // Set capture buffer
-    AudioBlock<S16bit> cbuffer(CAPTURE_CHUNK_SIZE,
-                               m_AudioSource->m_SampleRate,
-                               m_AudioSource->m_Channels, 0);
+    AudioBlock<int16_t> cbuffer(CAPTURE_CHUNK_SIZE,
+                                m_AudioSource->m_SampleRate,
+                                m_AudioSource->m_Channels, 0);
 
     size_t read_samples = 0;
-    size_t readBytes = sizeof(S16bit) * CAPTURE_CHUNK_SIZE;
+    size_t readBytes = sizeof(int16_t) * CAPTURE_CHUNK_SIZE;
 
     while(!m_AudioSource->m_StopCapture)
     {
@@ -276,7 +276,7 @@ void AudioSource::CaptureThread::Run()
         }
 
         // Pipe::Read() returns read bytes. Convert to samples.
-        read_samples /= sizeof(S16bit);
+        read_samples /= sizeof(int16_t);
 
         cbuffer.Resize(read_samples);
 

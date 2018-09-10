@@ -231,7 +231,7 @@ Audioneex::Codebook::Load(const std::string &filename)
 
 // ----------------------------------------------------------------------------
 
-Audioneex::Codebook::QResults Audioneex::Codebook::quantize(LocalFingerprint_t &lf)
+Audioneex::Codebook::QResults Audioneex::Codebook::quantize(const LocalFingerprint_t &lf)
 {
     assert(m_Clusters.size() > 0);
     //assert(m_Index.size() > 0);
