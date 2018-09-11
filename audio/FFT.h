@@ -14,6 +14,7 @@
 
 #include <math.h>
 #include <vector>
+#include <memory>
 #include <cassert>
 #include <fftss/fftss.h>
 
@@ -24,27 +25,60 @@ class FFTFrame
 {
  public:
 
-    FFTFrame() : mSize(0), mData(nullptr) {}
-    FFTFrame(int size) :
-        mSize(size) {
+    FFTFrame() :
+	    mSize(0),
+	    mData(nullptr) 
+	{}
+	
+    FFTFrame(int size) : 
+	    mSize(size), 
+	    mData(new float[size])
+	{
         assert(size>0);
-        mData = new float[size];
     }
 
-    ~FFTFrame()  { delete[] mData; }
+    ~FFTFrame()  { }
 
-    float Magnitude(int i) const { assert(mData); return sqrt(mData[i]); }
-    float Energy(int i)    const { assert(mData); return mData[i]; }
-    float Power(int i)     const { assert(mData); return mData[i]/mSize; }
-    int   Size()           const { return mSize; }
-    float *Data()                { return mData; }
-    void  Resize(size_t size)    { delete[] mData; mData=new float[size]; mSize=size;}
+    float Magnitude(int i) const
+	{ 
+	    assert(mData);
+		return std::sqrt(mData[i]);
+	}
+	
+    float Energy(int i) const
+	{ 
+	    assert(mData);
+		return mData[i]; 
+	}
+	
+    float Power(int i) const
+	{ 
+	    assert(mData);
+		return mData[i]/mSize; 
+	}
+	
+    int Size() const
+	{ 
+	    return mSize; 
+	}
+	
+    float* Data()
+	{ 
+	    return mData.get(); 
+	}
+	
+    void Resize(size_t size)
+	{ 
+	    mData.reset(new float[size]);
+		mSize=size;
+	}
 
  private:
 
-    float *mData;
-    int    mSize;
+    std::unique_ptr<float[]> mData;
+    int                      mSize;
 };
+
 
 // Implementation of a FFT transform based on FFTSS
 
@@ -61,17 +95,17 @@ class FFT
     std::vector<double> mOutput;
     fftss_plan          mFFTPlan;
 
-    void PrepareWindow(){
-		
+    void PrepareWindow()
+	{	
         mWindow.resize(mWindowSize);
 
         double scale = 2.f * M_PI / (mWindow.size()-1);
         for(size_t n=0; n<mWindow.size(); n++)
-            mWindow[n] = 0.54 - 0.46 * cos(scale * n);
+            mWindow[n] = 0.54 - 0.46 * std::cos(scale * n);
     }
 
-    void ApplyWindow(std::vector<double> &dataFrame){
-		
+    void ApplyWindow(std::vector<double> &dataFrame)
+	{	
         assert(dataFrame.size() >= mWindowSize);
         for(size_t i=0; i<mWindowSize; i++)
             dataFrame[i*2] *= mWindow[i];
@@ -86,8 +120,8 @@ class FFT
        EnergySpectrum
     };
 
-    FFT(size_t windowSize, double zeroPadFactor){
-		
+    FFT(size_t windowSize, double zeroPadFactor)
+	{	
         mWindowSize = windowSize;
         mZeroPadFac = zeroPadFactor;
         mFFTFrameSize = mWindowSize * (1.0 + mZeroPadFac);
@@ -108,8 +142,8 @@ class FFT
 
     ~FFT(){}
 
-    void Compute(AudioBlock<float> &block){
-		
+    void Compute(AudioBlock<float> &block)
+	{	
         assert(block.Size() <= mWindowSize);
 
         // build the zero-padded frame

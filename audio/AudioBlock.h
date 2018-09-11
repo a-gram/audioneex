@@ -15,12 +15,11 @@
 #include <cmath>
 #include <cassert>
 #include <vector>
+#include <memory>
 #include <iostream>
 #include <sstream>
 
-/// A no-frills class for manipulating audio buffers. It is intended to be
-/// used in contexts where audio buffers are mostly fixed size and dynamic
-/// reallocations are exceptional events.
+/// A no-frills class for manipulating audio buffers.
 
 template <class T>
 class AudioBlock
@@ -108,13 +107,6 @@ class AudioBlock
     /// the same sample rate and number of channels.
     void Normalize(AudioBlock<float> &nblock);
 
-    /// This method returns a normalized version of this audio block in the range [-1,1].
-    ///
-    /// @return A new audio block of float samples normalized in [-1,1]. If this block is
-    /// already in float format, the returned block is a mere copy of it. The clients are
-    /// responsible for deleting the returned blocks.
-    AudioBlock<float>* Normalize();
-
 	/// Mix this audio block to the given one
 	void MixTo(AudioBlock<T> &block);
 
@@ -136,12 +128,13 @@ class AudioBlock
 
  private:
 
+    std::unique_ptr<T[]> mData;
+	
     size_t   mCapacity;     ///< Maximum size (fixed) of the audio block.
     float    mDuration;     ///< Time lenght of the available data (seconds)
     size_t   mSize;         ///< Amount of data available in the block.
     float    mSampleRate;
     size_t   mChannels;
-    T*       mData;
 
     int32_t  mID;          ///< Audio block identifier (whatever it means)
     uint64_t mTimestamp;   ///< Timestamp [ms] (i.e. the time at which the block was read in the stream)
@@ -208,15 +201,13 @@ AudioBlock<T>::AudioBlock(const AudioBlock<T> &block) :
     mTimestamp  (block.mTimestamp),
     mNormFactor (block.mNormFactor)
 {
-    std::copy(block.mData, block.mData + mCapacity, mData);
+    std::copy(block.Data(), block.Data() + mCapacity, this->Data());
 }
 
 
 template <class T>
 AudioBlock<T>::~AudioBlock()
 {
-    delete[] mData;
-    mData = nullptr;
 }
 
 
@@ -226,10 +217,9 @@ inline void AudioBlock<T>::Create(size_t nsamples, float sampleRate, size_t ncha
     assert(nsamples > 0);
     assert(sampleRate > 0);
     assert(nchans > 0);
-    assert(mData==nullptr);
+    assert(!mData);
 
-    if(mData!=nullptr)
-       return;
+    if(mData) return;
 
     // The number of samples should always be an integral multiple of the
     // number of channels.
@@ -246,8 +236,8 @@ inline void AudioBlock<T>::Create(size_t nsamples, float sampleRate, size_t ncha
        mSize = mCapacity;
 
     mDuration = mSize / (nchans * sampleRate);
-    mData = new T[mCapacity];
-    memset(mData, 0, mCapacity * sizeof(T));
+    mData.reset( new T[mCapacity] );
+    std::memset(this->Data(), 0, mCapacity * sizeof(T));
 }
 
 
@@ -274,10 +264,7 @@ inline AudioBlock<T>& AudioBlock<T>::operator=(AudioBlock<T> block)
 
 template <class T>
 inline T& AudioBlock<T>::operator[](size_t i)
-{
-    assert(0<=i && i<mSize);
-    return mData[i];
-}
+{ return mData[i]; }
 
 
 template <class T>
@@ -314,7 +301,7 @@ inline size_t  AudioBlock<T>::BytesPerSample() const
 
 template <class T>
 inline bool    AudioBlock<T>::IsNull() const
-{ return (mData == nullptr); }
+{ return (this->Data() == nullptr); }
 
 template <class T>
 inline int32_t AudioBlock<T>::ID() const
@@ -357,11 +344,11 @@ inline void    AudioBlock<T>::Resize(size_t newsize)
 
 template <class T>
 inline T*  AudioBlock<T>::Data()
-{ return mData; }
+{ return mData.get(); }
 
 template <class T>
 inline const T*  AudioBlock<T>::Data() const
-{ return mData; }
+{ return mData.get(); }
 
 template <class T>
 inline size_t  AudioBlock<T>::SetData(const T* data, size_t nsamples)
@@ -371,7 +358,7 @@ inline size_t  AudioBlock<T>::SetData(const T* data, size_t nsamples)
     if(nsamples != mSize)
        Resize(nsamples);
 
-    memcpy(mData, data, mSize * sizeof(T));
+	std::copy(data, data + mSize, this->Data());
 
     return mSize;
 }
@@ -388,34 +375,6 @@ inline void AudioBlock<T>::Normalize(AudioBlock<float> &nblock)
 
     for(size_t i=0; i<mSize; i++)
         nblock[i] = mData[i] / mNormFactor;
-}
-
-
-template <class T>
-inline AudioBlock<float>* AudioBlock<T>::Normalize()
-{
-    assert(!IsNull());
-
-    AudioBlock<float> *nblock = new AudioBlock<float>(mSize, mSampleRate, mChannels);
-
-    for(size_t i=0; i<mSize; i++)
-        nblock->Data()[i] = mData[i] / mNormFactor;
-
-    return nblock;
-}
-
-
-template <>
-inline AudioBlock<float>* AudioBlock<float>::Normalize()
-{
-    assert(!IsNull());
-
-    AudioBlock<float> *nblock = new AudioBlock<float>(mSize, mSampleRate, mChannels);
-
-    if(nblock!=nullptr)
-       nblock->SetData(mData, mSize);
-
-    return nblock;
 }
 
 
@@ -521,9 +480,7 @@ inline void AudioBlock<T>::DoAppend(const T *data, size_t nsamples)
        // appended data should always be an integer multiple of the # of channels.
        assert(copyable % mChannels == 0);
 
-       memcpy(reinterpret_cast<char*>(mData) + (mSize * sizeof(T)),
-              data,
-              copyable * sizeof(T));
+       std::copy(data, data + copyable, this->Data() + mSize);
 
        // resize block
        Resize(mSize + copyable);
@@ -548,9 +505,9 @@ inline void AudioBlock<T>::GetSubBlock(size_t start, size_t size, AudioBlock<T> 
 
     size_t sbsize = std::min<size_t>(size, mSize - start);
 
-    memcpy(reinterpret_cast<char*>(block.Data()),
-           reinterpret_cast<char*>(mData) + (start * sizeof(T)),
-           sbsize * sizeof(T));
+    std::copy(this->Data() + start,
+              this->Data() + start + sbsize,
+              block.Data());
 
     block.Resize(sbsize);
 }

@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <algorithm>
+#include <memory>
 
 #include "AudioBlock.h"
 
@@ -89,8 +90,9 @@ class RingBuffer
 
  private:
 
+    std::unique_ptr<AudioBlock<T>[]> mBuffer;
+	
     size_t         mSize;
-    AudioBlock<T> *mBuffer;
     uint64_t       mConsumed;
     uint64_t       mProduced;
     bool           mConsumeDone;
@@ -119,7 +121,7 @@ inline RingBuffer<T>::RingBuffer(const RingBuffer<T>& rhs) :
     mConsumeDone (rhs.mConsumeDone),
     mBuffer      (mSize ? new AudioBlock<T>[mSize] : nullptr)
 {
-    std::copy(rhs.mBuffer, rhs.mBuffer+mSize, mBuffer);
+    std::copy(rhs.mBuffer.get(), rhs.mBuffer.get()+mSize, mBuffer.get());
 }
 
 template <class T>
@@ -164,20 +166,20 @@ template <class T>
 inline void RingBuffer<T>::Set(size_t size)
 {
     assert(size > 0);
-    assert(mBuffer == nullptr);
+    assert(mBuffer.get() == nullptr);
 
     mSize = size;
-    mBuffer = new AudioBlock<T>[size];
+    mBuffer.reset(new AudioBlock<T>[size]);
 }
 
 template <class T>
 inline void RingBuffer<T>::Set(size_t size, AudioBlock<T> &block)
 {
     assert(size > 0);
-    assert(mBuffer == nullptr);
+    assert(mBuffer.get() == nullptr);
 
     mSize = size;
-    mBuffer = new AudioBlock<T>[size];
+    mBuffer.reset(new AudioBlock<T>[size]);
 
     for(size_t i=0; i<size; i++)
         mBuffer[i] = block;
@@ -210,7 +212,7 @@ inline uint64_t RingBuffer<T>::Available()
 template <class T>
 inline bool RingBuffer<T>::IsNull()
 {
-    return mBuffer == nullptr;
+    return mBuffer.get() == nullptr;
 }
 
 template <class T>
@@ -222,7 +224,7 @@ inline AudioBlock<T>* RingBuffer<T>::GetHead()
 template <class T>
 inline AudioBlock<T>* RingBuffer<T>::Push()
 {
-    assert(mBuffer != nullptr);
+    assert(mBuffer.get() != nullptr);
     if(IsFull()) return nullptr;
     AudioBlock<T>* ret = &mBuffer[mProduced % mSize];
     mProduced++;
@@ -232,7 +234,7 @@ inline AudioBlock<T>* RingBuffer<T>::Push()
 template <class T>
 inline AudioBlock<T>* RingBuffer<T>::Pull()
 {
-    assert(mBuffer != nullptr);
+    assert(mBuffer.get() != nullptr);
 
     AudioBlock<T> *b = nullptr;
 
@@ -271,7 +273,6 @@ inline void RingBuffer<T>::Reset()
 template <class T>
 inline RingBuffer<T>::~RingBuffer()
 {
-   delete[] mBuffer;
 }
 
 
