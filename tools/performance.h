@@ -98,10 +98,10 @@ class PerformanceTask : public IdTask
                m_Recognizer->Identify(m_iaudio.Data(), m_iaudio.Size());
                results = m_Recognizer->GetResults();
            }
-           while(m_iblock.Size() > 0 && results == NULL);
+           while(m_iblock.Size() > 0 && results == nullptr);
 
 
-           if(results == NULL){
+           if(!results){
               m_Recognizer->Flush();
 			  results = m_Recognizer->GetResults();
 		   }

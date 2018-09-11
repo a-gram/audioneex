@@ -10,7 +10,7 @@ environment and system.
 1. Get the header files for the Tokyo Cabinet drivers from
    http://fallabs.com/tokyocabinet/ and extract the tc*.h 
    files from the root directory into a 'tcabinet' folder
-   somewhere in your system.
+   somewhere in your system's include path.
 
 2. If you don't have it already, get the Boost library at
    http://www.boost.org and install it into a directory
@@ -46,4 +46,24 @@ in the app's Gradle script.
 The apps have been tested with Android Studio 3.0.1, NDK r16b.
 Boost library version 1.66.0, but anything above 1.55 should also
 work.
+
+
+About the demo apps
+===================
+
+Test
+
+This app is meant to verify that the main functionality of the 
+engine work properly on the target device. Just run it and click 
+the button to start the test. If everything works well you will 
+see a success message.
+
+OTA
+
+This app demonstrates how the engine can be used to perform ambient 
+audio recognition (aka over-the-air identification). In order for 
+the app to work you will need to put a fingerprint database (*.idx 
+and *.met files) into the 'assets' folder. The database can be created 
+using the command line programs. It can also be done programmatically 
+in the app but you will need to write the code.
 

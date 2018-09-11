@@ -107,11 +107,11 @@ class AudioBlock
     /// the same sample rate and number of channels.
     void Normalize(AudioBlock<float> &nblock);
 
-	/// Mix this audio block to the given one
-	void MixTo(AudioBlock<T> &block);
+    /// Mix this audio block to the given one
+    void MixTo(AudioBlock<T> &block);
 
-	/// Apply the given gain to this audio block
-	void ApplyGain(float gain);
+    /// Apply the given gain to this audio block
+    void ApplyGain(float gain);
 
     /// This method appends the (available) data of the given block to this block's available
     /// data. It does not reallocate this block's buffer if there is not enough space
@@ -122,8 +122,8 @@ class AudioBlock
     /// Get a sub-block
     void GetSubBlock(size_t start, size_t size, AudioBlock<T> &block);
 	
-	/// Get the RMS power of the block
-	float GetPower() const;
+    /// Get the RMS power of the block
+    float GetPower() const;
 
 
  private:
@@ -358,7 +358,7 @@ inline size_t  AudioBlock<T>::SetData(const T* data, size_t nsamples)
     if(nsamples != mSize)
        Resize(nsamples);
 
-	std::copy(data, data + mSize, this->Data());
+    std::copy(data, data + mSize, this->Data());
 
     return mSize;
 }
@@ -392,49 +392,48 @@ inline void AudioBlock<float>::ComputeNormalizationFactor(){}
 template<typename T>
 inline void AudioBlock<T>::MixTo(AudioBlock<T> &block)
 {
-	assert(!IsNull() && !block.IsNull());
-	assert(this->mSampleRate == block.mSampleRate);
-	assert(this->mChannels == block.mChannels);
+    assert(!IsNull() && !block.IsNull());
+    assert(this->mSampleRate == block.mSampleRate);
+    assert(this->mChannels == block.mChannels);
 
-	size_t mixedSamples = std::min(mSize, block.mSize);
+    size_t mixedSamples = std::min(mSize, block.mSize);
 
-	for(size_t i=0; i<mixedSamples; i++)
-		mData[i] = static_cast<T>( (static_cast<float>(mData[i]) +
-					                static_cast<float>(block.mData[i])) / 2.f
-								 );
+    for(size_t i=0; i<mixedSamples; i++)
+	mData[i] = static_cast<T>( (static_cast<float>(mData[i]) +
+	           static_cast<float>(block.mData[i])) / 2.f);
 }
 
 
 template<typename T>
 inline void AudioBlock<T>::ApplyGain(float gain)
 {
-	assert(gain>=0);
+    assert(gain>=0);
 	
-	T val;
-	T vmax = std::numeric_limits<T>::max();
-	T vmin = std::numeric_limits<T>::min();
+    T val;
+    T vmax = std::numeric_limits<T>::max();
+    T vmin = std::numeric_limits<T>::min();
 
     for(size_t i=0; i<mSize; i++){
-		val = mData[i] * gain;
-		val = val>vmax?vmax:val;
-		val = val<vmin?vmin:val;
-		mData[i] = val;
-	}
+	val = mData[i] * gain;
+	val = val>vmax?vmax:val;
+	val = val<vmin?vmin:val;
+	mData[i] = val;
+    }
 }
 
 
 template<>
 inline void AudioBlock<float>::ApplyGain(float gain)
 {
-	assert(gain>=0);
+    assert(gain>=0);
 
-	float val;
+    float val;
     for(size_t i=0; i<mSize; i++){
-		val = mData[i] * gain;
-		val = val>1.0f?1.0f:val;
-		val = val<-1.0f?-1.0f:val;
-		mData[i] = val;
-	}
+	val = mData[i] * gain;
+	val = val>1.0f?1.0f:val;
+	val = val<-1.0f?-1.0f:val;
+	mData[i] = val;
+    }
 }
 
 
@@ -515,14 +514,14 @@ inline void AudioBlock<T>::GetSubBlock(size_t start, size_t size, AudioBlock<T> 
 template <class T>
 inline float AudioBlock<T>::GetPower() const
 {
-	float Etot = 0;
+    float Etot = 0;
 
-	if(mSize == 0) return 0;
+    if(mSize == 0) return 0;
 
     for(size_t i=0; i<mSize; i++)
         Etot += mData[i] * mData[i];
 
-	return Etot / mSize;
+    return Etot / mSize;
 }
 
 #endif // AUDIOBLOCK_H

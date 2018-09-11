@@ -55,7 +55,7 @@ class IdentificationTask : public IdTask
 
            // Read audio data from file
 
-           const Audioneex::IdMatch* results = NULL;
+           const Audioneex::IdMatch* results = nullptr;
 
            AudioBlock<int16_t> iblock;
            AudioBlock<float>   iaudio;
@@ -79,13 +79,13 @@ class IdentificationTask : public IdTask
                m_Recognizer->Identify(iaudio.Data(), iaudio.Size());
                results = m_Recognizer->GetResults();
            }
-           while(iblock.Size() > 0 && results == NULL);
+           while(iblock.Size() > 0 && results == nullptr);
 
            // The id engine will always produce results if enough audio
            // is provided for it to make a decision. If the audio data
            // is exhausted before the engine returns a results you may
            // flush the internal buffers and check again.
-           if(results == NULL){
+           if(results == nullptr){
               m_Recognizer->Flush();
               results = m_Recognizer->GetResults();
            }

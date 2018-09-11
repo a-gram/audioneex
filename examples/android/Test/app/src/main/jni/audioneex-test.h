@@ -176,8 +176,10 @@ class IdentificationTask
 	   // is provided for it to make a decision. If the audio data
 	   // is exhausted before the engine returns a results you may
 	   // flush the internal buffers and check again.
-	   if(results == nullptr)
-		  m_Recognizer->Flush();
+	   if(!results) {
+           m_Recognizer->Flush();
+           results = m_Recognizer->GetResults();
+       }
 
 	   uint32_t res = 0;
 
@@ -186,11 +188,8 @@ class IdentificationTask
           std::vector<Audioneex::IdMatch> BestMatch;
 
           // Get the best match(es), if any (there may be ties)
-          if(results[0].IdClass != Audioneex::UNIDENTIFIED){
-             BestMatch.push_back( results[0] );
-             for(int i=1; results[i].Score == results[0].Score;  i++)
-                 BestMatch.push_back( results[i] );
-          }
+          for(int i=0; !Audioneex::IsNull(results[i]); i++)
+              BestMatch.push_back( results[i] );
 
           if(BestMatch.size() == 1){
         	 LOG_D("Got a match: %d", BestMatch[0].FID)

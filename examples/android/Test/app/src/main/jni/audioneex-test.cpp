@@ -71,10 +71,11 @@ jboolean Java_com_audioneex_test_TestApp_doTest(JNIEnv* env, jclass clazz,
 
         idTask.SetRecognizer( recognizer.get() );
 
-        for(uint32_t i=1; i<=TEST_REC_NUM; i++){
+        for(uint32_t i=1; i<=TEST_REC_NUM; i++)
+        {
 			std::string afile = pwd+"/audio/rec"+n_to_string(i)+".wav";
             idTask.GetAudioSource().SetPosition( i*5 );
-            if( idTask.Identify( afile ) == 0 )
+            if( idTask.Identify( afile ) != i )
                throw std::logic_error("Couldn't identify "+afile);
         }
 

@@ -131,7 +131,7 @@ void Audioneex::RecognizerImpl::ProcessMatchResults(int processed, float dt_proc
 
 
     // TODO:
-    // Restructure the following code. It's quite ugly.
+    // Refactor the following code. It's quite ugly.
 
     if(processed && mresults.Top_K.size() >= 1)
     {
@@ -211,7 +211,7 @@ void Audioneex::RecognizerImpl::FillResults()
 
 Audioneex::IdMatch* Audioneex::RecognizerImpl::GetResults()
 {
-    return m_IdMatches.empty() ? NULL : m_IdMatches.data();
+    return m_IdMatches.empty() ? nullptr : m_IdMatches.data();
 }
 
 // ----------------------------------------------------------------------------

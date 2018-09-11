@@ -26,52 +26,52 @@ class FFTFrame
  public:
 
     FFTFrame() :
-	    mSize(0),
-	    mData(nullptr) 
-	{}
+        mSize(0),
+        mData(nullptr) 
+    {}
 	
     FFTFrame(int size) : 
-	    mSize(size), 
-	    mData(new float[size])
-	{
+        mSize(size), 
+        mData(new float[size])
+    {
         assert(size>0);
     }
 
     ~FFTFrame()  { }
 
     float Magnitude(int i) const
-	{ 
-	    assert(mData);
-		return std::sqrt(mData[i]);
-	}
+    { 
+	assert(mData);
+	return std::sqrt(mData[i]);
+    }
 	
     float Energy(int i) const
-	{ 
-	    assert(mData);
-		return mData[i]; 
-	}
+    { 
+	assert(mData);
+	return mData[i]; 
+    }
 	
     float Power(int i) const
-	{ 
-	    assert(mData);
-		return mData[i]/mSize; 
-	}
+    { 
+	assert(mData);
+	return mData[i]/mSize; 
+    }
 	
     int Size() const
-	{ 
-	    return mSize; 
-	}
+    { 
+	return mSize; 
+    }
 	
     float* Data()
-	{ 
-	    return mData.get(); 
-	}
+    { 
+	return mData.get(); 
+    }
 	
     void Resize(size_t size)
-	{ 
-	    mData.reset(new float[size]);
-		mSize=size;
-	}
+    { 
+	mData.reset(new float[size]);
+	mSize=size;
+    }
 
  private:
 
@@ -96,7 +96,7 @@ class FFT
     fftss_plan          mFFTPlan;
 
     void PrepareWindow()
-	{	
+    {	
         mWindow.resize(mWindowSize);
 
         double scale = 2.f * M_PI / (mWindow.size()-1);
@@ -105,7 +105,7 @@ class FFT
     }
 
     void ApplyWindow(std::vector<double> &dataFrame)
-	{	
+    {	
         assert(dataFrame.size() >= mWindowSize);
         for(size_t i=0; i<mWindowSize; i++)
             dataFrame[i*2] *= mWindow[i];
@@ -121,7 +121,7 @@ class FFT
     };
 
     FFT(size_t windowSize, double zeroPadFactor)
-	{	
+    {	
         mWindowSize = windowSize;
         mZeroPadFac = zeroPadFactor;
         mFFTFrameSize = mWindowSize * (1.0 + mZeroPadFac);
@@ -143,7 +143,7 @@ class FFT
     ~FFT(){}
 
     void Compute(AudioBlock<float> &block)
-	{	
+    {	
         assert(block.Size() <= mWindowSize);
 
         // build the zero-padded frame
