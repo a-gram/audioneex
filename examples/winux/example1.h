@@ -123,7 +123,7 @@ class AudioIndexingTask : public IdTask,
 					 meta = m_AudioSource.GetID3Tags().GetTitle() + " by " +
 					 m_AudioSource.GetID3Tags().GetArtist();
 
-				  static_cast<KVDataStore*>(m_DataStore)->PutMetadata( m_FID, meta );
+				  static_cast<KVDataStore*>(m_DataStore.get())->PutMetadata( m_FID, meta );
 #endif
 
 				  std::cout << "OK. (" << m_AudioSource.GetFormattedDuration() << ")"

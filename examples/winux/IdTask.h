@@ -26,7 +26,7 @@ protected:
 
     std::unique_ptr<Audioneex::Indexer>     m_Indexer;
     std::unique_ptr<Audioneex::Recognizer>  m_Recognizer;
-    Audioneex::DataStore*                   m_DataStore;
+    std::unique_ptr<Audioneex::DataStore>   m_DataStore;
 
 public:
 
@@ -53,7 +53,7 @@ public:
 
     void SetDataStore(Audioneex::DataStore* datastore)
 	{
-        m_DataStore =  datastore;
+        m_DataStore.reset( datastore );
     }
 
 };
