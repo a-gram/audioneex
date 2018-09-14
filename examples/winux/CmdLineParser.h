@@ -17,7 +17,7 @@
 #include <set>
 #include <boost/lexical_cast.hpp>
 
-/// Custom exception for malformed cmd lines
+/// Custom exception for illformed cmd lines
 class bad_cmd_line_exception : public std::logic_error {
  public: explicit bad_cmd_line_exception(const std::string& msg) :
                   std::logic_error(msg) {}
