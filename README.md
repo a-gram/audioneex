@@ -45,7 +45,7 @@ Boost 1.55+, GCC 4.8+, VC 10+, CMake 3.5+, Android NDK 14b+
 
 ## How to build on Linux and Windows
 
-The project uses CMake to build the modules on both Linux and Windows.
+The project uses the CMake build system on both Linux and Windows.
 The steps to follow are pretty much the same on both platforms, aside
 for few specific tweaks that may occur.
 
