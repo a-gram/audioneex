@@ -32,7 +32,7 @@ class AudioProcessor
     /// C-tors.
     AudioProcessor() {}
 
-    /// D-tors. (not meant for inheritance)
+    /// D-tors.
     ~AudioProcessor() {}
 
 	/// Mix two audio blocks into the given buffer
