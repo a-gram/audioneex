@@ -8,7 +8,7 @@ Features
 - **Compact fingerprints** - 1 hr of audio encoded in less than a MB
 - **Content-agnostic** - recognition of audio of different nature
 - **Fast identification** - can be used for real-time recognitions
-- **Cross-platform** - runs anywhere there is a decent C++ compiler
+- **Cross-platform** - runs anywhere there is a decent C++11 compiler
 - **IoT & Mobile-ready** - runs well on small devices for on-device ACR
 
 Limitations
