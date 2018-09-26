@@ -29,14 +29,6 @@
 using namespace Audioneex;
 
 
-template<class T>
-inline std::string ToString(const T &val)
-{
-    std::stringstream out;
-    out << val;
-    return out.str ();
-}
-
 // ----------------------------------------------------------------------------
 
 TCDataStore::TCDataStore(const std::string &url) :
@@ -853,7 +845,7 @@ std::string TCMetadata::Read(uint32_t FID)
 {
     std::string str;
     if(m_DBHandle){
-       str = ToString(FID);
+       str = std::to_string(FID);
        char* pstr = tchdbget2(m_DBHandle, str.c_str());
        str.assign( pstr ? pstr : "" );
        tcfree(pstr);
@@ -868,7 +860,7 @@ void TCMetadata::Write(uint32_t FID, const std::string &meta)
     if(m_DBHandle==nullptr)
        throw std::runtime_error("Metadata database not open");
 
-    std::string str = ToString(FID);
+    std::string str = std::to_string(FID);
     if(!tchdbput2(m_DBHandle, str.c_str(), meta.c_str())){
        CHECK_OP(m_DBHandle);
     }

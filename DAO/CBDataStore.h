@@ -252,14 +252,14 @@ public:
 
     std::string GetDatabaseURL()  { return m_DBURL; }
 
-    void SetServerName(const std::string &name) { m_ServerName = name; }
-    void SetServerPort(int port) { m_ServerPort = port; }
+    void SetServerName(const std::string &name)   { m_ServerName = name; }
+    void SetServerPort(int port)                  { m_ServerPort = port; }
     void SetUsername(const std::string &username) { m_Username = username; }
     void SetPassword(const std::string &password) { m_Password = password; }
-    std::string GetServerName() const { return m_ServerName; }
-    int         GetServerPort() const { return m_ServerPort; }
-    std::string GetUsername()   const { return m_Username; }
-    std::string GetPassword()   const { return m_Password; }
+    std::string GetServerName() const             { return m_ServerName; }
+    int         GetServerPort() const             { return m_ServerPort; }
+    std::string GetUsername()   const             { return m_Username; }
+    std::string GetPassword()   const             { return m_Password; }
     
     bool Empty();
 

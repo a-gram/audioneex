@@ -22,15 +22,12 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <boost/lexical_cast.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
 #include "CBDataStore.h"
 
 using namespace Audioneex;
-
-#define ToString(x) boost::lexical_cast<std::string>(x)
 
 #define THROW_ON_FAIL(db,res,msg)                           \
     if (res != LCB_SUCCESS && res!=LCB_KEY_ENOENT){         \

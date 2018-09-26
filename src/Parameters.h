@@ -13,7 +13,7 @@
 #include <cmath>
 #include <cstdint>
 
-/// This namespace contains parameters used internally by the algorithms
+/// This namespace contains parameters used internally by the algorithms.
 /// Most of them need not to be changed, and for those that can be, make
 /// sure you know what you are doing.
 

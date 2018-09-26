@@ -192,7 +192,7 @@ void Audioneex::IndexerImpl::Index(uint32_t FID)
     // This may happen if there is something wrong with the recording.
     if(QLFs.empty())
        throw Audioneex::InvalidFingerprintException
-            ("No fingerprint for recording " + Utils::ToString(FID));
+            ("No fingerprint for recording " + std::to_string(FID));
 
     // Check here the validity of the FIDs. This will avoid nasty issus afterwards.
     if(FID <= m_CurrFID)
@@ -379,7 +379,7 @@ void Audioneex::IndexerImpl::DoFlush()
                        ("Invalid FID have been assigned. When adding new "
                         "fingerprints make sure that the new FID are strict "
                         "increasing from the maximum FID in the database. "
-                        "("+Utils::ToString(*plchunk.back())+"<="+Utils::ToString(hdr.FIDmax)+")");
+                        "("+std::to_string(*plchunk.back())+"<="+std::to_string(hdr.FIDmax)+")");
 
                const uint32_t* const* plchunk_ptr = plchunk.data();
 

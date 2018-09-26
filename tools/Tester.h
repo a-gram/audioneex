@@ -153,11 +153,11 @@ class Tester
 	    for(const hashtable_Qi::value_type &e : res.Top_K){
 	        int score = e.first;
 	        str.append("*** score: ")
-	           .append(Utils::ToString(score))
+	           .append(std::to_string(score))
 	           .append("\t");
             std::list<int> tie_list = e.second;
 	        for(int Qi : tie_list){
-	            str.append(" Q").append(Utils::ToString(Qi));
+	            str.append(" Q").append(std::to_string(Qi));
 	        }
 	        str.append("\n");
 	    }
@@ -173,11 +173,11 @@ class Tester
 	    for(const hashtable_Qhisto::value_type &e : table){
 	        int score = e.first;
 	        str.append(" score: ")
-	           .append(Utils::ToString(score))
+	           .append(std::to_string(score))
 	           .append("\t");
             const std::list<Qhisto_t> &tie_list = e.second;
 	        for(Qhisto_t H : tie_list){
-	            str.append(" Q").append(Utils::ToString(H.Qi));
+	            str.append(" Q").append(std::to_string(H.Qi));
 	        }
 	        str.append("\n");
 	    }
@@ -193,10 +193,10 @@ class Tester
 	        int score = e.first;
             const std::list<int> &tie_list = e.second;
 	        for(int Qi : tie_list){
-	            str.append(" Q").append(Utils::ToString(Qi));
+	            str.append(" Q").append(std::to_string(Qi));
 	        }
 	        str.append("\tscore: ")
-	           .append(Utils::ToString(score))
+	           .append(std::to_string(score))
 	           .append("\n");
 	    }
 	    DEBUG_MSG(str)
@@ -210,9 +210,9 @@ class Tester
 	    for(const hashtable_Qc::value_type &e : table){
 	        int Qi = e.first;
             const Ac_t &H = e.second;
-	        str.append(" Q").append(Utils::ToString(Qi));
+	        str.append(" Q").append(std::to_string(Qi));
 	        str.append("\tscore: ")
-               .append(Utils::ToString( H.Ac ))
+               .append(std::to_string( H.Ac ))
 	           .append("\n");
 	    }
 	    DEBUG_MSG(str)
@@ -225,7 +225,7 @@ class Tester
 	    std::string str;
         for(const std::vector<float> &col : mat) {
 	         for(float row : col) {
-	              str.append(Utils::ToString(row)).append("   ");
+	              str.append(std::to_string(row)).append("   ");
 			 }
 		}
 	    DEBUG_MSG(str)
@@ -254,7 +254,7 @@ class Tester
 	        Plot2DBox(m*Pms::dt-Pms::dTNp/2, ((k*Pms::df)+Pms::dFNp/2)-Pms::dFWc, (m*Pms::dt-Pms::dTNp/2)+Pms::dTWc, (k*Pms::df)+Pms::dFNp/2);
 	        Plot2DBox(m*Pms::dt-Pms::dTNp/2+((Pms::bt/100.f)*Pms::dTWc), ((k*Pms::df)+Pms::dFNp/2)-Pms::dFWc, (m*Pms::dt-Pms::dTNp/2)+Pms::dTWc+((Pms::bt/100.f)*Pms::dTWc), (k*Pms::df)+Pms::dFNp/2);
 	        Plot2DBox(m*Pms::dt-Pms::dTNp/2, ((k*Pms::df)+Pms::dFNp/2)-Pms::dFWc-((Pms::bf/100.f)*Pms::dFWc), (m*Pms::dt-Pms::dTNp/2)+Pms::dTWc, (k*Pms::df)+Pms::dFNp/2-((Pms::bf/100.f)*Pms::dFWc));
-	        Plot2DLabel(Utils::ToString<int>(lf.ID), m*Pms::dt+Pms::dTNp/10, Pms::Fmin+k*Pms::df+Pms::dFNp/10);
+	        Plot2DLabel(std::to_string(lf.ID), m*Pms::dt+Pms::dTNp/10, Pms::Fmin+k*Pms::df+Pms::dFNp/10);
 	    }
 	
 	}
