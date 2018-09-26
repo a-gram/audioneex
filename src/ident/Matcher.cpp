@@ -54,11 +54,10 @@ int Audioneex::Matcher::Process(const lf_vector &lfs)
     if(lfs.empty()) return 0;
 
     // Append LF stream to query sequence
-    QLocalFingerprint_t QLF;
-	
     for(const LocalFingerprint_t &lf : lfs)
-	{
+    {
         Codebook::QResults quant = m_AudioCodes->quantize(lf);
+	QLocalFingerprint_t QLF;
         QLF.T = lf.T;
         QLF.F = lf.F;
         QLF.W = quant.word;
@@ -200,11 +199,11 @@ void Audioneex::Matcher::DoMatch(int ko, int kn)
     {
 
         for(hashtable_Qhisto::value_type &e : m_TopKMc) 
-		{
+        {
             std::list<Qhisto_t> &tlist = e.second;
 			
             for(Qhisto_t &H : tlist) 
-			{
+            {
                  Ac_t& Accum = m_Results.Qc[H.Qi];
                  Accum.Ac += H.Ht[H.Bmax].score;
                  Accum.Tmatch = (Pms::Tk * H.Bmax + Pms::Tk / 2) * Pms::dt;
@@ -216,7 +215,7 @@ void Audioneex::Matcher::DoMatch(int ko, int kn)
         m_Results.Top_K.clear();
 
         for(hashtable_Qc::value_type &e : m_Results.Qc)
-		{
+	{
             int Qi = e.first;
             int score = e.second.Ac;
             m_Results.Top_K[score].push_back(Qi);
