@@ -170,11 +170,10 @@ void Audioneex::IndexerImpl::Index(uint32_t FID)
            const lf_vector &lfs = fingerprint.Get();
 
            // quantize the LFs
-           QLocalFingerprint_t qlf;
-		   
            for(const LocalFingerprint_t &lf : lfs)
-		   {
+           {
                Codebook::QResults quant = m_AudioCodes->quantize(lf);
+               QLocalFingerprint_t qlf;
                qlf.T = lf.T;
                qlf.F = lf.F;
                qlf.W = quant.word;
