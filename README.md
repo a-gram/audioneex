@@ -14,7 +14,7 @@ Features
 Limitations
 
 - Limited scaling on a single instance
-- Limited robustness to noisy OTA audio
+- Limited robustness to noisy over-the-air audio
 - Documentation is (currently) not available
 
 There is also a commercial version that provides more functionalities and
