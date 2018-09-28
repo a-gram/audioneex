@@ -47,10 +47,10 @@ class AudioSourceWavFile
 {
     std::ifstream m_File;
     WavHeader     m_Header;
-    size_t        m_AvailableData;
-    size_t        m_Nsamples;
-    float         m_Duration;
-    float         m_Position;
+    size_t        m_AvailableData {0};
+    size_t        m_Nsamples      {0};
+    float         m_Duration      {0};
+    float         m_Position      {0};
 
     bool IsTag(char* tag, char t1, char t2, char t3, char t4){
 		
@@ -63,7 +63,9 @@ class AudioSourceWavFile
     bool IsValidWav(){
 		
         bool isvalid = true;
+		
         m_File.read(reinterpret_cast<char*>(&m_Header), sizeof(WavHeader));
+		
         isvalid &= m_File.gcount() == sizeof(WavHeader);
         isvalid &= IsTag(m_Header.RIFF.ID,'R','I','F','F');
         isvalid &= IsTag(m_Header.RIFF.Format,'W','A','V','E');
@@ -82,12 +84,7 @@ class AudioSourceWavFile
 
  public:
 
-    AudioSourceWavFile() :
-         m_AvailableData (0),
-         m_Position      (0),
-         m_Duration      (0),
-         m_Nsamples      (0)
-    {}
+    AudioSourceWavFile() = default;
 
     ~AudioSourceWavFile(){
          Close();
@@ -112,6 +109,7 @@ class AudioSourceWavFile
 		
          if(m_File.is_open())
             m_File.close();
+		
          m_AvailableData = 0;
          m_Position = 0;
          m_Duration = 0;
@@ -123,6 +121,7 @@ class AudioSourceWavFile
          size_t offset = static_cast<size_t>(time * m_Header.FMT.SampleRate) *
                                                    (m_Header.FMT.BitsPerSample/8) *
                                                     m_Header.FMT.Channels;
+													
          offset = std::min<size_t>(offset, m_Header.DATA.Size);
          m_File.seekg (sizeof(WavHeader) + offset);
          m_AvailableData = m_Header.DATA.Size - offset;
@@ -134,7 +133,8 @@ class AudioSourceWavFile
     template <typename T>
     size_t Read(T* buffer, size_t nsamples){
 		
-         if(buffer && m_AvailableData && nsamples>0){
+         if(buffer && m_AvailableData && nsamples>0)
+         {
             size_t nbytes = std::min(m_AvailableData, nsamples * sizeof(T));
             m_File.read(reinterpret_cast<char*>(buffer), nbytes);
             assert(m_File.gcount() == nbytes);

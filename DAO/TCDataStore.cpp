@@ -52,7 +52,10 @@ TCDataStore::TCDataStore(const std::string &url) :
 
 // ----------------------------------------------------------------------------
 
-void TCDataStore::Open(eOperation op, bool use_fing_db, bool use_meta_db, bool use_info_db)
+void TCDataStore::Open(eOperation op,
+                       bool use_fing_db, 
+                       bool use_meta_db,
+                       bool use_info_db)
 {
     int open_mode = op == GET ? OPEN_READ : OPEN_READ_WRITE;
 
@@ -136,7 +139,9 @@ size_t TCDataStore::GetFingerprintsCount()
 
 // ----------------------------------------------------------------------------
 
-const uint8_t* TCDataStore::GetPListBlock(int list_id, int block, size_t &data_size, bool headers)
+const uint8_t* TCDataStore::GetPListBlock(int list_id,
+                                          int block, 
+                                          size_t &data_size, bool headers)
 {
     // Read block from datastore into read buffer
     // (or get a reference to its memory location if the block is cached)
@@ -149,7 +154,8 @@ const uint8_t* TCDataStore::GetPListBlock(int list_id, int block, size_t &data_s
 void TCDataStore::OnIndexerStart()
 {
     if(m_Op == GET)
-       throw std::invalid_argument("OnIndexerStart(): Invalid operation (GET)");
+       throw std::invalid_argument
+       ("OnIndexerStart(): Invalid operation (GET)");
 
      if(m_Op == BUILD_MERGE)
         m_DeltaIndex.Open(OPEN_READ_WRITE);
@@ -230,7 +236,8 @@ PListHeader TCDataStore::OnIndexerListHeader(int list_id)
     else if(m_Op == BUILD)
        return m_MainIndex.GetPListHeader(list_id);
     else
-       throw std::invalid_argument("OnIndexerListHeader(): Invalid operation");
+       throw std::invalid_argument
+       ("OnIndexerListHeader(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -248,7 +255,8 @@ PListBlockHeader TCDataStore::OnIndexerBlockHeader(int list_id, int block)
     else if(m_Op == BUILD)
        return m_MainIndex.GetPListBlockHeader(list_id, block);
     else
-       throw std::invalid_argument("OnIndexerBlockHeader(): Invalid operation");
+       throw std::invalid_argument
+       ("OnIndexerBlockHeader(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -263,7 +271,8 @@ void TCDataStore::OnIndexerChunk(int list_id,
     else if(m_Op == BUILD)
        m_MainIndex.AppendChunk(list_id, lhdr, hdr, data, data_size);
     else
-       throw std::invalid_argument("OnIndexerChunkAppend(): Invalid operation");
+       throw std::invalid_argument
+       ("OnIndexerChunkAppend(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -278,7 +287,8 @@ void TCDataStore::OnIndexerNewBlock(int list_id,
     else if(m_Op == BUILD)
        m_MainIndex.AppendChunk(list_id, lhdr, hdr, data, data_size, true);
     else
-       throw std::invalid_argument("OnIndexerChunkNewBlock(): Invalid operation");
+       throw std::invalid_argument
+       ("OnIndexerChunkNewBlock(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -298,7 +308,10 @@ size_t TCDataStore::GetFingerprintSize(uint32_t FID)
 
 // ----------------------------------------------------------------------------
 
-const uint8_t* TCDataStore::GetFingerprint(uint32_t FID, size_t &read, size_t nbytes, uint32_t bo)
+const uint8_t* TCDataStore::GetFingerprint(uint32_t FID, 
+                                           size_t &read, 
+                                           size_t nbytes, 
+                                           uint32_t bo)
 {
     read = m_QFingerprints.ReadFingerprint(FID, m_ReadBuffer, nbytes, bo);
     return m_ReadBuffer.data();
@@ -342,11 +355,11 @@ void TCCollection::Open(int mode)
 
     if(mode == OPEN_READ)
        db_mode = HDBOREADER;
-    else if(mode == OPEN_WRITE ||
-            mode == OPEN_READ_WRITE)
+    else if(mode == OPEN_WRITE || mode == OPEN_READ_WRITE)
        db_mode = HDBOWRITER|HDBOCREAT;
     else
-       throw std::logic_error("Unrecognized database opening mode");
+       throw std::logic_error
+       ("Unrecognized database opening mode");
 
     // Close current database if open
     if(m_IsOpen)
@@ -481,7 +494,10 @@ PListBlockHeader TCIndex::GetPListBlockHeader(int list_id, int block_id)
 
 // ----------------------------------------------------------------------------
 
-size_t TCIndex::ReadBlock(int list_id, int block_id, std::vector<uint8_t> &buffer, bool headers)
+size_t TCIndex::ReadBlock(int list_id, 
+                          int block_id, 
+                          std::vector<uint8_t> &buffer, 
+                          bool headers)
 {
     int bsize;
     void *block;
@@ -519,7 +535,10 @@ size_t TCIndex::ReadBlock(int list_id, int block_id, std::vector<uint8_t> &buffe
 
 // ----------------------------------------------------------------------------
 
-void TCIndex::WriteBlock(int list_id, int block_id, std::vector<uint8_t> &buffer, size_t data_size)
+void TCIndex::WriteBlock(int list_id, 
+                         int block_id, 
+                         std::vector<uint8_t> &buffer, 
+                         size_t data_size)
 {
     assert(!buffer.empty());
     assert(data_size <= buffer.size());
@@ -787,7 +806,10 @@ size_t TCFingerprints::ReadFingerprintSize(uint32_t FID)
 
 // ----------------------------------------------------------------------------
 
-size_t TCFingerprints::ReadFingerprint(uint32_t FID, std::vector<uint8_t> &buffer, size_t size, uint32_t bo)
+size_t TCFingerprints::ReadFingerprint(uint32_t FID, 
+                                       std::vector<uint8_t> &buffer, 
+                                       size_t size, 
+									   uint32_t bo)
 {
     int dsize;
     void *data;

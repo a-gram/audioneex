@@ -15,7 +15,6 @@
 #include <memory>
 
 #include <boost/asio.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include "IdTask.h"
 
@@ -164,7 +163,7 @@ public:
 
 class StreamMonitoringResultsParser : public IdentificationResultsListener
 {
-    KVDataStore *m_Datastore;
+    KVDataStore *m_Datastore {nullptr};
 
     std::string FormatTime(int sec)
     {
@@ -174,11 +173,6 @@ class StreamMonitoringResultsParser : public IdentificationResultsListener
     }
 
   public:
-
-    StreamMonitoringResultsParser() :
-        m_Datastore (nullptr)
-    {}
-
 
     void OnResults(const Audioneex::IdMatch *results)
     {

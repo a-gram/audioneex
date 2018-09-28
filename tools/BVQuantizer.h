@@ -38,7 +38,7 @@ class BVQuantizer
   public:
 
     BVQuantizer(int K);
-   ~BVQuantizer();
+   ~BVQuantizer() = default;
 
     void addPoint(BinaryVector &point);
 

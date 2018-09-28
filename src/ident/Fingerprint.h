@@ -34,21 +34,19 @@ namespace Audioneex
 /// Raw Local Fingerprint structure
 struct AUDIONEEX_API_TEST LocalFingerprint_t
 {
-    uint32_t  ID;
-    uint32_t  T;
-    uint32_t  F;
+    uint32_t  ID {0};
+    uint32_t  T  {0};
+    uint32_t  F  {0};
+	
     std::vector<uint8_t> D;
-
-    LocalFingerprint_t() : ID(0), T(0), F(0) { }
 };
 
 /// Fingerprint structure
 struct AUDIONEEX_API_TEST Fingerprint_t
 {
-    uint32_t ID;
+    uint32_t ID {0};
+	
     std::vector<LocalFingerprint_t> LFs;
-
-    Fingerprint_t() : ID(0) {}
 };
 
 /// Quantized Local Fingerprint structure
@@ -112,7 +110,7 @@ class AUDIONEEX_API_TEST Fingerprint
     /// Construct a fingerprinter with a specified buffer size
     /// (in samples). The default size can hold 2 sec of audio.
     Fingerprint(size_t bufferSize = Pms::Fs * 2 + Pms::OrigWindowSize);
-   ~Fingerprint();
+   ~Fingerprint() = default;
 
     /// Extract descriptors from the given audio block.
     /// The audio must be normalized in [-1,1], mono, 11025 Hz,

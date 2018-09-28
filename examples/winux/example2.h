@@ -34,10 +34,11 @@ class QFPIndexingTask : public IdTask
 
     void DoIndexing()
     {
-        size_t nrec = static_cast<KVDataStore*>(m_DataStore.get())->GetFingerprintsCount();
+        size_t nrec = m_DataStore->GetFingerprintsCount();
 	
         if(nrec==0)
-           throw std::runtime_error("No fingerprints found in the data store");
+           throw std::runtime_error
+           ("No fingerprints found in the data store");
 	
         std::cout << "Indexing " << nrec << " fingerprints" << std::endl;
 	

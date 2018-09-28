@@ -35,12 +35,6 @@ Audioneex::Fingerprint::Fingerprint(size_t bufferSize)
 
 // ----------------------------------------------------------------------------
 
-Audioneex::Fingerprint::~Fingerprint()
-{
-}
-
-// ----------------------------------------------------------------------------
-
 void Audioneex::Fingerprint::Process(AudioBlock<float> &audio, bool flush)
 {
     assert(audio.SampleRate() == Pms::Fs);

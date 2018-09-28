@@ -18,6 +18,7 @@
 
 #include "Fingerprint.h"
 #include "Codebook.h"
+#include "DataStore.h"
 #include "audioneex.h"
 
 // The following classes are not part of the public API but we need
@@ -50,33 +51,32 @@ typedef boost::unordered::unordered_map<int, lf_pair>      hashtable_lf_pair;
 typedef boost::unordered::unordered_map<int, qlf_pair>     hashtable_qlf_pair;
 //typedef std::map<int, std::list<Qhisto_t>, std::greater<int> > hashtable_Qhisto;
 typedef boost::container::flat_map<int, std::list<Qhisto_t>, std::greater<int> > hashtable_Qhisto;
+typedef boost::unordered::unordered_map<int, std::unique_ptr <DataStoreImpl::PListIterator> > hashtable_PLIter;
+typedef boost::unordered::unordered_set<int>               hashtable_EOLIter;
 
 /// Time histogram structure
 struct AUDIONEEX_API_TEST HistoBin_t
 {
     struct Info_t
     {
-        int CandLF;
-        int Pivot;
-        Info_t() : CandLF(0), Pivot(0) {}
+        int CandLF {0};
+        int Pivot  {0};
     };
 
     typedef boost::unordered::unordered_map<int, Info_t> info_table;
 
-    int score;
-    int last_T;
-    int torder;
-    bool scored;
+    int score      {0};
+    int last_T     {0};
+    int torder     {0};
+    bool scored    {false};
     info_table Info;
-
-    HistoBin_t() : score(0), last_T(0), torder(0), scored(false) {}
 
     void Reset()
 	{
-        score=0;
-        last_T=0;
-        torder=0;
-        scored=false;
+        score  = 0;
+        last_T = 0;
+        torder = 0;
+        scored = false;
         Info.clear();
     }
 };
@@ -85,10 +85,10 @@ struct AUDIONEEX_API_TEST HistoBin_t
 struct AUDIONEEX_API_TEST Qhisto_t
 {
     std::vector<HistoBin_t> Ht;
-    int Bmax;
-    int Qi;
+    int Bmax {0};
+    int Qi   {0};
 
-    Qhisto_t(size_t size=0) : Bmax(0), Qi(0), Ht(size) {}
+    Qhisto_t(size_t size=0) : Ht(size) {}
 
     void Reset()
 	{
@@ -129,10 +129,8 @@ struct AUDIONEEX_API_TEST Qhisto_t
 /// Candidate structure
 struct AUDIONEEX_API_TEST Ac_t
 {
-    int Ac;
-    int Tmatch;
-
-    Ac_t() : Ac(0), Tmatch(0) {}
+    int Ac     {0};
+    int Tmatch {0};
 };
 
 /// Match results structure
@@ -173,7 +171,6 @@ struct AUDIONEEX_API_TEST MatchResults_t
 
 class AUDIONEEX_API_TEST Matcher
 {
-    Audioneex::DataStore*            m_DataStore;
     std::unique_ptr <Codebook>       m_AudioCodes;
 
     MatchResults_t                   m_Results;
@@ -182,15 +179,17 @@ class AUDIONEEX_API_TEST Matcher
 
     hashtable_Qhisto                 m_TopKMc;
     Qhisto_t                         m_H;
+    
+	Audioneex::DataStore*            m_DataStore {nullptr};
 
     /// Pointer to the start of current LF batch being matched.
-    int m_ko;
+    int m_ko     {0};
 
     /// The duration of the audio being matched so far from last resetting.
-    int m_ko_T;
+    int m_ko_T   {0};
 
     /// Number of processing steps performed so far.
-    int m_Nsteps;
+    int m_Nsteps {0};
 
     /// Minimum score to be considered in the match stage.
 	/// Anything smaller will be ignored.
@@ -210,6 +209,7 @@ friend class RecognizerImpl;
  public:
 
     Matcher();
+	~Matcher() = default;
 
     /// Process a stream of LF. This method requires the client to perform the
     /// fingerprinting of the audio.

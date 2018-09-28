@@ -33,7 +33,7 @@
 
 namespace bfs = boost::filesystem;
 
-
+class R2 : public Audioneex::Recognizer {};
 class AudioIndexingTask : public IdTask,
                           public Audioneex::AudioProvider
 {
@@ -123,7 +123,7 @@ class AudioIndexingTask : public IdTask,
 					 meta = m_AudioSource.GetID3Tags().GetTitle() + " by " +
 					 m_AudioSource.GetID3Tags().GetArtist();
 
-				  static_cast<KVDataStore*>(m_DataStore.get())->PutMetadata( m_FID, meta );
+				  m_DataStore->PutMetadata( m_FID, meta );
 #endif
 
 				  std::cout << "OK. (" << m_AudioSource.GetFormattedDuration() << ")"
@@ -166,7 +166,8 @@ public:
         assert(m_Indexer);
 
         if(!bfs::exists( m_AudioDatabaseDir ))
-           throw std::invalid_argument(m_AudioDatabaseDir+" does not exist");
+           throw std::invalid_argument
+           (m_AudioDatabaseDir+" does not exist");
 
         m_AudioSource.SetSampleRate( 11025 );
         m_AudioSource.SetChannelCount( 1 );

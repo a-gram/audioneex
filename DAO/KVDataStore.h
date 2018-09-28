@@ -30,8 +30,6 @@ class KVDataStore : public Audioneex::DataStore
 {
 public:
 
-    typedef std::unique_ptr<KVDataStore> Ptr;
-
     enum eOperation{
         GET,
         BUILD,
@@ -70,7 +68,9 @@ public:
     virtual size_t GetFingerprintsCount() = 0;
 
     /// Save a fingerprint in the datastore
-    virtual void PutFingerprint(uint32_t FID, const uint8_t* data, size_t size) = 0;
+    virtual void PutFingerprint(uint32_t FID, 
+                                const uint8_t* data, 
+                                size_t size) = 0;
 
     /// Write metadata associated to a fingerprint
     virtual void PutMetadata(uint32_t FID, const std::string& meta) = 0;

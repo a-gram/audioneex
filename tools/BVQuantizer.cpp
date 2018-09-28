@@ -34,12 +34,6 @@ BVQuantizer::BVQuantizer(int K) :
 
 // ----------------------------------------------------------------------------
 
-BVQuantizer::~BVQuantizer()
-{
-}
-
-// ----------------------------------------------------------------------------
-
 void BVQuantizer::addPoint(BinaryVector &point)
 {
     assert( !m_Points.empty() ? point.size() == m_Points[m_Points.size()-1].size() : 1);

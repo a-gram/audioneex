@@ -31,14 +31,12 @@ class InvalidAudioCodesException : public Audioneex::Exception {
 
 struct Cluster
 {
-    uint32_t     ID;
-    float        SumD;       // Sum of distances from points in cluster to centroid
-    uint32_t     Npoints;    // Number of pints in the cluster
+    uint32_t     ID        {0};
+    float        SumD      {0.f};  // Sum of distances from points in cluster to centroid
+    uint32_t     Npoints   {0};    // Number of pints in the cluster
     BinaryVector Centroid;
 
     std::vector< std::pair<int,int> > Points;  //< TESTING STUFFS TO BE REMOVED
-
-    Cluster() : ID(-1), SumD(0.0f), Npoints(0) {}
 };
 
 
@@ -50,14 +48,13 @@ class Codebook
 
     typedef struct QResults_t
     {
-        int word;
-        int dist;
-        QResults_t() : word(-1), dist(-1) {}
+        int word {-1};
+        int dist {-1};
     }
     QResults;
 
-    Codebook() {}
-    ~Codebook() {}
+    Codebook() = default;
+    ~Codebook() = default;
 
     void set(std::vector<Cluster>  &clusters)  { m_Clusters = clusters; }
     const std::vector<Cluster>& get() const    { return m_Clusters; }

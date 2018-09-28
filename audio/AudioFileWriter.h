@@ -46,8 +46,8 @@ class AudioFileWriter
           UNKNOWN
       };
 
-	  enum
-	  {
+      enum
+      {
 		  SIGNED_8_BIT = 7,
 		  UNSIGNED_8_BIT = 8,
 		  SIGNED_16_BIT = 16,
@@ -61,17 +61,11 @@ class AudioFileWriter
       /// Encoding format structure
 	  ///
       struct AudioFormat
-	  {
-         eFileType Format;
-         uint32_t  SampleRate;
-         uint32_t  SampleResolution;
-         uint32_t  ChannelsCount;
-
-         AudioFormat() : Format(WAV),
-                         SampleRate(44100),
-                         SampleResolution(16),
-                         ChannelsCount(2)
-         {}
+      {
+         eFileType Format            {WAV};
+         uint32_t  SampleRate        {44100};
+         uint32_t  SampleResolution  {16};
+         uint32_t  ChannelsCount     {2};
       };
 
       AudioFileWriter(const AudioFormat &aformat);
@@ -89,11 +83,11 @@ private:
 
     // Encoders Plugin handles
 #ifdef WIN32
-    HINSTANCE hDLL_MP3;
-    HINSTANCE hDLL_LIBSNDFILE;
+    HINSTANCE hDLL_MP3        {nullptr};
+    HINSTANCE hDLL_LIBSNDFILE {nullptr};
 #else
-    void* hDLL_MP3;
-    void* hDLL_LIBSNDFILE;
+    void* hDLL_MP3            {nullptr};
+    void* hDLL_LIBSNDFILE     {nullptr};
 #endif
 
     AudioFormat mFormat;
@@ -101,13 +95,13 @@ private:
 
     // ------------ LIBSNDFILE ------------
 
-    SNDFILE*  mFile;
+    SNDFILE*  mFile             {nullptr};
 
-    SF_OPEN        sfOpen;
-    SF_WRITE_FLOAT sfWriteFloat;
-    SF_WRITE_SHORT sfWrite16bit;
-    SF_ERRORSTR    sfError;
-    SF_CLOSE       sfClose;
+    SF_OPEN        sfOpen       {nullptr};
+    SF_WRITE_FLOAT sfWriteFloat {nullptr};
+    SF_WRITE_SHORT sfWrite16bit {nullptr};
+    SF_ERRORSTR    sfError      {nullptr};
+    SF_CLOSE       sfClose      {nullptr};
 
     // ------------------------------------
 
@@ -124,7 +118,7 @@ protected:
 template <typename T>
 std::int64_t AudioFileWriter::Write(const AudioBlock<T> &buff)
 {
-    if(mFile==NULL)
+    if(!mFile)
        return 0;
 
     std::int64_t written = Write(buff.Data(), buff.Size());

@@ -14,6 +14,7 @@
 #include <memory>
 
 #include "AudioSource.h"
+#include "KVDataStore.h"
 #include "audioneex.h"
 
 
@@ -26,7 +27,7 @@ protected:
 
     std::unique_ptr<Audioneex::Indexer>     m_Indexer;
     std::unique_ptr<Audioneex::Recognizer>  m_Recognizer;
-    std::unique_ptr<Audioneex::DataStore>   m_DataStore;
+    std::unique_ptr<KVDataStore>            m_DataStore;
 
 public:
 
@@ -51,7 +52,7 @@ public:
         m_Recognizer.reset( recognizer );
     }
 
-    void SetDataStore(Audioneex::DataStore* datastore)
+    void SetDataStore(KVDataStore* datastore)
 	{
         m_DataStore.reset( datastore );
     }

@@ -47,12 +47,6 @@ Audioneex::RecognizerImpl::RecognizerImpl() :
 
 // ----------------------------------------------------------------------------
 
-Audioneex::RecognizerImpl::~RecognizerImpl()
-{
-}
-
-// ----------------------------------------------------------------------------
-
 void Audioneex::RecognizerImpl::SetBinaryIdThreshold(float value)
 {
     if(value<0.5 || value>1)

@@ -9,10 +9,9 @@
 
 #include <vector>
 #include <algorithm>
+#include <string>
 #include <sstream>
-				
-
-#include <boost/lexical_cast.hpp>
+#include <iostream>
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 
@@ -34,38 +33,10 @@ namespace {
 }
 #endif
 
-// I just hate baroque naming :-)
-#define NumToStr(n)  boost::lexical_cast<std::string>(n)
-
 // statics
-std::string            AudioSource::m_BinPath = PLATFORM_BIN_NAME;
-std::list<std::string> AudioSource::m_SupportedFormats;
-
-
-// ----------------------------------------------------------------------------
-
-AudioSource::AudioSource() :
-    m_SampleRate       (44100),
-    m_SampleResolution (16),
-    m_Channels         (2),
-    m_TimeOffset       (0),
-    m_TimeLength       (0),
-    m_TotalSamples     (0),
-    m_StopCapture      (false),
-    m_DataListener     (NULL)
-{
-    if(m_SupportedFormats.empty()){
-       m_SupportedFormats.push_back("WAV");
-       m_SupportedFormats.push_back("AIFF");
-       m_SupportedFormats.push_back("AU");
-       m_SupportedFormats.push_back("CDA");
-       m_SupportedFormats.push_back("FLAC");
-       m_SupportedFormats.push_back("MP3");
-       m_SupportedFormats.push_back("M4A");
-       m_SupportedFormats.push_back("AAC");
-       m_SupportedFormats.push_back("OGG");
-    }
-}
+std::string            AudioSource::m_BinPath          = PLATFORM_BIN_NAME;
+std::list<std::string> AudioSource::m_SupportedFormats = {"WAV","AIFF","AU","CDA","FLAC",
+                                                          "MP3","M4A","AAC","OGG"};
 
 // ----------------------------------------------------------------------------
 
@@ -136,17 +107,22 @@ void AudioSource::SetDataListener(AudioSourceDataListener *dataListener)
 void AudioSource::ListCaptureDevices()
 {
     std::string cmd = LIST_CAP_DEVICES_CMD;
+	
 #ifdef WIN32
     WindowsPipe<> pipe;
     pipe.SetUseErrorChannel(true);
+	
     if(!pipe.Open(cmd, INPUT_PIPE))
-       throw std::runtime_error("Couldn't execute " + cmd + ". " + pipe.GetError());
+       throw std::runtime_error
+       ("Couldn't execute " + cmd + ". " + pipe.GetError());
+   
     std::cout << pipe.ReadErr() << std::endl;
-
 #else
     PosixPipe pipe;
+
     if(!pipe.Open(cmd, INPUT_PIPE))
-       throw std::runtime_error("Couldn't execute " + cmd + ". " + pipe.GetError());
+       throw std::runtime_error
+       ("Couldn't execute " + cmd + ". " + pipe.GetError());
 #endif
 }
 
@@ -170,10 +146,6 @@ bool AudioSource::IsFormatSupported(std::string fmt)
 // ----------------------------------------------------------------------------
 
 
-AudioSourceFile::AudioSourceFile()
-{
-}
-
 void AudioSourceFile::Open(const std::string &source_name)
 {
     if(IsOpen()) Close();
@@ -181,19 +153,22 @@ void AudioSourceFile::Open(const std::string &source_name)
     m_Pipe.SetProgramPath( m_BinPath );
 
     m_Pipe.AddCmdArg( "-i \"" + source_name + "\"" );
-    m_Pipe.AddCmdArg( m_SampleRate ? "-ar " + NumToStr(m_SampleRate) : "" );
-    m_Pipe.AddCmdArg( m_Channels ? "-ac " + NumToStr(m_Channels) : "" );
-    m_Pipe.AddCmdArg( m_SampleResolution ? "-f s" + NumToStr(m_SampleResolution) + "le" : "-f s16le" );
-    m_Pipe.AddCmdArg( m_TimeOffset ? "-ss " + NumToStr(m_TimeOffset) : "" );
-    m_Pipe.AddCmdArg( m_TimeLength ? "-t " + NumToStr(m_TimeLength) : "" );
+    m_Pipe.AddCmdArg( m_SampleRate ? "-ar " + std::to_string(m_SampleRate) : "" );
+    m_Pipe.AddCmdArg( m_Channels ? "-ac " + std::to_string(m_Channels) : "" );
+    m_Pipe.AddCmdArg( m_SampleResolution ? "-f s" + std::to_string(m_SampleResolution) + "le" : "-f s16le" );
+    m_Pipe.AddCmdArg( m_TimeOffset ? "-ss " + std::to_string(m_TimeOffset) : "" );
+    m_Pipe.AddCmdArg( m_TimeLength ? "-t " + std::to_string(m_TimeLength) : "" );
     m_Pipe.AddCmdArg( "-");
+	
 #ifdef WIN32
     m_Pipe.SetUseErrorChannel(true);
 #else
     m_Pipe.AddCmdArg( "2>/dev/null" );
 #endif
+
     if(!m_Pipe.Open(INPUT_PIPE))
-       throw std::runtime_error("Couldn't open pipe to "+std::string(PLATFORM_BIN_NAME)+". "+m_Pipe.GetError());
+       throw std::runtime_error
+       ("Couldn't open pipe to "+std::string(PLATFORM_BIN_NAME)+". "+m_Pipe.GetError());
 
     m_TotalSamples = 0;
     m_FileName = source_name;
@@ -209,14 +184,11 @@ void AudioSourceFile::Open(const std::string &source_name)
 // ----------------------------------------------------------------------------
 
 
-AudioSourceDevice::AudioSourceDevice()
-{
-}
-
 void AudioSourceDevice::Open(const std::string &source_name)
 {
     if(m_DataListener == nullptr)
-       throw std::invalid_argument("No audio data consumer set");
+       throw std::invalid_argument
+       ("No audio data consumer set");
 
     if(IsOpen()) Close();
 
@@ -228,9 +200,9 @@ void AudioSourceDevice::Open(const std::string &source_name)
 #else
     m_Pipe.AddCmdArg( "-i hw:" + source_name );
 #endif
-    m_Pipe.AddCmdArg( m_SampleRate ? "-ar " + NumToStr(m_SampleRate) : "" );
-    m_Pipe.AddCmdArg( m_Channels ? "-ac " + NumToStr(m_Channels) : "" );
-    m_Pipe.AddCmdArg( m_SampleResolution ? "-f s" + NumToStr(m_SampleResolution) + "le" : "-f s16le" );
+    m_Pipe.AddCmdArg( m_SampleRate ? "-ar " + std::to_string(m_SampleRate) : "" );
+    m_Pipe.AddCmdArg( m_Channels ? "-ac " + std::to_string(m_Channels) : "" );
+    m_Pipe.AddCmdArg( m_SampleResolution ? "-f s" + std::to_string(m_SampleResolution) + "le" : "-f s16le" );
     m_Pipe.AddCmdArg( "-" );
 #ifdef WIN32
     m_Pipe.SetUseErrorChannel(true);
@@ -239,7 +211,8 @@ void AudioSourceDevice::Open(const std::string &source_name)
 #endif
 
     if(!m_Pipe.Open(INPUT_PIPE))
-       throw std::runtime_error("Couldn't open pipe to "+std::string(PLATFORM_BIN_NAME)+". "+m_Pipe.GetError());
+       throw std::runtime_error
+      ("Couldn't open pipe to "+std::string(PLATFORM_BIN_NAME)+". "+m_Pipe.GetError());
 
     m_StopCapture = false;
 
@@ -293,10 +266,7 @@ void AudioSource::CaptureThread::Run()
 #ifdef ID3_TAG_SUPPORT
 
 ID3Tag::ID3Tag(const std::string& file) :
-   mFilename(file),
-   mSampleRate (0),
-   mChannels   (0),
-   mDuration   (0)
+   mFilename(file)
 {
    SetFile(mFilename);
 }
@@ -323,7 +293,8 @@ void ID3Tag::SetFile(std::string file)
    mYear   = num.str();
    mGenre  = tag->genre().toCString();
 
-   if(f.audioProperties()) {
+   if(f.audioProperties())
+   {
       TagLib::AudioProperties *properties = f.audioProperties();
       mDuration = properties->length();
       mChannels = properties->channels();

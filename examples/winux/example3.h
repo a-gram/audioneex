@@ -15,7 +15,6 @@
 #include <memory>
 
 #include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include "IdTask.h"
 
@@ -155,16 +154,10 @@ public:
 /// task to get the results and do something with them.
 class FileIdentificationResultsParser : public IdentificationResultsListener
 {
-    KVDataStore *m_Datastore;
-    Audioneex::Recognizer *m_Recognizer;
+    KVDataStore *m_Datastore            {nullptr};
+    Audioneex::Recognizer *m_Recognizer {nullptr};
 
   public:
-
-    FileIdentificationResultsParser() :
-        m_Datastore (nullptr),
-        m_Recognizer(nullptr)
-    {}
-
 
     void OnResults(const Audioneex::IdMatch *results)
     {

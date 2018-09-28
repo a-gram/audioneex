@@ -30,26 +30,26 @@ class AudioProcessor
  public:
 
     /// C-tors.
-    AudioProcessor() {}
+    AudioProcessor() = default;
 
     /// D-tors.
-    ~AudioProcessor() {}
+    ~AudioProcessor() = default;
 
 	/// Mix two audio blocks into the given buffer
     void Mix(AudioBlock<T> &block1, AudioBlock<T> &block2, AudioBlock<T> &out)
     {
         assert(block1.SampleRate() == block2.SampleRate());
-	assert(block2.SampleRate() == out.SampleRate());
-    	assert(block1.Channels() == block2.Channels());
-	assert(block2.Channels() == out.Channels());
+        assert(block2.SampleRate() == out.SampleRate());
+        assert(block1.Channels() == block2.Channels());
+        assert(block2.Channels() == out.Channels());
 
-	size_t mixedSamples = std::min(block1.Size(), block2.Size());
-	assert(out.Capacity() >= mixedSamples);
-	float nChans = block1.Channels();
+        size_t mixedSamples = std::min(block1.Size(), block2.Size());
+        assert(out.Capacity() >= mixedSamples);
+        float nChans = block1.Channels();
 
-	for(size_t i=0; i<mixedSamples; i++)
-	    out.Data()[i] = static_cast<T>(
-	                   (static_cast<float>(block1.Data()[i]) +
+        for(size_t i=0; i<mixedSamples; i++)
+            out.Data()[i] = static_cast<T>(
+		                   (static_cast<float>(block1.Data()[i]) +
                             static_cast<float>(block2.Data()[i])) / nChans );
 
     }
@@ -57,7 +57,9 @@ class AudioProcessor
     /// Performs the DFT of the input block using FFT. Input block's size must be a
     /// power of 2 for efficiency. Return the FFT in the given vector of float.
     /// The type of FFT returned is specified in the <type> parameter.
-    void FFT_Transform(AudioBlock<float> &inBlock, std::vector<float> &fft, int type=FFT::MagnitudeSpectrum)
+    void FFT_Transform(AudioBlock<float> &inBlock, 
+                       std::vector<float> &fft, 
+                       int type = FFT::MagnitudeSpectrum)
     {
         assert(mFFT.get());
 

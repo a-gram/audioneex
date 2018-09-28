@@ -10,7 +10,6 @@
 #include "common.h"
 #include "Parameters.h"
 #include "Matcher.h"
-#include "DataStore.h"
 #include "Indexer.h"
 #include "AudioCodes.h"
 #include "Utils.h"
@@ -22,11 +21,7 @@
 TEST_HERE( namespace { Audioneex::Tester TEST; } )
 
 
-Audioneex::Matcher::Matcher() :
-    m_DataStore  (nullptr),
-    m_ko         (0),
-    m_ko_T       (0),
-    m_Nsteps     (0)
+Audioneex::Matcher::Matcher()
 {
     // Set the time histogram size to a value that is adequate to accomodate
     // recordings up to 15 mins long (should be adequate for most recordings,
@@ -54,10 +49,10 @@ int Audioneex::Matcher::Process(const lf_vector &lfs)
     if(lfs.empty()) return 0;
 
     // Append LF stream to query sequence
-    for(const LocalFingerprint_t &lf : lfs)
+    for(const auto &lf : lfs)
     {
         Codebook::QResults quant = m_AudioCodes->quantize(lf);
-	QLocalFingerprint_t QLF;
+        QLocalFingerprint_t QLF;
         QLF.T = lf.T;
         QLF.F = lf.F;
         QLF.W = quant.word;
@@ -198,7 +193,7 @@ void Audioneex::Matcher::DoMatch(int ko, int kn)
     if(!m_TopKMc.empty())
     {
 
-        for(hashtable_Qhisto::value_type &e : m_TopKMc) 
+        for(auto &e : m_TopKMc) 
         {
             std::list<Qhisto_t> &tlist = e.second;
 			
@@ -214,7 +209,7 @@ void Audioneex::Matcher::DoMatch(int ko, int kn)
 
         m_Results.Top_K.clear();
 
-        for(hashtable_Qc::value_type &e : m_Results.Qc)
+        for(auto &e : m_Results.Qc)
 	{
             int Qi = e.first;
             int score = e.second.Ac;
@@ -232,8 +227,8 @@ void Audioneex::Matcher::DoMatch(int ko, int kn)
 
 void Audioneex::Matcher::FindCandidatesSWords(int ko, int kn)
 {
-    boost::unordered::unordered_map<int, std::unique_ptr <DataStoreImpl::PListIterator> > iterators;
-    boost::unordered::unordered_set<int> EOL_iterators;
+	hashtable_PLIter  iterators;
+    hashtable_EOLIter EOL_iterators;
 
     uint32_t FIDcurr = 1;
 
@@ -251,7 +246,7 @@ void Audioneex::Matcher::FindCandidatesSWords(int ko, int kn)
 
             // Get postings list iterator for term from cache.
             // If we get a miss then get a new one;
-            std::unique_ptr <DataStoreImpl::PListIterator> &it = iterators[term];
+            auto &it = iterators[term];
 
             if(it.get() == nullptr)
                it.reset(DataStoreImpl::GetPListIterator(m_DataStore, term));

@@ -271,7 +271,8 @@ const uint8_t* CBDataStore::GetPListBlock(int list_id, int block, size_t &data_s
 void CBDataStore::OnIndexerStart()
 {
     if(m_Op == GET)
-       throw std::invalid_argument("OnIndexerStart(): Invalid operation");
+       throw std::invalid_argument
+       ("OnIndexerStart(): Invalid operation");
 
     if(m_Op == BUILD_MERGE)
        m_DeltaIndex.Open(OPEN_READ_WRITE);
@@ -350,7 +351,8 @@ PListHeader CBDataStore::OnIndexerListHeader(int list_id)
     else if(m_Op == BUILD)
        return m_MainIndex.GetPListHeader(list_id);
     else
-       throw std::invalid_argument("OnIndexerListHeader(): Invalid operation");
+       throw std::invalid_argument
+       ("OnIndexerListHeader(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -368,7 +370,8 @@ PListBlockHeader CBDataStore::OnIndexerBlockHeader(int list_id, int block)
     else if(m_Op == BUILD)
        return m_MainIndex.GetPListBlockHeader(list_id, block);
     else
-       throw std::invalid_argument("OnIndexerBlockHeader(): Invalid operation");
+       throw std::invalid_argument
+       ("OnIndexerBlockHeader(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -383,7 +386,8 @@ void CBDataStore::OnIndexerChunk(int list_id,
     else if(m_Op == BUILD)
        m_MainIndex.AppendChunk(list_id, lhdr, hdr, data, data_size);
     else
-       throw std::invalid_argument("OnIndexerChunkAppend(): Invalid operation");
+       throw std::invalid_argument
+       ("OnIndexerChunkAppend(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -398,7 +402,8 @@ void CBDataStore::OnIndexerNewBlock(int list_id,
     else if(m_Op == BUILD)
        m_MainIndex.AppendChunk(list_id, lhdr, hdr, data, data_size, true);
     else
-       throw std::invalid_argument("OnIndexerChunkNewBlock(): Invalid operation");
+       throw std::invalid_argument
+       ("OnIndexerChunkNewBlock(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
@@ -417,7 +422,10 @@ size_t CBDataStore::GetFingerprintSize(uint32_t FID)
 
 // ----------------------------------------------------------------------------
 
-const uint8_t* CBDataStore::GetFingerprint(uint32_t FID, size_t &read, size_t nbytes, uint32_t bo)
+const uint8_t* CBDataStore::GetFingerprint(uint32_t FID,
+                                           size_t &read, 
+										   size_t nbytes, 
+										   uint32_t bo)
 {
     read = m_QFingerprints.ReadFingerprint(FID, m_ReadBuffer, nbytes, bo);
     return m_ReadBuffer.data();
@@ -539,7 +547,11 @@ void CBCollection::Drop()
     CBHttpResp hresp;
     hresp.status = LCB_SUCCESS;
 
-    err = lcb_make_http_request(m_DBHandle, &hresp, LCB_HTTP_TYPE_MANAGEMENT, &cmd, &dummy);
+    err = lcb_make_http_request(m_DBHandle,
+	                            &hresp, 
+								LCB_HTTP_TYPE_MANAGEMENT, 
+								&cmd, 
+								&dummy);
 
     THROW_ON_FAIL(this, err, "Couldn't initiate http request.")
 
@@ -577,7 +589,11 @@ uint64_t CBCollection::GetRecordsCount() const
     CBHttpResp hresp;
     hresp.status = LCB_SUCCESS;
 
-    err = lcb_make_http_request(m_DBHandle, &hresp, LCB_HTTP_TYPE_MANAGEMENT, &cmd, &dummy);
+    err = lcb_make_http_request(m_DBHandle, 
+                                &hresp, 
+							    LCB_HTTP_TYPE_MANAGEMENT, 
+								&cmd, 
+								&dummy);
 
     THROW_ON_FAIL(this, err, "Couldn't initiate http request.")
 
@@ -593,7 +609,7 @@ uint64_t CBCollection::GetRecordsCount() const
     boost::property_tree::read_json(json, pt);
 
     std::string icount = pt.get<std::string>("basicStats.itemCount");
-    fp_count = boost::lexical_cast<uint64_t>(icount);
+    fp_count = std::stoull(icount);
 
     return fp_count;
 }
@@ -616,7 +632,8 @@ CBIndex::CBIndex(CBDataStore *dstore) :
 PListHeader CBIndex::GetPListHeader(int list_id)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error
+       ("Database '"+m_DBName+"' not open");
 
     PListHeader hdr = {};
 
@@ -670,7 +687,8 @@ PListHeader CBIndex::GetPListHeader(int list_id)
 PListBlockHeader CBIndex::GetPListBlockHeader(int list_id, int block_id)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error
+       ("Database '"+m_DBName+"' not open");
 
     PListBlockHeader hdr = {};
 
@@ -721,10 +739,14 @@ PListBlockHeader CBIndex::GetPListBlockHeader(int list_id, int block_id)
 
 // ----------------------------------------------------------------------------
 
-size_t CBIndex::ReadBlock(int list_id, int block_id, std::vector<uint8_t> &buffer, bool headers)
+size_t CBIndex::ReadBlock(int list_id, 
+                          int block_id, 
+						  std::vector<uint8_t> &buffer, 
+						  bool headers)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error
+       ("Database '"+m_DBName+"' not open");
 
     size_t off=0;
 
@@ -773,10 +795,14 @@ size_t CBIndex::ReadBlock(int list_id, int block_id, std::vector<uint8_t> &buffe
 
 // ----------------------------------------------------------------------------
 
-void CBIndex::WriteBlock(int list_id, int block_id, std::vector<uint8_t> &buffer, size_t data_size)
+void CBIndex::WriteBlock(int list_id, 
+                         int block_id, 
+						 std::vector<uint8_t> &buffer, 
+						 size_t data_size)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error
+       ("Database '"+m_DBName+"' not open");
 
     assert(!buffer.empty());
     assert(data_size <= buffer.size());
@@ -828,8 +854,12 @@ void CBIndex::AppendChunk(int list_id,
 
        // Schedule blocks for batch write.
        block_map::iterator iblock = m_BlocksCache.buffer.begin();
-       for (; iblock != m_BlocksCache.buffer.end(); ++iblock){
-           WriteBlock(m_BlocksCache.list_id, iblock->first, iblock->second, iblock->second.size());
+       for (; iblock != m_BlocksCache.buffer.end(); ++iblock)
+	   {
+           WriteBlock(m_BlocksCache.list_id, 
+                      iblock->first, 
+					  iblock->second, 
+					  iblock->second.size());
            //m_BlocksCache.accum += iblock->second.size();
        }
        // Execute the batch if the threshold is reached
@@ -843,7 +873,8 @@ void CBIndex::AppendChunk(int list_id,
           lcb_error_t rstatus = static_cast<lcb_error_t>(m_StoreResp.status);
 
           if (rstatus != LCB_SUCCESS)
-             throw std::runtime_error("Bulk load error. Indexing failed.");
+             throw std::runtime_error
+		     ("Bulk load error. Indexing failed.");
 
           m_BlocksCache.accum = 0;
          // DEBUG_MSG("   Done.")
@@ -1053,8 +1084,12 @@ void CBIndex::FlushBlockCache()
 
     // Schedule any remaining blocks for batched insert.
     block_map::iterator block = m_BlocksCache.buffer.begin();
-    for (; block != m_BlocksCache.buffer.end(); ++block) {
-        WriteBlock(m_BlocksCache.list_id, block->first, block->second, block->second.size());
+    for (; block != m_BlocksCache.buffer.end(); ++block) 
+	{
+        WriteBlock(m_BlocksCache.list_id, 
+                   block->first, 
+				   block->second, 
+				   block->second.size());
     }
 
     m_StoreResp.sender = __FUNCTION__;
@@ -1130,11 +1165,14 @@ size_t CBFingerprints::ReadFingerprintSize(uint32_t FID)
 
 // ----------------------------------------------------------------------------
 
-size_t CBFingerprints::ReadFingerprint(uint32_t FID, std::vector<uint8_t> &buffer,
-                                       size_t size, uint32_t bo)
+size_t CBFingerprints::ReadFingerprint(uint32_t FID, 
+                                       std::vector<uint8_t> &buffer,
+                                       size_t size, 
+									   uint32_t bo)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error
+       ("Database '"+m_DBName+"' not open");
 
     // Create response structure
     CBGetResp gresp = {};
@@ -1167,12 +1205,15 @@ size_t CBFingerprints::ReadFingerprint(uint32_t FID, std::vector<uint8_t> &buffe
 
 // ----------------------------------------------------------------------------
 
-void CBFingerprints::WriteFingerprint(uint32_t FID, const uint8_t *data, size_t size)
+void CBFingerprints::WriteFingerprint(uint32_t FID, 
+                                      const uint8_t *data, 
+									  size_t size)
 {
     assert(data);
 
     if(m_DBHandle==NULL)
-       throw std::runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error
+       ("Database '"+m_DBName+"' not open");
 
     CBSetResp sresp;
     sresp.sender = __FUNCTION__;
@@ -1250,7 +1291,8 @@ std::string CBMetadata::Read(uint32_t FID)
 void CBMetadata::Write(uint32_t FID, const std::string &meta)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error("Database '"+m_DBName+"' not open");
+       throw std::runtime_error
+       ("Database '"+m_DBName+"' not open");
 
     if(meta.empty())
        return;

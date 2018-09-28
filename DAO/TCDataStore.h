@@ -84,7 +84,7 @@ class TCIndex : public TCCollection
 public:
 
     TCIndex(TCDataStore *dstore);
-    ~TCIndex(){}
+    ~TCIndex() = default;
 
     /// Get the header for the specified index list
     Audioneex::PListHeader GetPListHeader(int list_id);
@@ -95,11 +95,17 @@ public:
     /// Read the specified index list block data into 'buffer'. The 'headers'
     /// flag specifies whether to include the block headers in the read data.
     /// Return the number of read bytes.
-    size_t ReadBlock(int list_id, int block_id, std::vector<uint8_t> &buffer, bool headers=true);
+    size_t ReadBlock(int list_id, 
+                     int block_id, 
+					 std::vector<uint8_t> &buffer, 
+					 bool headers=true);
 
     /// Write the contents of the given block in the specified index list.
     /// A new block is created if the specified block does not exist.
-    void WriteBlock(int list_id, int block_id, std::vector<uint8_t> &buffer, size_t data_size);
+    void WriteBlock(int list_id, 
+                    int block_id, 
+					std::vector<uint8_t> &buffer, 
+					size_t data_size);
 
     /// Append a chunk to the specified block. If the block does not exist,
     /// a new one is created.
@@ -116,7 +122,9 @@ public:
     void Merge(TCCollection *plidx);
 
     /// Turn a raw block byte stream into a block structure.
-    PListBlock RawBlockToBlock(uint8_t *block, size_t block_size, bool isFirst=false);
+    PListBlock RawBlockToBlock(uint8_t *block, 
+                               size_t block_size, 
+							   bool isFirst=false);
 
     /// Flush any remaining data in the block cache
     void FlushBlockCache();
@@ -134,17 +142,22 @@ class TCFingerprints : public TCCollection
 public:
 
     TCFingerprints(TCDataStore *dstore);
-    ~TCFingerprints(){}
+    ~TCFingerprints() = default;
 
     /// Read the size of the specified fingerprint (in bytes)
     size_t ReadFingerprintSize(uint32_t FID);
 
     /// Read the specified fingerprint's data into the given buffer. If 'size'
     /// is non zero, then 'size' bytes are read starting at offset bo (in bytes)
-    size_t ReadFingerprint(uint32_t FID, std::vector<uint8_t> &buffer, size_t size, uint32_t bo);
+    size_t ReadFingerprint(uint32_t FID, 
+                           std::vector<uint8_t> &buffer, 
+						   size_t size, 
+						   uint32_t bo);
 
     /// Write the given fingerprint into the database
-    void   WriteFingerprint(uint32_t FID, const uint8_t *data, size_t size);
+    void   WriteFingerprint(uint32_t FID, 
+                            const uint8_t *data, 
+							size_t size);
 };
 
 // ----------------------------------------------------------------------------
@@ -156,7 +169,7 @@ class TCMetadata : public TCCollection
 public:
 
     TCMetadata(TCDataStore *dstore);
-    ~TCMetadata(){}
+    ~TCMetadata() = default;
 
     /// Read metadata for fingerprint FID
     std::string Read(uint32_t FID);
@@ -174,7 +187,7 @@ class TCInfo : public TCCollection
 public:
 
     TCInfo(TCDataStore *dstore);
-    ~TCInfo(){}
+    ~TCInfo() = default;
 
     DBInfo_t Read();
     void Write(const DBInfo_t &info);
@@ -206,7 +219,7 @@ class TCDataStore : public KVDataStore
 public:
 
     explicit TCDataStore(const std::string &url = std::string());
-    ~TCDataStore(){}
+    ~TCDataStore() = default;
 
     void Open(eOperation op = GET,
               bool use_fing_db=false,
@@ -245,9 +258,18 @@ public:
 
     // API Interface
 
-    const uint8_t* GetPListBlock(int list_id, int block, size_t& data_size, bool headers=true);
+    const uint8_t* GetPListBlock(int list_id, 
+                                 int block, 
+								 size_t& data_size, 
+								 bool headers=true);
+								 
     size_t GetFingerprintSize(uint32_t FID);
-    const uint8_t* GetFingerprint(uint32_t FID, size_t &read, size_t nbytes = 0, uint32_t bo = 0);
+	
+    const uint8_t* GetFingerprint(uint32_t FID, 
+                                  size_t &read, 
+								  size_t nbytes = 0, 
+								  uint32_t bo = 0);
+								  
     size_t GetFingerprintsCount();
     void OnIndexerStart();
     void OnIndexerEnd();

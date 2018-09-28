@@ -29,7 +29,7 @@ class RingBuffer
 {
  public:
 
-    RingBuffer();
+    RingBuffer() = default;
 
     // Copy c-tor
     RingBuffer(const RingBuffer<T>& rhs);
@@ -40,7 +40,7 @@ class RingBuffer
     /// Create a ring buffer with 'size' blocks with the given block's params
     RingBuffer(size_t size, AudioBlock<T> &block);
 
-    ~RingBuffer();
+    ~RingBuffer() = default;
 
     /// Set the ring with 'size' empty (null) blocks
     void  Set(size_t size);
@@ -92,26 +92,16 @@ class RingBuffer
 
     std::unique_ptr<AudioBlock<T>[]> mBuffer;
 	
-    size_t         mSize;
-    uint64_t       mConsumed;
-    uint64_t       mProduced;
-    bool           mConsumeDone;
+    size_t         mSize         {0};
+    uint64_t       mConsumed     {0};
+    uint64_t       mProduced     {0};
+    bool           mConsumeDone  {false};
 
 };
 
 
 // ----------------------------------------------------------------------------
 
-
-template <class T>
-inline RingBuffer<T>::RingBuffer() :
-    mBuffer      (nullptr),
-    mSize        (0),
-    mConsumed    (0),
-    mProduced    (0),
-    mConsumeDone (false)
-{
-}
 
 template <class T>
 inline RingBuffer<T>::RingBuffer(const RingBuffer<T>& rhs) :
@@ -121,27 +111,19 @@ inline RingBuffer<T>::RingBuffer(const RingBuffer<T>& rhs) :
     mConsumeDone (rhs.mConsumeDone),
     mBuffer      (mSize ? new AudioBlock<T>[mSize] : nullptr)
 {
-    std::copy(rhs.mBuffer.get(), rhs.mBuffer.get()+mSize, mBuffer.get());
+    std::copy(rhs.mBuffer.get(),
+              rhs.mBuffer.get() + mSize, 
+              mBuffer.get());
 }
 
 template <class T>
-inline RingBuffer<T>::RingBuffer(size_t size) :
-    mBuffer      (nullptr),
-    mSize        (0),
-    mConsumed    (0),
-    mProduced    (0),
-    mConsumeDone (false)
+inline RingBuffer<T>::RingBuffer(size_t size)
 {
     Set(size);
 }
 
 template <class T>
-inline RingBuffer<T>::RingBuffer(size_t size, AudioBlock<T> &block) :
-    mBuffer      (nullptr),
-    mSize        (0),
-    mConsumed    (0),
-    mProduced    (0),
-    mConsumeDone (false)
+inline RingBuffer<T>::RingBuffer(size_t size, AudioBlock<T> &block)
 {
     Set(size, block);
 }
@@ -268,11 +250,6 @@ inline void RingBuffer<T>::Reset()
    mConsumed = 0;
    mProduced = 0;
    mConsumeDone = false;
-}
-
-template <class T>
-inline RingBuffer<T>::~RingBuffer()
-{
 }
 
 

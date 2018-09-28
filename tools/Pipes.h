@@ -160,14 +160,14 @@ class WindowsPipe
         siStartInfo.hStdError =  stderr_h;
         siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
-        bSuccess = ::CreateProcess(NULL,
+        bSuccess = ::CreateProcess(0,
            (LPTSTR)cmd.c_str(),   // command line
-           NULL,          // process security attributes
-           NULL,          // primary thread security attributes
+           0,          // process security attributes
+           0,          // primary thread security attributes
            TRUE,          // handles are inherited
            dwCreationFlags,  // creation flags
-           NULL,          // use parent's environment
-           NULL,          // use parent's current directory
+           0,          // use parent's environment
+           0,          // use parent's current directory
            &siStartInfo,  // STARTUPINFO pointer
            &m_ProcInfo);  // receives PROCESS_INFORMATION
 
@@ -202,11 +202,11 @@ class WindowsPipe
             FORMAT_MESSAGE_ALLOCATE_BUFFER |
             FORMAT_MESSAGE_FROM_SYSTEM |
             FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL,
+            0,
             dw,
             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
             (LPTSTR) &lpMsgBuf,
-            0, NULL );
+            0, 0 );
 
         size_t msgSize = ::lstrlen((LPTSTR)lpMsgBuf);
 
@@ -223,7 +223,7 @@ class WindowsPipe
         SECURITY_ATTRIBUTES saAttr;
         saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
         saAttr.bInheritHandle = TRUE;
-        saAttr.lpSecurityDescriptor = NULL;
+        saAttr.lpSecurityDescriptor = 0;
 
         // Create the read pipe. The write handle must be inheritable
         // by the child process in order to be able to use it. The read
@@ -364,7 +364,7 @@ class WindowsPipe
         // amount is reached or all data is exhausted.
         while(missing){
             if(!::ReadFile( m_InChannel[READ_ENDPOINT],
-                            pbuf, (DWORD)missing, &bytesRead, NULL)){
+                            pbuf, (DWORD)missing, &bytesRead, 0)){
                 DWORD bytesAvail = 0;
                 ::PeekNamedPipe(m_InChannel[READ_ENDPOINT], 0, 0, 0, &bytesAvail, 0);
                 if(bytesAvail > 0)
@@ -388,7 +388,7 @@ class WindowsPipe
 
         do{
             if(!::ReadFile( m_ErrChannel[READ_ENDPOINT],
-                            buf, (DWORD)sizeof(buf), &bytesRead, NULL)){
+                            buf, (DWORD)sizeof(buf), &bytesRead, 0)){
                 ::PeekNamedPipe(m_ErrChannel[READ_ENDPOINT], 0, 0, 0, &bytesAvail, 0);
                 if(bytesAvail > 0)
                    break;

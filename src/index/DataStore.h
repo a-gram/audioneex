@@ -45,22 +45,23 @@ const int POSTINGSLIST_CHUNK_THRESHOLD = POSTINGSLIST_BLOCK_THRESHOLD * 0.2;
 /// Posting cursor used to iterate over the postings lists.
 struct AUDIONEEX_API_TEST Posting_t
 {
-    uint32_t  FID;
-    uint32_t  tf;
-    uint32_t* LID;
-    uint32_t* T;
-    uint32_t* E;
+    uint32_t  FID {0};
+    uint32_t  tf  {0};
+    uint32_t* LID {nullptr};
+    uint32_t* T   {nullptr};
+    uint32_t* E   {nullptr};
 
-    Posting_t() :
-        FID(0),
-        tf(0),
-        LID(nullptr),
-        T(nullptr),
-        E(nullptr)
-    {}
-    bool empty() const { return !FID && !tf && !LID && !T && !E; }
-    void reset() { FID=0; tf=0; LID=nullptr; T=nullptr; E=nullptr; }
-    operator bool() const { return !empty(); }
+    bool empty() const { 
+        return !FID && !tf && !LID && !T && !E;
+	}
+	
+    void reset() { 
+        FID=0; tf=0; LID=nullptr; T=nullptr; E=nullptr;
+    }
+	
+    operator bool() const { 
+        return !empty(); 
+    }
 };
 
 /// NOTE: To iterate over the postings we need 2 iterators: one to iterate
@@ -76,18 +77,18 @@ class AUDIONEEX_API_TEST PListIterator
 {
     friend AUDIONEEX_API_TEST PListIterator* GetPListIterator(Audioneex::DataStore* store, int term);
 
-    Audioneex::DataStore*    m_DataStore;
-    int                      m_Term;
-    uint32_t                 m_NextBlock;
+    Audioneex::DataStore*    m_DataStore   {nullptr};
+    int                      m_Term        {0};
+    uint32_t                 m_NextBlock   {1};
     Posting_t                m_Cursor;
-    bool                     m_EOL;
+    bool                     m_EOL         {false};
     BlockEncoder             m_BlockCodec;
     std::vector<uint32_t>    m_BlockDecoded;
 
     // -------- Postings iterator ---------
 
-    uint32_t*                m_begin;
-    uint32_t*                m_end;
+    uint32_t*                m_begin       {nullptr};
+    uint32_t*                m_end         {nullptr};
 
     // Fetch the next block from the index. Returns false if there are
     // no more blocks (EOL), true otherwise.
@@ -150,14 +151,7 @@ class AUDIONEEX_API_TEST PListIterator
 
 public:
 
-    PListIterator() :
-        m_DataStore (nullptr),
-        m_Term      (0),
-        m_NextBlock (1),
-        m_EOL       (false),
-        //--------------------
-        m_begin     (nullptr),
-        m_end       (nullptr)
+    PListIterator()
     {
         // reserve some space for the decoded blocks
         m_BlockDecoded.resize(POSTINGSLIST_BLOCK_THRESHOLD);

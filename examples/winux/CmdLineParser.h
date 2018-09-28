@@ -55,10 +55,12 @@ class CmdLineParser
     bool ValidOptions()
     {
         std::vector<std::string>::const_iterator it = m_Args.begin();
+		
         for(; it!=m_Args.end(); ++it)
             if((*it).substr(0,1) == "-" &&
                m_SupportedOptions.find(*it) == m_SupportedOptions.end())
                return false;
+			   
         return true;
     }
 
@@ -67,6 +69,7 @@ class CmdLineParser
     {
         std::vector<std::string>::const_iterator it =
         std::find(m_Args.begin(), m_Args.end(), opt);
+		
         if(it != m_Args.end()){
            if(++it != m_Args.end())
               val = boost::lexical_cast<T>(*it);
@@ -74,6 +77,7 @@ class CmdLineParser
               throw bad_cmd_line_exception("Invalid command line");
            return true;
         }
+		
         return false;
     }
 

@@ -42,8 +42,8 @@ public:
     //typedef std::map<int, std::vector<uint32_t> > buffer_type;
     typedef boost::unordered::unordered_map<int, std::vector<uint32_t> > buffer_type;
 
-    IndexCache();
-   ~IndexCache();
+    IndexCache() = default;
+   ~IndexCache() = default;
 
     /// Update the cache by appending the given posting's payload to the
     /// last posting in the list for the specified term. If the posting
@@ -87,15 +87,15 @@ public:
 
 private:
 
-    buffer_type  m_Buffer;         ///< The cache holding the postings lists.
-    size_t       m_MemoryLimit;    ///< Max memory (in MB) used by the cache before flushing.
-    size_t       m_MemoryUsed;     ///< Memory currently used by the postings lists (in bytes).
-    size_t       m_TotalPostings;  ///< The total number of postings currently indexed.
+    buffer_type  m_Buffer;              ///< The cache holding the postings lists.
+    size_t       m_MemoryLimit   {128}; ///< Max memory (in MB) used by the cache before flushing.
+    size_t       m_MemoryUsed    {0};   ///< Memory currently used by the postings lists (in bytes).
+    size_t       m_TotalPostings {0};   ///< The total number of postings currently indexed.
 
     /// Duplicate occurences in a posting list may happen as the result of
     /// quantization errors during the indexing process. It is not harmful
     /// if it happens sporadically. However we track it and watch it.
-    size_t       m_DuplicateOcc;
+    size_t       m_DuplicateOcc  {0};
 
 };
 
@@ -188,12 +188,12 @@ public:
 
 private:
 
-    Audioneex::DataStore*       m_DataStore;
-    Audioneex::AudioProvider*   m_AudioProvider;
+    Audioneex::DataStore*       m_DataStore      {nullptr};
+    Audioneex::AudioProvider*   m_AudioProvider  {nullptr};
+    bool                        m_SessionOpen    {false};
+    uint32_t                    m_CurrFID        {0};
     IndexCache                  m_Cache;
     std::unique_ptr <Codebook>  m_AudioCodes;
-    bool                        m_SessionOpen;
-    uint32_t                    m_CurrFID;
 
     void DoFlush();
     void IndexSTerms(uint32_t FID, const QLocalFingerprint_t* lfs, size_t Nlfs);

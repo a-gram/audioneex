@@ -27,11 +27,13 @@ namespace Audioneex
 /// Identification accumulator/integrator
 struct IdAcc_t
 {
-    float Conf;
-    float Time;
-    float Steps;
-    IdAcc_t() : Time(0), Conf(0), Steps(0) {}
+    float Conf  {0.f};
+    float Time  {0.f};
+    float Steps {0.f};
 };
+
+typedef boost::unordered::unordered_map<uint32_t, IdAcc_t> hashtable_acc;
+
 
 /// Implementation of the Recognizer interface
 
@@ -43,12 +45,8 @@ class AUDIONEEX_API_TEST RecognizerImpl : public Audioneex::Recognizer
     std::vector<Audioneex::IdMatch>   m_IdMatches;
     float                             m_BinaryIdThreshold;
     float                             m_BinaryIdMinTime;
-
-    /// Confidence integrator
-    typedef boost::unordered::unordered_map<uint32_t, IdAcc_t> acc_table;
-
-    acc_table   m_MatchAcc;
-    double      m_IdTime;
+    hashtable_acc                     m_MatchAcc;
+    double                            m_IdTime;
 
 
     /// Process match results at each processing step. This method shall
@@ -73,7 +71,6 @@ class AUDIONEEX_API_TEST RecognizerImpl : public Audioneex::Recognizer
 public:
 
     RecognizerImpl();
-    virtual ~RecognizerImpl();
 
     void SetAudioBufferSize(float seconds);
 

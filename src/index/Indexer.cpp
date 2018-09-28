@@ -51,11 +51,7 @@ int   Audioneex::IndexerImpl::VPT_SHIFT = W2_SHIFT - VPT_BITS;
 
 
 
-Audioneex::IndexerImpl::IndexerImpl() :
-    m_SessionOpen      (false),
-    m_CurrFID          (0),
-    m_DataStore        (nullptr),
-    m_AudioProvider    (nullptr)
+Audioneex::IndexerImpl::IndexerImpl()
 {
     // Check that all components fit into a word
     assert(2*WORD_BITS+BAND_BITS+VPT_BITS+VPF_BITS <= sizeof(int)*8);
@@ -170,7 +166,7 @@ void Audioneex::IndexerImpl::Index(uint32_t FID)
            const lf_vector &lfs = fingerprint.Get();
 
            // quantize the LFs
-           for(const LocalFingerprint_t &lf : lfs)
+           for(const auto &lf : lfs)
            {
                Codebook::QResults quant = m_AudioCodes->quantize(lf);
                QLocalFingerprint_t qlf;
@@ -471,21 +467,6 @@ uint32_t Audioneex::IndexerImpl::GetMaxTermValue()
 //=============================================================================
 
 
-Audioneex::IndexCache::IndexCache() :
-    m_MemoryUsed    ( 0 ),
-    m_TotalPostings ( 0 ),
-    m_MemoryLimit   ( 128 ),
-    m_DuplicateOcc  ( 0 )
-{
-}
-
-// ----------------------------------------------------------------------------
-
-Audioneex::IndexCache::~IndexCache()
-{
-}
-
-// ----------------------------------------------------------------------------
 
 void Audioneex::IndexCache::Update(int term, int FID, int LID, int T, int E)
 {

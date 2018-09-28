@@ -27,7 +27,7 @@
 // Just a dummy for testing purposes
 class DummyAudioProvider : public Audioneex::AudioProvider{
     public: int OnAudioData(uint32_t FID, float *buffer, size_t nsamples) { 
-                return 0; 
+        return 0; 
     }
 };
 
@@ -35,16 +35,16 @@ class DummyAudioProvider : public Audioneex::AudioProvider{
 // This class will test indexing correctness
 class IndexingTest : public Audioneex::AudioProvider
 {
-    Audioneex::DataStore* m_DataStore;
+    KVDataStore*          m_DataStore;
     Audioneex::Indexer*   m_Indexer;
 
-    QFGenerator  m_QFGenerator;
-    uint32_t     m_FID;
-    uint32_t     m_NQFs;
+    QFGenerator           m_QFGenerator;
+    uint32_t              m_FID;
+    uint32_t              m_NQFs;
 
-    AudioSourceFile     m_AudioSource;
-    AudioBlock<int16_t> m_InputBlock;
-    AudioBlock<float>   m_AudioBlock;
+    AudioSourceFile       m_AudioSource;
+    AudioBlock<int16_t>   m_InputBlock;
+    AudioBlock<float>     m_AudioBlock;
 
     // AudioProvider implementation
     int OnAudioData(uint32_t FID, float *buffer, size_t nsamples)
@@ -88,7 +88,7 @@ class IndexingTest : public Audioneex::AudioProvider
 
             DEBUG_MSG_N("\rTesting indexer ... "<<prog<<"%     ")
 
-            std::vector<Audioneex::QLocalFingerprint_t>& fp = m_QFGenerator.Generate();
+            auto& fp = m_QFGenerator.Generate();
 
             if(fp.empty())
                throw std::runtime_error("Invalid fingerprint (null)");
@@ -103,8 +103,8 @@ class IndexingTest : public Audioneex::AudioProvider
             REQUIRE( m_Indexer->GetCacheUsed() > mem );
             REQUIRE( (m_Indexer->GetCacheUsed()/1048576 < m_Indexer->GetCacheLimit()) );
 
-            static_cast<KVDataStore*>(m_DataStore)->PutFingerprint(FID,fp_ptr,fp_bytes);
-            fp_ptr = static_cast<KVDataStore*>(m_DataStore)->GetFingerprint(FID, fp_bytes);
+            m_DataStore->PutFingerprint(FID,fp_ptr,fp_bytes);
+            fp_ptr = m_DataStore->GetFingerprint(FID, fp_bytes);
 
             REQUIRE( (fp_ptr != nullptr && fp_bytes>0) );
 
@@ -129,8 +129,8 @@ public:
     typedef std::unique_ptr <IndexingTest> Ptr;
 
     IndexingTest() :
-        m_DataStore  (),
-        m_Indexer    (),
+        m_DataStore  (nullptr),
+        m_Indexer    (nullptr),
         m_FID        (0),
         m_NQFs       (1000),
         m_InputBlock (Audioneex::Pms::Fs*10, Audioneex::Pms::Fs, Audioneex::Pms::Ca),
@@ -161,7 +161,7 @@ public:
 
         // Validate index
 
-        size_t fp_count = static_cast<KVDataStore*>(m_DataStore)->GetFingerprintsCount();
+        size_t fp_count = m_DataStore->GetFingerprintsCount();
 
         REQUIRE(fp_count > 0);  // There must be fingerprints in the db
 
@@ -246,7 +246,7 @@ public:
     }
 
     void SetFingerprintsNum(uint32_t num) { m_NQFs = num; }
-    void SetDatastore(Audioneex::DataStore* dstore) { m_DataStore = dstore; }
+    void SetDatastore(KVDataStore* dstore) { m_DataStore = dstore; }
     void SetIndexer(Audioneex::Indexer* indexer) { m_Indexer = indexer; }
 };
 

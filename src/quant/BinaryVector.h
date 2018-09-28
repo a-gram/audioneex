@@ -13,6 +13,7 @@
 #include <iostream>
 #include <cstring>
 #include <cassert>
+#include <memory>
 
 #if defined WIN32 || defined WIN64
   #pragma warning( disable : 4355 )

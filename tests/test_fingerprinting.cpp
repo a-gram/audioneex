@@ -7,7 +7,7 @@
 
 */
 
-#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
+#define CATCH_CONFIG_MAIN  // Tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
 
 #include "Fingerprint.h"
@@ -21,8 +21,8 @@
 ///
 /// Prerequisites:
 ///
-/// 1) Copy the 'data' folder from the 'tests' directory in the source tree to
-///    the test programs directory.
+/// 1) Copy the 'data' folder from the 'tests' directory in the root of the source tree,
+///    to the test programs directory.
 /// 2) If linking against the shared version of Audioneex, the library must be built
 ///    with the TESTING compiler definition in order for the private classes being tested
 ///    to expose their interfaces.

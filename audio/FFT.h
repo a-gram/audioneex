@@ -25,10 +25,7 @@ class FFTFrame
 {
  public:
 
-    FFTFrame() :
-        mSize(0),
-        mData(nullptr) 
-    {}
+    FFTFrame() = default;
 	
     FFTFrame(int size) : 
         mSize(size), 
@@ -37,46 +34,46 @@ class FFTFrame
         assert(size>0);
     }
 
-    ~FFTFrame()  { }
+    ~FFTFrame() = default;
 
     float Magnitude(int i) const
     { 
-	assert(mData);
-	return std::sqrt(mData[i]);
+        assert(mData);
+        return std::sqrt(mData[i]);
     }
 	
     float Energy(int i) const
     { 
-	assert(mData);
-	return mData[i]; 
+        assert(mData);
+        return mData[i]; 
     }
 	
     float Power(int i) const
     { 
-	assert(mData);
-	return mData[i]/mSize; 
+        assert(mData);
+        return mData[i]/mSize; 
     }
 	
     int Size() const
     { 
-	return mSize; 
+        return mSize; 
     }
 	
     float* Data()
     { 
-	return mData.get(); 
+        return mData.get(); 
     }
 	
     void Resize(size_t size)
     { 
-	mData.reset(new float[size]);
-	mSize=size;
+        mData.reset(new float[size]);
+        mSize=size;
     }
 
  private:
 
     std::unique_ptr<float[]> mData;
-    int                      mSize;
+    int                      mSize {0};
 };
 
 
@@ -84,9 +81,9 @@ class FFTFrame
 
 class FFT
 {
-    size_t mWindowSize;    // The original non-zero padded data frame
-    size_t mFFTFrameSize;  // The data frame size after zero-padding
-    double mZeroPadFac;
+    size_t mWindowSize    {0};    // The original non-zero padded data frame
+    size_t mFFTFrameSize  {0};    // The data frame size after zero-padding
+    double mZeroPadFac    {0.0};
 
     std::vector<double> mWindow;
     FFTFrame            mFFTFrame;
@@ -120,12 +117,11 @@ class FFT
        EnergySpectrum
     };
 
-    FFT(size_t windowSize, double zeroPadFactor)
+    FFT(size_t windowSize, double zeroPadFactor) :
+        mWindowSize (windowSize),
+        mZeroPadFac (zeroPadFactor),
+        mFFTFrameSize (windowSize * (1.0 + zeroPadFactor))
     {	
-        mWindowSize = windowSize;
-        mZeroPadFac = zeroPadFactor;
-        mFFTFrameSize = mWindowSize * (1.0 + mZeroPadFac);
-
         mFFTFrame.Resize(mFFTFrameSize/2 + 1);
 
         PrepareWindow();
@@ -140,7 +136,7 @@ class FFT
                                      FFTSS_ESTIMATE);
     }
 
-    ~FFT(){}
+    ~FFT() = default;
 
     void Compute(AudioBlock<float> &block)
     {	

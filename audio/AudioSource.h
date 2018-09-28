@@ -39,9 +39,9 @@ class ID3Tag
     std::string mComment;
     std::string mGenre;
 
-    int         mSampleRate;
-    int         mChannels;
-    int         mDuration;
+    int         mSampleRate {0};
+    int         mChannels   {0};
+    int         mDuration   {0};
 
     void SetFile(std::string file);
 
@@ -86,18 +86,21 @@ class AudioSource
  protected:
 
     /// The capture thread used to grab audio from input audio lines
-    class CaptureThread : private boost::noncopyable
+    class CaptureThread
     {
-    private:
+      private:
         AudioSource* m_AudioSource;
-    public:
+      public:
 
         typedef std::unique_ptr<AudioSource::CaptureThread> ptr;
         typedef boost::shared_ptr<AudioSource::CaptureThread> ref;
-
+		
         CaptureThread(AudioSource* asource) :
             m_AudioSource (asource)
         { }
+		
+        CaptureThread(const CaptureThread&) = delete;
+        CaptureThread& operator=(const CaptureThread&) = delete;		
 
         void Run();
     };
@@ -114,22 +117,18 @@ class AudioSource
     /// List of supported audio formats
     static std::list<std::string> m_SupportedFormats;
 
-
-    int   m_SampleRate;         ///< The read data's sample rate (in Hz)
-    int   m_SampleResolution;   ///< The read data's sample resolution (in bits per sample)
-    int   m_Channels;           ///< The read data's number of channels
+    int   m_SampleRate       {44100};  ///< The read data's sample rate (in Hz)
+    int   m_SampleResolution {16};     ///< The read data's sample resolution (in bits per sample)
+    int   m_Channels         {2};      ///< The read data's number of channels
+    float m_TimeOffset       {0.f};    ///< Offset at which to start reading data (only seekable sources)
+    float m_TimeLength       {0.f};    ///< The length of the audio to be decoded starting from m_TimeOffset
+    bool  m_StopCapture      {false};  ///< Flag to signal the capture thread about termination
+    size_t m_TotalSamples    {0};      ///< Total samples read from the audio source
 
     std::string m_FileName;     ///< The file (or input device) being streamed.
 
-    float m_TimeOffset;         ///< Offset at which to start reading data (only seekable sources)
-    float m_TimeLength;         ///< The length of the audio to be decoded starting from m_TimeOffset
-
-    bool  m_StopCapture;        ///< Flag to signal the capture thread about termination
-
-    size_t m_TotalSamples;      ///< Total samples read from the audio source
-
     /// Listener receiving data from the audio source
-    AudioSourceDataListener* m_DataListener;
+    AudioSourceDataListener* m_DataListener {nullptr};
 
     /// The audio capture thread
     std::unique_ptr<boost::thread> m_CaptureThread;
@@ -142,7 +141,7 @@ class AudioSource
 
  public:
 
-    AudioSource();
+     AudioSource() = default;
     ~AudioSource();
 
      /// Open the audio source. Concrete implementations will provide
@@ -204,13 +203,15 @@ class AudioSource
 
      /// Read a block of audio from the open audio source.
      template <class T>
-     void GetAudioBlock(AudioBlock<T> &block){
+     void GetAudioBlock(AudioBlock<T> &block)
+     {
          if(m_Pipe.IsOpen()){
 
             size_t readSamples = 0;// = fread(block.Data(), sizeof(T), block.Size(), m_Pipe);
 
             if(!m_Pipe.Read(block.Data(), sizeof(T)*block.Size(), readSamples))
-               throw std::runtime_error("Reading from pipe failed. "+m_Pipe.GetError());
+               throw std::runtime_error
+               ("Reading from pipe failed. "+m_Pipe.GetError());
 
             // Pipe::Read() returns read bytes. Convert to samples.
             readSamples /= sizeof(T);
@@ -241,8 +242,6 @@ class AudioSourceFile : public AudioSource
 {
  public:
 
-    AudioSourceFile();
-
     void Open(const std::string &source_name);
 					 
 };
@@ -255,8 +254,6 @@ class AudioSourceFile : public AudioSource
 class AudioSourceDevice : public AudioSource
 {
  public:
-
-    AudioSourceDevice();
 
     void Open(const std::string &source_name);
 								   

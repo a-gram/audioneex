@@ -401,12 +401,6 @@ public:
 
     virtual ~Recognizer(){}
 
-protected:
-    Recognizer(){}
-private:
-    Recognizer(const Recognizer &);
-    Recognizer &operator=(const Recognizer &);
-
 };
 
 // ----------------------------------------------------------------------------
@@ -504,12 +498,6 @@ public:
 
 
     virtual ~Indexer(){}
-
-protected:
-    Indexer(){}
-private:
-    Indexer(const Indexer &);
-    Indexer &operator=(const Indexer &);
 
 };
 

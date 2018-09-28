@@ -32,14 +32,10 @@ const char* NOISE_FILE = "./noise.wav";
 
 struct Performance_t
 {
-    float TP,FP,TN,FN;
-
-    Performance_t() : 
-		TP(0.f), 
-		FP(0.f), 
-		TN(0.f), 
-		FN(0.f) 
-	{}
+    float TP {0.f};
+	float FP {0.f};
+	float TN {0.f};
+	float FN {0.f};
 
     float GetPrecision()   { return TP/(TP+FP); }
     float GetSensitivity() { return TN/(TN+FN); }
