@@ -8,7 +8,7 @@ Features
 - **Compact fingerprints** - 1 hr of audio encoded in less than a MB
 - **Content-agnostic** - recognition of audio of different nature
 - **Fast identification** - can be used for real-time recognitions
-- **Cross-platform** - runs anywhere there is a decent C++11 compiler
+- **Cross-platform** - runs anywhere there is a fully compliant C++11 compiler
 - **IoT & Mobile-ready** - runs well on small devices for on-device ACR
 
 Limitations
@@ -26,21 +26,25 @@ in [this paper](https://www.dropbox.com/s/0qvfq2o53uudaqx/agramaglia_acr_paper_2
 
 ## Prerequisites
 
-The code has been extensively tested with the following dependencies
+The engine needs, and has been tested with, the following dependencies
 
 - Boost 1.66
 - FFTSS 3.0
+- Tokyo Cabinet
+- TagLib  (optional)
+- FFMpeg  (optional)
+
+and with the following tools
+
+- GCC 6/7, CLang 5, VC++ 14.1
 - CMake 3.11
 - Android NDK r16b+
 
-Optional (required by the examples)
-
-- Tokyo Cabinet
-- TagLib
-- FFMpeg
-
-However, it should also work with the following minimum requirements:
-Boost 1.55+, GCC 4.8+, VC 10+, CMake 3.5+, Android NDK 14b+
+However, it should also work with any other fully compliant C++11 compiler.
+The TagLib and FFMpeg can be replaced with something else but you will need
+to make changes to the code. The Tokyo Cabinet data store can also be changed
+with some other database but that will require writing the drivers for the
+engine to use it.
 
 
 ## How to build on Linux and Windows
