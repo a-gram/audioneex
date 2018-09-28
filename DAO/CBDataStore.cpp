@@ -38,10 +38,11 @@ using namespace Audioneex;
         throw std::runtime_error(emsg);                     \
     }                                                       \
 
+// ============================================================================
+//                     C callbacks invoked by the driver
+// ============================================================================
 
 extern "C"{
-
-// ============================================================================
 
 static void store_callback(lcb_t instance,
                            const void *cookie,
@@ -166,7 +167,10 @@ static void http_done_callback(lcb_http_request_t,
 }// extern "C"
 
 
-// ----------------------------------------------------------------------------
+// ============================================================================
+//                          CBDataStore implementation
+// ============================================================================
+
 
 CBDataStore::CBDataStore(const std::string &url) :
     m_DBURL         (url),
@@ -191,7 +195,10 @@ CBDataStore::CBDataStore(const std::string &url) :
 
 // ----------------------------------------------------------------------------
 
-void CBDataStore::Open(eOperation op, bool use_fing_db, bool use_meta_db, bool use_info_db)
+void CBDataStore::Open(eOperation op,
+                       bool use_fing_db,
+		       bool use_meta_db, 
+		       bool use_info_db)
 {
     int open_mode = op == GET ? OPEN_READ : OPEN_READ_WRITE;
 
@@ -258,7 +265,10 @@ size_t CBDataStore::GetFingerprintsCount()
 
 // ----------------------------------------------------------------------------
 
-const uint8_t* CBDataStore::GetPListBlock(int list_id, int block, size_t &data_size, bool headers)
+const uint8_t* CBDataStore::GetPListBlock(int list_id, 
+					  int block, 
+					  size_t &data_size, 
+					  bool headers)
 {
     // Read block from datastore into read buffer
     // (or get a reference to its memory location if the block is cached)
@@ -741,8 +751,8 @@ PListBlockHeader CBIndex::GetPListBlockHeader(int list_id, int block_id)
 
 size_t CBIndex::ReadBlock(int list_id, 
                           int block_id, 
-						  std::vector<uint8_t> &buffer, 
-						  bool headers)
+                          std::vector<uint8_t> &buffer, 
+                          bool headers)
 {
     if(m_DBHandle==NULL)
        throw std::runtime_error
@@ -797,8 +807,8 @@ size_t CBIndex::ReadBlock(int list_id,
 
 void CBIndex::WriteBlock(int list_id, 
                          int block_id, 
-						 std::vector<uint8_t> &buffer, 
-						 size_t data_size)
+                         std::vector<uint8_t> &buffer, 
+                         size_t data_size)
 {
     if(m_DBHandle==NULL)
        throw std::runtime_error
@@ -1035,7 +1045,9 @@ void CBIndex::Merge(CBCollection* plidx)
 
 // ----------------------------------------------------------------------------
 
-PListBlock CBIndex::RawBlockToBlock(uint8_t *block, size_t block_size, bool isFirst)
+PListBlock CBIndex::RawBlockToBlock(uint8_t *block, 
+                                    size_t block_size, 
+                                    bool isFirst)
 {
     PListBlock rblock = {};
 
@@ -1168,7 +1180,7 @@ size_t CBFingerprints::ReadFingerprintSize(uint32_t FID)
 size_t CBFingerprints::ReadFingerprint(uint32_t FID, 
                                        std::vector<uint8_t> &buffer,
                                        size_t size, 
-									   uint32_t bo)
+                                       uint32_t bo)
 {
     if(m_DBHandle==NULL)
        throw std::runtime_error
@@ -1207,7 +1219,7 @@ size_t CBFingerprints::ReadFingerprint(uint32_t FID,
 
 void CBFingerprints::WriteFingerprint(uint32_t FID, 
                                       const uint8_t *data, 
-									  size_t size)
+                                      size_t size)
 {
     assert(data);
 
