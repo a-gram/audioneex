@@ -11,7 +11,7 @@
 #  BINARY_TYPE     = dynamic|static
 #  BUILD_MODE      = debug|release
 #  WITH_EXAMPLES   = ON|OFF
-#  DATASTORE_T     = TCDataStore|CBDataStore  (for the examples only)
+#  DATASTORE_T     = TCDataStore|CBDataStore
 #  ID3_TAG_SUPPORT = ON|OFF  (for the examples only)
 #  WITH_TESTS      = ON|OFF  (for project developers only)
 #
