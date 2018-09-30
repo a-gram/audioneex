@@ -37,8 +37,8 @@ in the "User Config" section of the CMakeLists file.
    paths in the "User Config" section.
 
 If other include or lib paths need to be specified, add them in
-"User Config". After everything is set properly, just issue
-the following commands (on Linux)
+"User Config". After everything is set properly, just issue the
+following commands (on Linux) from the build directory
 
 $ cmake [options] ..
 $ make
