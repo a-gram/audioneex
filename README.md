@@ -44,7 +44,7 @@ and the following tools
 However, it should also work with any other fully compliant C++11 compiler.
 The TagLib and FFMpeg can be replaced with something else but you will need
 to make changes to the code. Support for other databases other than the default
-ones (Tokyo Cabinet/Couchbase) can be added by implementing the exposed
+ones (Tokyo Cabinet/Couchbase) can be added by reimplementing the exposed
 interfaces and following the specifications.
 
 
