@@ -17,16 +17,18 @@ in the "User Config" section of the CMakeLists file.
    go into a 'tcabinet' folder somewhere in your include path.
    On some Linux distros it's already installed by default.
    On Windows you can use libejdb, a port by the EJDB project.
+   Alternatively, the engine also supports the Couchbase database
+   for which you need to get the libcouchbase access driver.
    Then set the include and lib paths in the "User Config".
 
 2. The Boost library is also required. From version 1.55 it
-   should work fine, if not just download the latest version
+   should work fine. If not, just download the latest version
    (currently 1.66.0 with which it's been tested). Then you
    can either set the BOOST_ROOT environment variable to the
    folder where you installed and compiled it or, if you have
    installed includes and libraries somewhere else, specify the
    paths in the "User Config" section of CMakeLists. The demo
-   apps only need the filesystem, system, thread, chrono and
+   programs only need filesystem, system, thread, chrono and
    regex, so you can compile just those Boost modules.
 
 3. [Optional] If you need to extract the metadata from the 
@@ -36,29 +38,36 @@ in the "User Config" section of the CMakeLists file.
 
 If other include or lib paths need to be specified, add them in
 "User Config". After everything is set properly, just issue
-the following commands
+the following commands (on Linux)
 
-$ cmake -DDATASTORE_T=TCDataStore [options] ..
+$ cmake [options] ..
 $ make
 
 on Windows it would be
 
-> cmake -G "NMake Makefiles" -DDATASTORE_T=TCDataStore [options] ..
+> cmake -G "NMake Makefiles" [options] ..
 > nmake
 
-where options can be
+For example, the following command will build the library and
+the example programs with support for ID3 audio tag metadata
 
-ARCH=x64|x32           - The target architecture
-TOOLCHAIN=gccXX|vcXX   - Supported compiler (gcc72, vc141, etc.)
-DEBUG                  - Debug build (default is Release)
-ID3_TAG_SUPPORT        - Whether to include audio metadata support
+> cmake -DWITH_EXAMPLES=ON -DID3_TAG_SUPPORT=ON ..
+
+You can specify which database to use by providing the DATASTORE_T
+option, like in the following example
+
+> cmake -DWITH_EXAMPLES=ON -DDATASTORE_T=TCDataStore ..
+
+where TCDataStore indicates Tokyo Cabinet (use CBDataStore for
+Couchbase. If no options are passed in, only the lib will be built.
+Please see the CMake script for all available options.
 
 Make sure that the architecture and compiler match with your
 system. By default the build targets 64-bit architectures and
 GCC 7 (VC 14.1 on Windows). You can change it by using build
-switches -D<option> passed to CMake on the command line.
+options -D<option> passed to CMake on the command line.
 
-And lastly, the apps need the FFmpeg decoder in order to read the
+And lastly, the demos need the FFmpeg decoder in order to read the
 audio data from the input file/device, so make sure it's present
 in your search PATH.
 
