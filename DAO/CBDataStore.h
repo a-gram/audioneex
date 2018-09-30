@@ -11,11 +11,10 @@
 #define CBDATASTORE_H
 
 #include <libcouchbase/couchbase.h>
-
 #include "KVDataStore.h"
 
+//-----------------------------------------------------------------------------
 
-/// Struct representing a key in the datastore
 struct CBKey
 {
     int k1;
@@ -34,8 +33,8 @@ struct CBGetResp
 
 struct CBSetResp
 {
-    std::string sender;
-    lcb_error_t status;
+    std::string        sender;
+    lcb_error_t        status;
     std::vector<CBKey> failedKeys;
 };
 
@@ -51,32 +50,61 @@ struct CBHttpResp
 class CBDataStore;
 
 /// Defines a key-value database/collection in the data store.
-/// This is represented by a file in the datastore directory.
+/// This is represented by a bucket on the datastore server.
+
+// TODO: Refactor this inheritance by grouping common functionality
+//       between datastores under the KVDataStore file.
 
 class CBCollection
 {
 protected:
 
-    CBDataStore*   m_Datastore;
+    CBDataStore&   m_Datastore;
     lcb_t          m_DBHandle;
     std::string    m_DBName;
     bool           m_IsOpen;
 
     /// Internal buffer for read/write operations
     std::vector<uint8_t>   m_Buffer;
+	
+	/// Function object used to make low level access keys
+	/// used to fetch data from the Couchbase data store.
+    template<typename Tk, typename Tc = char*>
+    struct key_builder
+    {
+	    Tk key[2];
+	
+	    void operator()(Tk k1, Tk k2) {
+            key[0] = k1;
+            key[1] = k2;
+        }
+        const Tc get() const {
+            return (const Tc)(key);
+        }
+        size_t size() const {
+            return sizeof(key);
+        }
+    };
 
-    operator lcb_t() const { return m_DBHandle; }
-    
+
+    operator lcb_t() const {
+            return m_DBHandle;
+    }
+	
 public:
 
-    CBCollection(CBDataStore* datastore);
+    CBCollection(CBDataStore &datastore);
     virtual ~CBCollection();
 
     /// Set the database file name
-    void SetName(const std::string &name) { m_DBName = name; }
+    void SetName(const std::string &name) {
+        m_DBName = name;
+    }
 
     /// Get the database file name
-    std::string GetName() const { return m_DBName; }
+    std::string GetName() const { 
+        return m_DBName;
+    }
 
     /// Open the databse
     void Open(int mode = OPEN_READ);
@@ -88,13 +116,12 @@ public:
     void Drop();
 
     /// Query open status
-    bool IsOpen() const { return m_IsOpen; }
+    bool IsOpen() const {
+        return m_IsOpen;
+    }
 
     /// Get the number of records in the database
     std::uint64_t GetRecordsCount() const;
-
-    /// Merge this collection to the given one
-    virtual void Merge(CBCollection*) {}
 
 };
 
@@ -111,8 +138,8 @@ class CBIndex : public CBCollection
 	
 public:
 
-    CBIndex(CBDataStore* dstore);
-    ~CBIndex(){}
+    CBIndex(CBDataStore &dstore);
+    ~CBIndex() = default;
 
     /// Get the header for the specified index list
     Audioneex::PListHeader GetPListHeader(int list_id);
@@ -146,8 +173,8 @@ public:
     /// Update the specified list header
     void UpdateListHeader(int list_id, Audioneex::PListHeader &lhdr);
 
-    /// Merge this index with the given index.
-    void Merge(CBCollection *plidx);
+    /// Merge this index with the given one.
+    void Merge(CBIndex &lidx);
 
     /// Turn a raw block byte stream into a block structure.
     PListBlock RawBlockToBlock(uint8_t *block, 
@@ -169,7 +196,7 @@ class CBFingerprints : public CBCollection
 {
 public:
 
-    CBFingerprints(CBDataStore* dstore);
+    CBFingerprints(CBDataStore &dstore);
     ~CBFingerprints() = default;
 
     /// Read the size of the specified fingerprint (in bytes)
@@ -196,7 +223,7 @@ class CBMetadata : public CBCollection
 {
 public:
 
-    CBMetadata(CBDataStore* dstore);
+    CBMetadata(CBDataStore &dstore);
     ~CBMetadata() = default;
 
     /// Read metadata for fingerprint FID
@@ -214,7 +241,7 @@ class CBInfo : public CBCollection
 {
 public:
 
-    CBInfo(CBDataStore* dstore);
+    CBInfo(CBDataStore &dstore);
     ~CBInfo() = default;
 
     DBInfo_t Read();
@@ -231,19 +258,11 @@ public:
 
 class CBDataStore : public KVDataStore
 {
-    std::string           m_DBURL;          ///< URL to all database
     CBIndex               m_MainIndex;      ///< The index database
     CBIndex               m_DeltaIndex;     ///< The delta index database
     CBFingerprints        m_QFingerprints;  ///< The fingerprints database
     CBMetadata            m_Metadata;       ///< The metadata database
     CBInfo                m_Info;           ///< Datastore info
-
-    std::string           m_ServerName;
-    int                   m_ServerPort;
-    std::string           m_Username;
-    std::string           m_Password;
-
-    bool                  m_IsOpen;
     
     /// Internal buffer used to cache all data accessed by the identification
     /// instance using this connection.
@@ -252,37 +271,18 @@ class CBDataStore : public KVDataStore
 public:
 
     explicit CBDataStore(const std::string &url = std::string());
-    ~CBDataStore(){}
+    ~CBDataStore() = default;
 
     void Open(eOperation op = GET,
-              bool use_fing_db=true,
+              bool use_fing_db=false,
               bool use_meta_db=false,
               bool use_info_db=false);
 
     void Close();
-
-    void SetDatabaseURL(const std::string &url) { m_DBURL = url; }
-
-    std::string GetDatabaseURL()  { return m_DBURL; }
-
-    void SetServerName(const std::string &name)   { m_ServerName = name; }
-    void SetServerPort(int port)                  { m_ServerPort = port; }
-    void SetUsername(const std::string &username) { m_Username = username; }
-    void SetPassword(const std::string &password) { m_Password = password; }
-    std::string GetServerName() const             { return m_ServerName; }
-    int         GetServerPort() const             { return m_ServerPort; }
-    std::string GetUsername()   const             { return m_Username; }
-    std::string GetPassword()   const             { return m_Password; }
-    
+	
     bool Empty();
 
     void Clear();
-
-    bool IsOpen() { return m_IsOpen; }
-
-    eOperation GetOpMode() { return m_Op; }
-
-    void SetOpMode(eOperation mode) { m_Op = mode; }
 
     void PutFingerprint(uint32_t FID, const uint8_t* data, size_t size){
         m_QFingerprints.WriteFingerprint(FID, data, size);
@@ -292,11 +292,17 @@ public:
         m_Metadata.Write(FID, meta);
     }
 
-    std::string GetMetadata(uint32_t FID) { return m_Metadata.Read(FID); }
+    std::string GetMetadata(uint32_t FID) {
+        return m_Metadata.Read(FID);
+    }
 
-    DBInfo_t GetInfo() { return m_Info.Read(); }
+    DBInfo_t GetInfo() {
+        return m_Info.Read(); 
+    }
 
-    void PutInfo(const DBInfo_t& info) { m_Info.Write(info); }
+    void PutInfo(const DBInfo_t& info) { 
+        m_Info.Write(info); 
+    }
 
     // API Interface
 
@@ -313,11 +319,12 @@ public:
 								  uint32_t bo = 0);
 								  
     size_t GetFingerprintsCount();
-    void OnIndexerStart();
-    void OnIndexerEnd();
-    void OnIndexerFlushStart();
-    void OnIndexerFlushEnd();
-    Audioneex::PListHeader OnIndexerListHeader(int list_id);
+    void   OnIndexerStart();
+    void   OnIndexerEnd();
+    void   OnIndexerFlushStart();
+    void   OnIndexerFlushEnd();
+	
+    Audioneex::PListHeader      OnIndexerListHeader(int list_id);
     Audioneex::PListBlockHeader OnIndexerBlockHeader(int list_id, int block);
 
     void OnIndexerChunk(int list_id,
@@ -334,8 +341,7 @@ public:
 
 private:
 
-    eOperation m_Op;
-    int        m_Run;
+    int   m_Run  {0};
 };
 
 

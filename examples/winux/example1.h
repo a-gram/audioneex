@@ -33,7 +33,7 @@
 
 namespace bfs = boost::filesystem;
 
-class R2 : public Audioneex::Recognizer {};
+
 class AudioIndexingTask : public IdTask,
                           public Audioneex::AudioProvider
 {
@@ -123,7 +123,7 @@ class AudioIndexingTask : public IdTask,
 					 meta = m_AudioSource.GetID3Tags().GetTitle() + " by " +
 					 m_AudioSource.GetID3Tags().GetArtist();
 
-				  m_DataStore->PutMetadata( m_FID, meta );
+                  m_DataStore->PutMetadata( m_FID, meta );
 #endif
 
 				  std::cout << "OK. (" << m_AudioSource.GetFormattedDuration() << ")"

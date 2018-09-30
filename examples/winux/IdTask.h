@@ -25,36 +25,33 @@ class IdTask
 {
 protected:
 
-    std::unique_ptr<Audioneex::Indexer>     m_Indexer;
-    std::unique_ptr<Audioneex::Recognizer>  m_Recognizer;
-    std::unique_ptr<KVDataStore>            m_DataStore;
+    std::shared_ptr<Audioneex::Indexer>     m_Indexer;
+    std::shared_ptr<Audioneex::Recognizer>  m_Recognizer;
+    std::shared_ptr<KVDataStore>            m_DataStore;
 
 public:
 
-    IdTask() {}
-
-    virtual ~IdTask() {}
+    IdTask() = default;
+    virtual ~IdTask() = default;
 
     virtual void Run() = 0;
     virtual void Terminate() = 0;
 
     virtual AudioSource* GetAudioSource() = 0;
 
-    void SetIndexer(Audioneex::Indexer* indexer)
+    void SetIndexer(std::shared_ptr<Audioneex::Indexer> &indexer)
 	{
-        assert(indexer);
-        m_Indexer.reset( indexer );
+        m_Indexer = indexer;
     }
 
-    void SetRecognizer(Audioneex::Recognizer* recognizer)
+    void SetRecognizer(std::shared_ptr<Audioneex::Recognizer> &recognizer)
 	{
-        assert(recognizer);
-        m_Recognizer.reset( recognizer );
+        m_Recognizer = recognizer;
     }
 
-    void SetDataStore(KVDataStore* datastore)
+    void SetDataStore(std::shared_ptr<KVDataStore> &datastore)
 	{
-        m_DataStore.reset( datastore );
+        m_DataStore = datastore;
     }
 
 };

@@ -8,9 +8,8 @@
 */
 
 /// This is an implementation of the DataStore interface that uses Tokyo Cabinet
-/// as the data storage backend. It is solely provided as an example of how to
-/// implement custom drivers with the Audioneex data storage interface without
-/// claims of fitness for any specific purposes.
+/// as the data storage backend. It deals with all the low level data manipulation
+/// to store and retrieve objects to/from the database by using the TC C API.
 
 #ifdef WIN32
  #define  WIN32_LEAN_AND_MEAN  //< MS clashes here and there ...
@@ -32,17 +31,17 @@ using namespace Audioneex;
 // ----------------------------------------------------------------------------
 
 TCDataStore::TCDataStore(const std::string &url) :
-    m_DBURL         (url),
-    m_MainIndex     (this),
-    m_QFingerprints (this),
-    m_DeltaIndex    (this),
-    m_Metadata      (this),
-    m_Info          (this),
-    m_ReadBuffer    (32768),
-    m_Op            (GET),
-    m_Run           (0),
-    m_IsOpen        (false)
+    m_MainIndex     (*this),
+    m_QFingerprints (*this),
+    m_DeltaIndex    (*this),
+    m_Metadata      (*this),
+    m_Info          (*this),
+    m_ReadBuffer    (32768)    
 {
+    m_DBURL  = url;
+    m_Op     = GET;
+	m_IsOpen = false;
+	
     m_MainIndex.SetName("data.idx");
     m_QFingerprints.SetName("data.qfp");
     m_Metadata.SetName("data.met");
@@ -178,7 +177,7 @@ void TCDataStore::OnIndexerEnd()
     {
        std::cout << "Merging..." << std::endl;
 
-       m_DeltaIndex.Merge(&m_MainIndex);
+       m_DeltaIndex.Merge(m_MainIndex);
 
        //std::cout << ("Clearing delta index...") << std::endl;
        //m_DeltaIndex.Drop();
@@ -332,7 +331,7 @@ const uint8_t* TCDataStore::GetFingerprint(uint32_t FID,
                               throw std::runtime_error(estr);        \
 
 
-TCCollection::TCCollection(TCDataStore *datastore) :
+TCCollection::TCCollection(TCDataStore &datastore) :
     m_DBHandle  (),
     m_Datastore (datastore),
     m_IsOpen    (false),
@@ -423,7 +422,7 @@ uint64_t TCCollection::GetRecordsCount() const
 
 
 
-TCIndex::TCIndex(TCDataStore *dstore) :
+TCIndex::TCIndex(TCDataStore &dstore) :
     TCCollection (dstore)
 {
 }
@@ -432,19 +431,16 @@ TCIndex::TCIndex(TCDataStore *dstore) :
 
 PListHeader TCIndex::GetPListHeader(int list_id)
 {
-    int bsize;
-    void *block;
-
-    PListHeader hdr = {};
-
-    char key[sizeof(int)*2];
-
+    int               bsize;
+    void             *block;
+    PListHeader       hdr = {};
+	key_builder<int>  key;
+	
     // Make the key to the block <listID|blockID>
     // The list header is prepended to the 1st block
-    *reinterpret_cast<int*>(key) = list_id;
-    *reinterpret_cast<int*>(key + sizeof(int)) = 1;
-
-    block = tchdbget(m_DBHandle, key, sizeof(key), &bsize);
+	key(list_id, 1);
+	
+    block = tchdbget(m_DBHandle, key.get(), key.size(), &bsize);
 
     // Block found
     if(block){
@@ -460,18 +456,16 @@ PListHeader TCIndex::GetPListHeader(int list_id)
 
 PListBlockHeader TCIndex::GetPListBlockHeader(int list_id, int block_id)
 {
-    int bsize;
-    void *block;
-
-    PListBlockHeader hdr = {};
-
-    char key[sizeof(int)*2];
-
+    int               bsize;
+    void             *block;
+    PListBlockHeader  hdr = {};
+	key_builder<int>  key;
+	
     // Make the key to the block <listID|blockID>
-    *reinterpret_cast<int*>(key) = list_id;
-    *reinterpret_cast<int*>(key + sizeof(int)) = block_id;
+    // The list header is prepended to the 1st block
+	key(list_id, block_id);
 
-    block = tchdbget(m_DBHandle, key, sizeof(key), &bsize);
+    block = tchdbget(m_DBHandle, key.get(), key.size(), &bsize);
 
     // Block found
     if(block){
@@ -499,17 +493,16 @@ size_t TCIndex::ReadBlock(int list_id,
                           std::vector<uint8_t> &buffer, 
                           bool headers)
 {
-    int bsize;
-    void *block;
-    size_t off=0;
+    int               bsize;
+    void             *block;
+    size_t            off=0;
+	key_builder<int>  key;
+	
+    // Make the key to the block <listID|blockID>
+    // The list header is prepended to the 1st block
+	key(list_id, block_id);
 
-    char key[sizeof(int)*2];
-
-    // Make the key to the block <list_id|blockID>
-    *reinterpret_cast<int*>(key) = list_id;
-    *reinterpret_cast<int*>(key + sizeof(int)) = block_id;
-
-    block = tchdbget(m_DBHandle, key, sizeof(key), &bsize);
+    block = tchdbget(m_DBHandle, key.get(), key.size(), &bsize);
 
     size_t rbytes = 0;
 
@@ -542,14 +535,13 @@ void TCIndex::WriteBlock(int list_id,
 {
     assert(!buffer.empty());
     assert(data_size <= buffer.size());
-
-    char key[sizeof(int)*2];
-
+	
     // Make the key to the block <listID|blockID>
-    *reinterpret_cast<int*>(key) = list_id;
-    *reinterpret_cast<int*>(key + sizeof(int)) = block_id;
+    // The list header is prepended to the 1st block
+	key_builder<int>  key;
+	key(list_id, block_id);
 
-    if(!tchdbputasync(m_DBHandle, key, sizeof(key), buffer.data(), data_size)){
+    if(!tchdbputasync(m_DBHandle, key.get(), key.size(), buffer.data(), data_size)){
         CHECK_OP(m_DBHandle);
     }
 }
@@ -637,12 +629,8 @@ void TCIndex::UpdateListHeader(int list_id, PListHeader &lhdr)
 
 // ----------------------------------------------------------------------------
 
-void TCIndex::Merge(TCCollection* plidx)
+void TCIndex::Merge(TCIndex &lidx)
 {
-    assert(plidx);
-
-    TCIndex& lidx = *static_cast<TCIndex*>(plidx);
-
     void *key, *val;
     int ksize, vsize;
 
@@ -786,12 +774,12 @@ void TCIndex::ClearCache()
 
 
 //=============================================================================
-//                              TCDataStore
+//                              TCFingerprints
 //=============================================================================
 
 
 
-TCFingerprints::TCFingerprints(TCDataStore *dstore) :
+TCFingerprints::TCFingerprints(TCDataStore &dstore) :
     TCCollection (dstore)
 {
 }
@@ -856,7 +844,7 @@ void TCFingerprints::WriteFingerprint(uint32_t FID, const uint8_t *data, size_t 
 
 
 
-TCMetadata::TCMetadata(TCDataStore *dstore) :
+TCMetadata::TCMetadata(TCDataStore &dstore) :
     TCCollection (dstore)
 {
 }
@@ -896,7 +884,7 @@ void TCMetadata::Write(uint32_t FID, const std::string &meta)
 
 
 
-TCInfo::TCInfo(TCDataStore *dstore) :
+TCInfo::TCInfo(TCDataStore &dstore) :
     TCCollection (dstore)
 {
 }

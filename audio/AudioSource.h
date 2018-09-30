@@ -142,7 +142,7 @@ class AudioSource
  public:
 
      AudioSource() = default;
-    ~AudioSource();
+     virtual ~AudioSource();
 
      /// Open the audio source. Concrete implementations will provide
      /// the specialized code to open specific sources.

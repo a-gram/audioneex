@@ -163,7 +163,7 @@ public:
 
 class StreamMonitoringResultsParser : public IdentificationResultsListener
 {
-    KVDataStore *m_Datastore {nullptr};
+    std::shared_ptr<KVDataStore> m_Datastore;
 
     std::string FormatTime(int sec)
     {
@@ -214,7 +214,9 @@ class StreamMonitoringResultsParser : public IdentificationResultsListener
         std::cout.flush();
     }
 
-    void SetDatastore(KVDataStore *store) { m_Datastore = store; }
+    void SetDatastore(std::shared_ptr<KVDataStore> &store) {
+        m_Datastore = store;
+    }
 };
 
 #endif

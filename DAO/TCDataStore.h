@@ -23,11 +23,14 @@ class TCDataStore;
 /// Defines a key-value database/collection in the data store.
 /// This is represented by a file in the datastore directory.
 
+// TODO: Refactor this inheritance by grouping common functionality
+//       between datastores under the KVDataStore file.
+
 class TCCollection
 {
 protected:
 
-    TCDataStore*   m_Datastore;
+    TCDataStore&   m_Datastore;
     TCHDB*         m_DBHandle;
     std::string    m_DBName;
     std::string    m_DBURL;
@@ -35,23 +38,51 @@ protected:
 
     /// Internal buffer for read/write operations
     std::vector<uint8_t>   m_Buffer;
+	
+	/// Function object used to make low level access keys
+	/// used to fetch data from the Tokyo Cabinet data store.
+    template<typename Tk, typename Tc = char*>
+    struct key_builder
+    {
+	    Tk key[2];
+	
+	    void operator()(Tk k1, Tk k2) {
+            key[0] = k1;
+            key[1] = k2;
+        }
+        const Tc get() const {
+            return (const Tc)(key);
+        }
+        size_t size() const { 
+            return sizeof(key); 
+        }
+    };
+
 
 public:
 
-    TCCollection(TCDataStore *datastore);
+    TCCollection(TCDataStore&);
     virtual ~TCCollection();
 
     /// Set the database file name
-    void SetName(const std::string &filename) { m_DBName = filename; }
+    void SetName(const std::string &filename) { 
+        m_DBName = filename; 
+    }
 
     /// Get the database file name
-    std::string GetName() const { return m_DBName; }
+    std::string GetName() const { 
+        return m_DBName; 
+    }
 
     /// Set the database URL
-    void SetURL(const std::string &url) { m_DBURL = url; }
+    void SetURL(const std::string &url) { 
+        m_DBURL = url; 
+    }
 
     /// Get the database URL
-    std::string GetURL() const { return m_DBURL; }
+    std::string GetURL() const { 
+        return m_DBURL; 
+    }
 
     /// Open the databse
     void Open(int mode = OPEN_READ);
@@ -63,13 +94,12 @@ public:
     void Drop();
 
     /// Query open status
-    bool IsOpen() const { return m_IsOpen; }
+    bool IsOpen() const { 
+        return m_IsOpen; 
+    }
 
     /// Get the number of records in the database
     std::uint64_t GetRecordsCount() const;
-
-    /// Merge this collection to the given one
-    virtual void Merge(TCCollection*) {}
 
 };
 
@@ -83,7 +113,7 @@ class TCIndex : public TCCollection
 
 public:
 
-    TCIndex(TCDataStore *dstore);
+    TCIndex(TCDataStore&);
     ~TCIndex() = default;
 
     /// Get the header for the specified index list
@@ -118,8 +148,8 @@ public:
     /// Update the specified list header
     void UpdateListHeader(int list_id, Audioneex::PListHeader &lhdr);
 
-    /// Merge this index with the given index.
-    void Merge(TCCollection *plidx);
+    /// Merge this index with the given one.
+    void Merge(TCIndex &lidx);
 
     /// Turn a raw block byte stream into a block structure.
     PListBlock RawBlockToBlock(uint8_t *block, 
@@ -141,7 +171,7 @@ class TCFingerprints : public TCCollection
 {
 public:
 
-    TCFingerprints(TCDataStore *dstore);
+    TCFingerprints(TCDataStore&);
     ~TCFingerprints() = default;
 
     /// Read the size of the specified fingerprint (in bytes)
@@ -168,7 +198,7 @@ class TCMetadata : public TCCollection
 {
 public:
 
-    TCMetadata(TCDataStore *dstore);
+    TCMetadata(TCDataStore&);
     ~TCMetadata() = default;
 
     /// Read metadata for fingerprint FID
@@ -186,7 +216,7 @@ class TCInfo : public TCCollection
 {
 public:
 
-    TCInfo(TCDataStore *dstore);
+    TCInfo(TCDataStore&);
     ~TCInfo() = default;
 
     DBInfo_t Read();
@@ -203,18 +233,15 @@ public:
 
 class TCDataStore : public KVDataStore
 {
-    std::string               m_DBURL;          ///< URL to all database
-    TCIndex                   m_MainIndex;      ///< The index database
-    TCIndex                   m_DeltaIndex;     ///< The delta index database
-    TCFingerprints            m_QFingerprints;  ///< The fingerprints database
-    TCMetadata                m_Metadata;       ///< The metadata database
-    TCInfo                    m_Info;           ///< Datastore info
-
-    bool                      m_IsOpen;
+    TCIndex               m_MainIndex;      ///< The index database
+    TCIndex               m_DeltaIndex;     ///< The delta index database
+    TCFingerprints        m_QFingerprints;  ///< The fingerprints database
+    TCMetadata            m_Metadata;       ///< The metadata database
+    TCInfo                m_Info;           ///< Datastore info
 
     /// Buffer used to cache all data accessed by the ID instance
     /// using this connection.
-    std::vector<uint8_t>   m_ReadBuffer;
+    std::vector<uint8_t>  m_ReadBuffer;
 
 public:
 
@@ -228,19 +255,11 @@ public:
 
     void Close();
 
-    void SetDatabaseURL(const std::string &url) { m_DBURL = url; }
-
-    std::string GetDatabaseURL()  { return m_DBURL; }
-
     bool Empty();
 
     void Clear();
 
-    bool IsOpen() { return m_IsOpen; }
-
-    eOperation GetOpMode() { return m_Op; }
-
-    void SetOpMode(eOperation mode);
+    void SetOpMode(eOperation mode);  // TODO: Check why this method is overridden...
 
     void PutFingerprint(uint32_t FID, const uint8_t* data, size_t size){
         m_QFingerprints.WriteFingerprint(FID, data, size);
@@ -250,11 +269,17 @@ public:
         m_Metadata.Write(FID, meta);
     }
 
-    std::string GetMetadata(uint32_t FID) { return m_Metadata.Read(FID); }
+    std::string GetMetadata(uint32_t FID) { 
+        return m_Metadata.Read(FID); 
+    }
 
-    DBInfo_t GetInfo() { return m_Info.Read(); }
+    DBInfo_t GetInfo() { 
+        return m_Info.Read(); 
+    }
 
-    void PutInfo(const DBInfo_t& info) { m_Info.Write(info); }
+    void PutInfo(const DBInfo_t& info) { 
+        m_Info.Write(info); 
+    }
 
     // API Interface
 
@@ -271,11 +296,12 @@ public:
 								  uint32_t bo = 0);
 								  
     size_t GetFingerprintsCount();
-    void OnIndexerStart();
-    void OnIndexerEnd();
-    void OnIndexerFlushStart();
-    void OnIndexerFlushEnd();
-    Audioneex::PListHeader OnIndexerListHeader(int list_id);
+    void   OnIndexerStart();
+    void   OnIndexerEnd();
+    void   OnIndexerFlushStart();
+    void   OnIndexerFlushEnd();
+	
+    Audioneex::PListHeader      OnIndexerListHeader(int list_id);
     Audioneex::PListBlockHeader OnIndexerBlockHeader(int list_id, int block);
 
     void OnIndexerChunk(int list_id,
@@ -292,8 +318,7 @@ public:
 
 private:
 
-    eOperation m_Op;
-    int        m_Run;
+    int   m_Run  {0};
 };
 
 

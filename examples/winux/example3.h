@@ -36,9 +36,9 @@ namespace bfs = boost::filesystem;
 
 class IdentificationTask : public IdTask
 {
-    AudioSourceFile  m_AudioSource;
-    std::string      m_Audiofile;
-    bool             m_Terminated;
+    AudioSourceFile                m_AudioSource;
+    std::string                    m_Audiofile;
+    bool                           m_Terminated;
     IdentificationResultsListener *m_Listener;
 
 
@@ -154,8 +154,8 @@ public:
 /// task to get the results and do something with them.
 class FileIdentificationResultsParser : public IdentificationResultsListener
 {
-    KVDataStore *m_Datastore            {nullptr};
-    Audioneex::Recognizer *m_Recognizer {nullptr};
+    std::shared_ptr<KVDataStore>           m_Datastore;
+    std::shared_ptr<Audioneex::Recognizer> m_Recognizer;
 
   public:
 
@@ -198,8 +198,13 @@ class FileIdentificationResultsParser : public IdentificationResultsListener
         std::cout << "ID Time: " << m_Recognizer->GetIdentificationTime() << " s" << std::endl;
     }
 
-    void SetDatastore(KVDataStore *store) { m_Datastore = store; }
-    void SetRecognizer(Audioneex::Recognizer *r) { m_Recognizer = r; }
+    void SetDatastore(std::shared_ptr<KVDataStore> &store) {
+        m_Datastore = store;
+    }
+	
+    void SetRecognizer(std::shared_ptr<Audioneex::Recognizer> &recognizer) {
+        m_Recognizer = recognizer;
+    }
 };
 
 #endif

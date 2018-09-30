@@ -21,13 +21,14 @@ typedef boost::unordered::unordered_map< int, std::vector<uint8_t> > block_map;
 struct DBInfo_t;
 
 
-/// This interface extends the functionality of the DataStore interface by
+/// This abstract class implements the DataStore interface and extends it by
 /// adding basic database operations and some other application-specific
 /// functionality. In the examples we use key-value datastores, so we call
-/// this interface accordingly.
+/// this class accordingly.
 
 class KVDataStore : public Audioneex::DataStore
 {
+	
 public:
 
     enum eOperation{
@@ -36,10 +37,10 @@ public:
         BUILD_MERGE
     };
 
-    virtual ~KVDataStore(){}
+    virtual ~KVDataStore() = default;
 
     /// Open the datastore. This will open all database/collections
-    /// used by the identification system.
+    /// used by the recognition engine.
     virtual void Open(eOperation op = GET,
                       bool use_fing_db=false,
                       bool use_meta_db=false,
@@ -48,22 +49,18 @@ public:
     /// Close the datastore. This will close all database/collections
     /// used by the identification engine
     virtual void Close() = 0;
-
-    /// Set the URL where all database will be located.
-    virtual void SetDatabaseURL(const std::string &url) = 0;
-
-    /// Get the URL where all database are located
-    virtual std::string GetDatabaseURL()  = 0;
-
+	
     /// Chech whether the datastore is empty
     virtual bool Empty() = 0;
 
-    /// Clear the datastore
+    /// Clear the datastore (delete all data)
     virtual void Clear() = 0;
 
     /// Query for open status
-    virtual bool IsOpen() = 0;
-
+    virtual bool IsOpen() const {
+        return m_IsOpen;
+    }
+	
     /// Get the number of fingerprints in the data store
     virtual size_t GetFingerprintsCount() = 0;
 
@@ -85,10 +82,74 @@ public:
     virtual DBInfo_t GetInfo() = 0;
 
     /// Get operation mode
-    virtual eOperation GetOpMode() = 0;
+    virtual eOperation GetOpMode() const { 
+        return m_Op; 
+    }
 
     /// Set operation mode
-    virtual void SetOpMode(eOperation mode) = 0;
+    virtual void SetOpMode(eOperation mode) {
+        m_Op = mode;
+    }
+
+	/// Set the URL where all database will be located.
+    virtual void SetDatabaseURL(const std::string &url) {
+        m_DBURL = url;
+    }
+		
+	/// Set the host name of the server where the datastore is located
+    virtual void SetServerName(const std::string &name) { 
+        m_ServerName = name;
+    }
+	
+	/// Set the port number of the server where the store is located
+    virtual void SetServerPort(int port) { 
+        m_ServerPort = port;
+    }
+	
+	/// Set the username to access the data store
+    virtual void SetUsername(const std::string &username) { 
+        m_Username = username;
+    }
+	
+	/// Set the password to access the data store
+    virtual void SetPassword(const std::string &password) { 
+        m_Password = password;
+    }
+	
+    /// Get the URL where all database are located
+    virtual std::string GetDatabaseURL() const {
+        return m_DBURL;
+    }
+
+	/// Get the host name of the server where the datastore is located
+    virtual std::string GetServerName() const { 
+        return m_ServerName;
+    }
+	
+	/// Get the port number of the server where the store is located
+    virtual int GetServerPort() const { 
+        return m_ServerPort;
+    }
+	
+	/// Get the username to access the data store
+    virtual std::string GetUsername()   const { 
+        return m_Username;
+    }
+	
+    /// Get the password to access the data store
+    virtual std::string GetPassword()   const {
+        return m_Password;
+    }
+
+protected:
+
+    std::string  m_DBURL;
+    std::string  m_ServerName;
+	int          m_ServerPort;
+	std::string  m_Username;
+	std::string  m_Password;
+	bool         m_IsOpen;
+	eOperation   m_Op;
 
 };
 
@@ -120,11 +181,9 @@ struct PListBlock
 
 struct BlockCache
 {
-    int list_id;       // List to which the blocks belong
-    size_t accum;      // General-purpose accumulator
-    block_map buffer;  // Blocks buffer
-
-    BlockCache() : list_id(0), accum(0) {}
+    int list_id      {0};  // List to which the blocks belong
+    size_t accum     {0};  // General-purpose accumulator
+    block_map buffer;      // Blocks buffer
 };
 
 /// Convenience function to check for emptiness
