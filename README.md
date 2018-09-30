@@ -10,6 +10,7 @@ Features
 - **Fast identification** - can be used for real-time recognitions
 - **Cross-platform** - runs anywhere there is a fully compliant C++11 compiler
 - **IoT & Mobile-ready** - runs well on small devices for on-device ACR
+- **Database-agnostic** - can use different databases by rewriting the drivers
 
 Limitations
 
@@ -30,11 +31,11 @@ The engine needs, and has been tested with, the following dependencies
 
 - Boost 1.66
 - FFTSS 3.0
-- Tokyo Cabinet
+- Tokyo Cabinet / Couchbase
 - TagLib  (optional)
 - FFMpeg  (optional)
 
-and with the following tools
+and the following tools
 
 - GCC 6/7, CLang 5, VC++ 14.1
 - CMake 3.11
@@ -42,9 +43,9 @@ and with the following tools
 
 However, it should also work with any other fully compliant C++11 compiler.
 The TagLib and FFMpeg can be replaced with something else but you will need
-to make changes to the code. The Tokyo Cabinet data store can also be changed
-with some other database but that will require writing the drivers for the
-engine to use it.
+to make changes to the code. Support for other databases other than the default
+ones (Tokyo Cabinet/Couchbase) can be added by implementing the exposed
+interfaces and following the specifications.
 
 
 ## How to build on Linux and Windows
