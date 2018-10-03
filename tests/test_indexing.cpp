@@ -7,19 +7,24 @@
 
 */
 
+
+#ifdef WIN32
+  #define WIN32_LEAN_AND_MEAN   // fix winsock.h clashes
+#endif
+
 #define CATCH_CONFIG_MAIN  // Tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
 
+#include "dao_common.h"
 #include "test_indexing.h"
 
 ///
 /// Prerequisites:
 ///
-/// 1) tcejdbdll.dll must be present in the search path.
-/// 2) If linking against the shared version of Audioneex, the library must be built
+/// 1) If linking against the shared version of Audioneex, the library must be built
 ///    with the TESTING compiler definition in order for the private classes being tested
 ///    to expose their interfaces.
-/// 3) Copy the 'data' folder from the 'tests' directory in the root of the source tree,
+/// 2) Copy the 'data' folder from the 'tests' directory in the root of the source tree,
 ///    to the test programs directory.
 ///
 /// Usage test_indexing
@@ -29,7 +34,7 @@ TEST_CASE("Indexer accessors") {
 
     std::unique_ptr <Audioneex::Indexer> indexer ( Audioneex::Indexer::Create() );
     IndexingTest itest;
-    TCDataStore dstore ("./data");
+    DATASTORE_T dstore ("./data");
 
     REQUIRE( indexer->GetCacheLimit() > 0 );
     indexer->SetCacheLimit( 128 );
@@ -49,13 +54,33 @@ TEST_CASE("Indexer indexing") {
 
     IndexingTest itest;
     DummyAudioProvider dummyAudioProvider;
-    std::unique_ptr <Audioneex::Indexer> indexer ( Audioneex::Indexer::Create() );
-    TCDataStore dstore ("./data");
-
+    
     std::vector<uint8_t> fake (1077);
     std::generate(fake.begin(), fake.end(), std::rand);
+	
+    DATASTORE_T dstore ("./data");
+	
+	// For client/server databases only (e.g. Couchbase)
+    dstore.SetServerName( "localhost" );
+    dstore.SetServerPort( 8091 );
+    dstore.SetUsername( "admin" );
+    dstore.SetPassword( "password" );
 
     REQUIRE_NOTHROW( dstore.Open( KVDataStore::BUILD, true ) );
+	
+    // We need an empty database to perform the tests.
+    if(!dstore.Empty()) {
+        dstore.Clear();
+		// Wait until the clearing is finished as it may be an asynchronous
+		// operation, such as in Couchbase, in which case the execution
+		// would continue and the tests will fail.
+		while(!dstore.Empty()) {
+		    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		}
+	}
+
+    std::unique_ptr <Audioneex::Indexer> 
+    indexer ( Audioneex::Indexer::Create() );
 
     // Try indexing without starting a session
     REQUIRE_THROWS( indexer->Index(1) );
@@ -91,7 +116,7 @@ TEST_CASE("Indexer indexing") {
 
     REQUIRE_NOTHROW( itest.SetDatastore( &dstore ) );
     REQUIRE_NOTHROW( itest.SetIndexer( indexer.get() ) );
-    REQUIRE_NOTHROW( itest.SetFingerprintsNum( 1000 ) );
+    REQUIRE_NOTHROW( itest.SetFingerprintsNum( 100 ) );
     REQUIRE_NOTHROW( itest.Run() );
 
 }

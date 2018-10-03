@@ -7,9 +7,6 @@
 
 */
 
-/// This is an implementation of the DataStore interface that uses Couchbase Server
-/// as the data storage backend. It deals with all the low level data manipulation
-/// to store and retrieve objects to/from the database by using the CB C API.
 
 #ifdef WIN32
  #define  WIN32_LEAN_AND_MEAN  //< MS clashes here and there ...
@@ -92,7 +89,7 @@ static void get_callback(lcb_t instance,
             size_t vsize = item->v.v0.nbytes - gresp->data_offset;
             size_t gsize = gresp->data_size ? gresp->data_size : vsize;
 
-            gsize = min(gsize,vsize);
+            gsize = std::min<size_t>(gsize,vsize);
 
             // Reallocate the return buffer if data does not fit it
             if(gsize > gresp->buf->size())
@@ -173,17 +170,15 @@ static void http_done_callback(lcb_http_request_t,
 
 
 CBDataStore::CBDataStore(const std::string &url) :
-    m_MainIndex     (*this),
-    m_QFingerprints (*this),
-    m_DeltaIndex    (*this),
-    m_Metadata      (*this),
-    m_Info          (*this),
+    m_MainIndex     (this),
+    m_QFingerprints (this),
+    m_DeltaIndex    (this),
+    m_Metadata      (this),
+    m_Info          (this),
     m_ReadBuffer    (32768)
 {
-    m_DBURL  = url;
-    m_Op     = GET;
-	m_IsOpen = false;
-
+	m_DBURL = url;
+	
     m_MainIndex.SetName("data_idx");
     m_QFingerprints.SetName("data_qfp");
     m_Metadata.SetName("data_met");
@@ -198,6 +193,9 @@ void CBDataStore::Open(eOperation op,
                        bool use_meta_db, 
                        bool use_info_db)
 {
+    if(m_IsOpen)
+       Close();
+
     int open_mode = op == GET ? OPEN_READ : OPEN_READ_WRITE;
 
     // Open the main index
@@ -303,8 +301,8 @@ void CBDataStore::OnIndexerEnd()
 
     if(m_Op == BUILD_MERGE)
     {
-	   // Flush the delta index block cache before merging
-	   m_DeltaIndex.FlushBlockCache();
+       // Flush the delta index block cache before merging
+       m_DeltaIndex.FlushBlockCache();
 	   
        std::cout << "Merging..." << std::endl;
 
@@ -433,8 +431,8 @@ size_t CBDataStore::GetFingerprintSize(uint32_t FID)
 
 const uint8_t* CBDataStore::GetFingerprint(uint32_t FID,
                                            size_t &read, 
-										   size_t nbytes, 
-										   uint32_t bo)
+                                           size_t nbytes, 
+                                           uint32_t bo)
 {
     read = m_QFingerprints.ReadFingerprint(FID, m_ReadBuffer, nbytes, bo);
     return m_ReadBuffer.data();
@@ -448,12 +446,9 @@ const uint8_t* CBDataStore::GetFingerprint(uint32_t FID,
 
 
 
-
-CBCollection::CBCollection(CBDataStore &datastore) :
-    m_DBHandle  (),
-    m_Datastore (datastore),
-    m_IsOpen    (false),
-    m_Buffer    (32768)
+CBCollection::CBCollection(CBDataStore *datastore) :
+    KVCollection (datastore),
+    m_DBHandle   ()
 {
 }
 
@@ -478,11 +473,11 @@ void CBCollection::Open(int mode)
 
     cropts.version = 3;
 
-    std::string server = m_Datastore.GetServerName();
-    std::string user = m_Datastore.GetUsername();
-    std::string pass = m_Datastore.GetPassword();
+    std::string server = m_Datastore->GetServerName();
+    std::string user = m_Datastore->GetUsername();
+    std::string pass = m_Datastore->GetPassword();
     
-    std::string conn_str = "couchbase://" + server + "/" + m_DBName;
+    std::string conn_str = "couchbase://" + server + "/" + m_Name;
 
     cropts.v.v3.connstr = conn_str.c_str();
     cropts.v.v3.username = user.empty() ? 0 : user.c_str();
@@ -524,7 +519,7 @@ void CBCollection::Close()
     if(m_DBHandle)
        lcb_destroy(m_DBHandle);
 
-    m_DBHandle  = nullptr;
+    m_DBHandle = nullptr;
     m_IsOpen = false;
 }
 
@@ -532,10 +527,10 @@ void CBCollection::Close()
 
 void CBCollection::Drop()
 {
-    if(m_DBHandle==NULL) return;
+    if(!m_DBHandle) return;
 
     std::string uri = "/pools/default/buckets/" + 
-                      m_DBName + 
+                      m_Name + 
                       "/controller/doFlush";
 
     lcb_http_cmd_st cmd;
@@ -556,10 +551,10 @@ void CBCollection::Drop()
     hresp.status = LCB_SUCCESS;
 
     err = lcb_make_http_request(m_DBHandle,
-	                            &hresp, 
-								LCB_HTTP_TYPE_MANAGEMENT, 
-								&cmd, 
-								&dummy);
+                                &hresp, 
+                                LCB_HTTP_TYPE_MANAGEMENT, 
+                                &cmd, 
+                                &dummy);
 
     THROW_ON_FAIL(this, err, "Couldn't initiate http request.")
 
@@ -573,13 +568,11 @@ void CBCollection::Drop()
 
 uint64_t CBCollection::GetRecordsCount() const
 {
-    if(m_DBHandle==NULL)
-       throw std::runtime_error
-       ("No connection to database '"+m_DBName+"'");
+    if(!m_DBHandle) return 0;
 
     size_t fp_count = 0;
 
-    std::string uri = "/pools/default/buckets/" + m_DBName;
+    std::string uri = "/pools/default/buckets/" + m_Name;
 
     lcb_http_cmd_st cmd;
     memset(&cmd, 0, sizeof cmd);
@@ -600,9 +593,9 @@ uint64_t CBCollection::GetRecordsCount() const
 
     err = lcb_make_http_request(m_DBHandle, 
                                 &hresp, 
-							    LCB_HTTP_TYPE_MANAGEMENT, 
-								&cmd, 
-								&dummy);
+                                LCB_HTTP_TYPE_MANAGEMENT, 
+                                &cmd, 
+                                &dummy);
 
     THROW_ON_FAIL(this, err, "Couldn't initiate http request.")
 
@@ -631,7 +624,7 @@ uint64_t CBCollection::GetRecordsCount() const
 
 
 
-CBIndex::CBIndex(CBDataStore &dstore) :
+CBIndex::CBIndex(CBDataStore *dstore) :
     CBCollection (dstore)
 {
 }
@@ -642,7 +635,7 @@ PListHeader CBIndex::GetPListHeader(int list_id)
 {
     if(m_DBHandle==NULL)
        throw std::runtime_error
-       ("Database '"+m_DBName+"' not open");
+       ("Database '"+m_Name+"' not open");
 
     PListHeader       hdr = {};
     key_builder<int>  key;
@@ -695,7 +688,7 @@ PListBlockHeader CBIndex::GetPListBlockHeader(int list_id, int block_id)
 {
     if(m_DBHandle==NULL)
        throw std::runtime_error
-       ("Database '"+m_DBName+"' not open");
+       ("Database '"+m_Name+"' not open");
 
     PListBlockHeader  hdr = {};
     key_builder<int>  key;
@@ -752,7 +745,7 @@ size_t CBIndex::ReadBlock(int list_id,
 {
     if(m_DBHandle==NULL)
        throw std::runtime_error
-       ("Database '"+m_DBName+"' not open");
+       ("Database '"+m_Name+"' not open");
 
     size_t            off=0;
     key_builder<int>  key;
@@ -807,7 +800,7 @@ void CBIndex::WriteBlock(int list_id,
 {
     if(m_DBHandle==NULL)
        throw std::runtime_error
-       ("Database '"+m_DBName+"' not open");
+       ("Database '"+m_Name+"' not open");
 
     assert(!buffer.empty());
     assert(data_size <= buffer.size());
@@ -858,13 +851,14 @@ void CBIndex::AppendChunk(int list_id,
     if(list_id != m_BlocksCache.list_id){
 
        // Schedule blocks for batch write.
-       block_map::iterator iblock = m_BlocksCache.buffer.begin();
-       for (; iblock != m_BlocksCache.buffer.end(); ++iblock)
-	   {
+       //block_map::iterator iblock = m_BlocksCache.buffer.begin();
+       //for (; iblock != m_BlocksCache.buffer.end(); ++iblock)
+       for(auto &iblock : m_BlocksCache.buffer)
+       {
            WriteBlock(m_BlocksCache.list_id, 
-                      iblock->first, 
-					  iblock->second, 
-					  iblock->second.size());
+                      iblock.first, 
+                      iblock.second, 
+                      iblock.second.size());
            //m_BlocksCache.accum += iblock->second.size();
        }
        // Execute the batch if the threshold is reached
@@ -1088,13 +1082,12 @@ void CBIndex::FlushBlockCache()
        return;
 
     // Schedule any remaining blocks for batched insert.
-    block_map::iterator block = m_BlocksCache.buffer.begin();
-    for (; block != m_BlocksCache.buffer.end(); ++block) 
-	{
+    for (auto &block : m_BlocksCache.buffer)
+    {
         WriteBlock(m_BlocksCache.list_id, 
-                   block->first, 
-				   block->second, 
-				   block->second.size());
+                   block.first, 
+                   block.second, 
+                   block.second.size());
     }
 
     m_StoreResp.sender = __FUNCTION__;
@@ -1127,7 +1120,7 @@ void CBIndex::ResetCaches()
 
 
 
-CBFingerprints::CBFingerprints(CBDataStore &dstore) :
+CBFingerprints::CBFingerprints(CBDataStore *dstore) :
     CBCollection (dstore)
 {
 }
@@ -1143,7 +1136,7 @@ size_t CBFingerprints::ReadFingerprintSize(uint32_t FID)
 
     if(m_DBHandle==NULL)
        throw std::runtime_error
-      ("Database '"+m_DBName+"' not open");
+      ("Database '"+m_Name+"' not open");
 
     // Create response structure
     CBGetResp gresp = {};
@@ -1178,7 +1171,7 @@ size_t CBFingerprints::ReadFingerprint(uint32_t FID,
 {
     if(m_DBHandle==NULL)
        throw std::runtime_error
-       ("Database '"+m_DBName+"' not open");
+       ("Database '"+m_Name+"' not open");
 
     // Create response structure
     CBGetResp gresp = {};
@@ -1219,7 +1212,7 @@ void CBFingerprints::WriteFingerprint(uint32_t FID,
 
     if(m_DBHandle==NULL)
        throw std::runtime_error
-       ("Database '"+m_DBName+"' not open");
+       ("Database '"+m_Name+"' not open");
 
     CBSetResp sresp;
     sresp.sender = __FUNCTION__;
@@ -1252,7 +1245,7 @@ void CBFingerprints::WriteFingerprint(uint32_t FID,
 
 
 
-CBMetadata::CBMetadata(CBDataStore &dstore) :
+CBMetadata::CBMetadata(CBDataStore *dstore) :
     CBCollection (dstore)
 {
 }
@@ -1298,7 +1291,7 @@ void CBMetadata::Write(uint32_t FID, const std::string &meta)
 {
     if(m_DBHandle==NULL)
        throw std::runtime_error
-       ("Database '"+m_DBName+"' not open");
+       ("Database '"+m_Name+"' not open");
 
     if(meta.empty())
        return;
@@ -1332,7 +1325,7 @@ void CBMetadata::Write(uint32_t FID, const std::string &meta)
 //=============================================================================
 
 
-CBInfo::CBInfo(CBDataStore &dstore) :
+CBInfo::CBInfo(CBDataStore *dstore) :
     CBCollection (dstore)
 {
 }
@@ -1381,7 +1374,7 @@ void CBInfo::Write(const DBInfo_t &info)
 {
     if(m_DBHandle==NULL)
        throw std::runtime_error
-      ("Database '"+m_DBName+"' not open");
+      ("Database '"+m_Name+"' not open");
     
     int key = 0;
 

@@ -10,22 +10,7 @@
 #ifndef EXCOMMON_H
 #define EXCOMMON_H
 
-#include "audioneex.h"
-
-// Define the datastore implementation to be used (TCDataStore/CBDataStore)
-
-#define DATASTORE_T_TC 1
-#define DATASTORE_T_CB 2
-
-#ifndef DATASTORE_T_ID
- #error "DATASTORE_T_ID not defined."
-#endif
-
-#ifndef DATASTORE_T
- #error "DATASTORE_T not defined. Please add a DATASTORE_T=TCDataStore|CBDataStore compiler definition to your build system."
-#endif
-
-class DATASTORE_T;  //< Must be defined somewhere
+#include "dao_common.h"
 
 /// Interfaces used in the examples
 

@@ -22,8 +22,9 @@
 /// or host name).
 ///
 
+
 #ifdef WIN32
- #define  WIN32_LEAN_AND_MEAN  //< there is a clash with winsock.h
+  #define WIN32_LEAN_AND_MEAN   // fix winsock.h clashes
 #endif
 
 #include <iostream>
@@ -35,6 +36,7 @@
 #include "CmdLineParser.h"
 
 using namespace Audioneex;
+
 
 void PrintUsage()
 {
@@ -64,7 +66,8 @@ int main(int argc, char** argv)
 
         dstore->Open( KVDataStore::BUILD, true );
 
-        std::shared_ptr<Indexer> indexer ( Indexer::Create() );
+        std::shared_ptr<Indexer> 
+        indexer ( Indexer::Create() );
         indexer->SetDataStore( dstore.get() );
         indexer->SetCacheLimit( 256 );
 
@@ -76,13 +79,13 @@ int main(int argc, char** argv)
     }
     catch(const bad_cmd_line_exception &ex)
 	{
-        std::cout << "ERROR: " << ex.what() << std::endl;
+        std::cerr << "ERROR: " << ex.what() << std::endl;
         PrintUsage();
         return -1;
     }
     catch(const std::exception &ex)
 	{
-        std::cout << "ERROR: " << ex.what() << std::endl;
+        std::cerr << "ERROR: " << ex.what() << std::endl;
         return -1;
     }
 

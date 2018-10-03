@@ -19,27 +19,23 @@ set(AX_TEST_FINGERPRINT_SRC test_fingerprinting.cpp
 							 
 set(AX_TEST_INDEXER_SRC     test_indexing.cpp
                             ${AX_SRC_ROOT}/audio/AudioSource.cpp
-                            ${AX_SRC_ROOT}/DAO/TCDataStore.cpp)
+                            ${AX_SRC_ROOT}/DAO/${DATASTORE_T}.cpp)
 							
 set(AX_TEST_MATCHER_SRC     test_matching.cpp
                             ${AX_SRC_ROOT}/audio/AudioSource.cpp
-                            ${AX_SRC_ROOT}/DAO/TCDataStore.cpp)
+                            ${AX_SRC_ROOT}/DAO/${DATASTORE_T}.cpp)
 
-add_definitions(-DDATASTORE_T_ID=1)
 
 # --- Platform-specific module compilation settings ---
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
     set(TEST_CXX_FLAGS "")
-	set(DATASTORE_LIB_NAME tokyocabinet)
 	set(THREAD_LIB pthread)
 	
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
     set(TEST_CXX_FLAGS "/Od")
-    # On Windows some libraries have different namings.
-    set(DATASTORE_LIB_NAME libejdb)
 
 endif()
 

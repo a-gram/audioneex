@@ -7,20 +7,24 @@
 
 */
 
+
+#ifdef WIN32
+  #define WIN32_LEAN_AND_MEAN   // fix winsock.h clashes
+#endif
+
 #define CATCH_CONFIG_MAIN  // Tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
 
+#include "dao_common.h"
 #include "test_matching.h"
-#include "Matcher.h"
 
 ///
 /// Prerequisites:
 ///
-/// 1) libejdb.dll must be present in the search path.
-/// 2) If linking against the shared version of Audioneex, the library must be built
+/// 1) If linking against the shared version of Audioneex, the library must be built
 ///    with the TESTING compiler definition in order for the private classes being tested
 ///    to expose their interfaces.
-/// 3) Copy the 'data' folder from the 'tests' directory in the root of the source tree,
+/// 2) Copy the 'data' folder from the 'tests' directory in the root of the source tree,
 ///    to the test programs directory.
 ///
 /// Usage: test_matching
@@ -29,7 +33,7 @@
 
 TEST_CASE("Matcher accessors") {
 
-    TCDataStore dstore ("./data/db");
+    DATASTORE_T dstore ("./data/db");
     Audioneex::Matcher matcher;
 
     matcher.SetDataStore( &dstore );
@@ -51,10 +55,31 @@ TEST_CASE("Matcher processing") {
     AudioBlock<int16_t>  iblock(Srate*2, Srate, Nchan);
     AudioBlock<float>    audio(Srate*2, Srate, Nchan);
     AudioSourceFile      asource;
+	
+    DATASTORE_T dstore ("./data");
+	
+	// For client/server databases only (e.g. Couchbase)
+    dstore.SetServerName( "localhost" );
+    dstore.SetServerPort( 8091 );
+    dstore.SetUsername( "admin" );
+    dstore.SetPassword( "password" );
+	
+    REQUIRE_NOTHROW( dstore.Open(KVDataStore::BUILD) );
 
-    TCDataStore dstore ( "./data/db" );
+    // We need an empty database to perform the tests.
+    if(!dstore.Empty()) {
+        dstore.Clear();
+		// Wait until the clearing is finished as it may be an asynchronous
+		// operation, such as in Couchbase, in which case the execution
+		// would continue and the tests will fail.
+		while(!dstore.Empty()) {
+		    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		}
+	}
 
-    REQUIRE_NOTHROW( dstore.Open() );
+    IndexFiles(&dstore, "./data/rec1.fp", 1);
+	
+	REQUIRE_NOTHROW( dstore.Open() );
 
     Audioneex::Matcher matcher;
 
@@ -86,7 +111,7 @@ TEST_CASE("Matcher processing") {
     REQUIRE( matcher.Flush() == 0 );  // There must be no lfs in the buffer
 
     matcher.Reset();
-    lfs.clear();  // NOTE: The LFs have been acquired and deleted by the Matcher
+    lfs.clear();
 
     iblock.Resize(Srate*1.5);
     audio.Resize(Srate*1.5);
@@ -104,7 +129,7 @@ TEST_CASE("Matcher processing") {
     REQUIRE( matcher.GetResults().Top_K.empty() == false );
     REQUIRE( matcher.GetResults().GetTopScore(1) > 0 );
 
-    lfs.clear();  // NOTE: The LFs have been acquired and deleted by the Matcher
+    lfs.clear();
 
     // Try processing an invalid lfs sequence
 
@@ -118,6 +143,7 @@ TEST_CASE("Matcher processing") {
     // without resetting the matcher
     REQUIRE_THROWS_AS( matcher.Process( lfs ),
                        Audioneex::InvalidMatchSequenceException );
+
 
 }
 

@@ -7,6 +7,7 @@
 
 */
 
+
 #ifndef DATASTORETYPES_H
 #define DATASTORETYPES_H
 
@@ -20,15 +21,20 @@
 typedef boost::unordered::unordered_map< int, std::vector<uint8_t> > block_map;
 struct DBInfo_t;
 
+/// Database opening modes
+enum{
+    OPEN_READ,
+    OPEN_WRITE,
+    OPEN_READ_WRITE
+};
+
 
 /// This abstract class implements the DataStore interface and extends it by
-/// adding basic database operations and some other application-specific
-/// functionality. In the examples we use key-value datastores, so we call
-/// this class accordingly.
+/// adding common database operations and some other application-specific
+/// functionality. We use key-value datastores, so we name it accordingly.
 
 class KVDataStore : public Audioneex::DataStore
 {
-	
 public:
 
     enum eOperation{
@@ -37,6 +43,19 @@ public:
         BUILD_MERGE
     };
 
+protected:
+
+    std::string  m_DBURL;
+    std::string  m_ServerName;
+    int          m_ServerPort  {0};
+    std::string  m_Username;
+    std::string  m_Password;
+    bool         m_IsOpen      {false};
+    eOperation   m_Op          {GET};
+
+public:
+
+	KVDataStore() = default;
     virtual ~KVDataStore() = default;
 
     /// Open the datastore. This will open all database/collections
@@ -140,17 +159,79 @@ public:
     virtual std::string GetPassword()   const {
         return m_Password;
     }
+};
 
+
+// ----------------------------------------------------------------------------
+
+/// This abstract class represents a collection of items within the datastore.
+/// A "collection" is a logically grouped set of records, such as a table, file,
+/// list, etc. Concrete classes must provide the functionality to access specific 
+/// implementation of collections.
+
+class KVCollection
+{
 protected:
 
-    std::string  m_DBURL;
-    std::string  m_ServerName;
-	int          m_ServerPort;
-	std::string  m_Username;
-	std::string  m_Password;
-	bool         m_IsOpen;
-	eOperation   m_Op;
+    KVDataStore*          m_Datastore  {nullptr};
+    std::string           m_Name;
+    bool                  m_IsOpen     {false};
+    std::vector<uint8_t>  m_Buffer;
+	
+    /// Function object used to make low level access keys
+    /// used to fetch data from the underlying store.
+    template<typename Tk, typename Tc = char*>
+    struct key_builder
+    {
+        Tk key[2];
+	
+        void operator()(Tk k1, Tk k2) {
+            key[0] = k1;
+            key[1] = k2;
+        }
+        const Tc get() const {
+            return (const Tc)(key);
+        }
+        size_t size() const {
+            return sizeof(key);
+        }
+    };
+	
+public:
 
+    KVCollection(KVDataStore *datastore) :
+        m_Datastore (datastore),
+        m_Buffer    (32768)
+    { }
+
+    virtual ~KVCollection() = default;
+
+    /// Open the collection
+    virtual void Open(int mode = OPEN_READ) = 0;
+
+    /// Close the collection
+    virtual void Close() = 0;
+
+    /// Drop the collection (clear contents)
+    virtual void Drop() = 0;
+
+    /// Get the number of records in the collection
+    virtual std::uint64_t GetRecordsCount() const = 0;
+
+    /// Query open status
+    virtual bool IsOpen() const {
+        return m_IsOpen;
+    }
+
+    /// Set the collection name.
+    virtual void SetName(const std::string &name) {
+        m_Name = name;
+    }
+
+    /// Get the collection name.
+    virtual std::string GetName() const { 
+        return m_Name;
+    }
 };
 
 
@@ -159,24 +240,16 @@ protected:
 
 /// Data store info record
 struct DBInfo_t{
-    int MatchType;
+    int MatchType  {0};
 };
-
-/// Database open modes
-enum{
-    OPEN_READ,
-    OPEN_WRITE,
-    OPEN_READ_WRITE
-};
-
 
 /// Convenience structure to manipulate index list blocks
 struct PListBlock
 {
-    Audioneex::PListHeader* ListHeader;
-    Audioneex::PListBlockHeader* Header;
-    uint8_t* Body;
-    size_t BodySize;
+    Audioneex::PListHeader*      ListHeader {nullptr};
+    Audioneex::PListBlockHeader* Header     {nullptr};
+    uint8_t*                     Body       {nullptr};
+    size_t                       BodySize   {0};
 };
 
 struct BlockCache
@@ -187,7 +260,8 @@ struct BlockCache
 };
 
 /// Convenience function to check for emptiness
-inline bool IsNull(const PListBlock& hdr){
+inline bool IsNull(const PListBlock& hdr)
+{
     return hdr.ListHeader==nullptr &&
            hdr.Header==nullptr &&
            hdr.Body==nullptr;

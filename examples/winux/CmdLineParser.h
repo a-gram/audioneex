@@ -27,22 +27,13 @@ class bad_cmd_line_exception : public std::logic_error {
 /// This structure defines all the supported options
 struct CmdLineOptions_t
 {
-    std::string                 apath;
-    std::string                 db_url;
-    KVDataStore::eOperation     db_op;
-    uint32_t                    FID_base;
-    float                       b_thresh;
-    bool                        list_dev;
-    float                       offset;
-
-    CmdLineOptions_t() :
-        db_url   ("./data"),
-        db_op    (KVDataStore::BUILD),
-        FID_base (0),
-        b_thresh (0.6),
-        list_dev (false),
-        offset   (0)
-    {}
+    std::string                 apath     {};
+    std::string                 db_url    {"./data"};
+    KVDataStore::eOperation     db_op     {KVDataStore::BUILD};
+    uint32_t                    FID_base  {0};
+    float                       b_thresh  {0.6f};
+    bool                        list_dev  {false};
+    float                       offset    {0};
 };
 
 
@@ -54,12 +45,12 @@ class CmdLineParser
 
     bool ValidOptions()
     {
-        std::vector<std::string>::const_iterator it = m_Args.begin();
-		
-        for(; it!=m_Args.end(); ++it)
-            if((*it).substr(0,1) == "-" &&
-               m_SupportedOptions.find(*it) == m_SupportedOptions.end())
+        for(auto &arg : m_Args)
+        {
+            if(arg.substr(0,1) == "-" &&
+               m_SupportedOptions.find(arg) == m_SupportedOptions.end())
                return false;
+        }
 			   
         return true;
     }
@@ -67,14 +58,15 @@ class CmdLineParser
     template<typename T>
     bool GetOptionValue(const std::string& opt, T& val)
     {
-        std::vector<std::string>::const_iterator it =
-        std::find(m_Args.begin(), m_Args.end(), opt);
+        auto it = std::find(m_Args.begin(), m_Args.end(), opt);
 		
-        if(it != m_Args.end()){
+        if(it != m_Args.end())
+        {
            if(++it != m_Args.end())
               val = boost::lexical_cast<T>(*it);
            else
               throw bad_cmd_line_exception("Invalid command line");
+		  
            return true;
         }
 		
@@ -83,7 +75,8 @@ class CmdLineParser
 
     bool OptionExists(const std::string& opt)
     {
-        return std::find(m_Args.begin(), m_Args.end(), opt) != m_Args.end();
+        return
+        std::find(m_Args.begin(), m_Args.end(), opt) != m_Args.end();
     }
 
  public:

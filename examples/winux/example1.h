@@ -13,22 +13,11 @@
 #include <cstdint>
 #include <string>
 #include <memory>
-
 #include <boost/filesystem.hpp>
 
 #include "IdTask.h"
-
-#if defined(DATASTORE_T_ID) && (DATASTORE_T_ID==DATASTORE_T_TC)
-  #include "TCDataStore.h"
-#elif defined(DATASTORE_T_ID) && (DATASTORE_T_ID==DATASTORE_T_CB)
-  #include "CBDataStore.h"
-#else
-  #error "Undefined datastore"
-#endif
-
 #include "AudioSource.h"
 #include "AudioBlock.h"
-
 #include "audioneex.h"
 
 namespace bfs = boost::filesystem;
@@ -131,7 +120,7 @@ class AudioIndexingTask : public IdTask,
 			  }
 			  catch(const Audioneex::InvalidFingerprintException &ex)
 			  {
-				  std::cout << "FAILED. " << ex.what() << std::endl;
+				  std::cerr << "FAILED. " << ex.what() << std::endl;
 				  m_FID--; // reuse FID
 			  }
 

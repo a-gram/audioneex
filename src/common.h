@@ -24,13 +24,13 @@
 #define DEBUG_MSG_N(msg)  std::cout << msg;
 #define DEBUG_MSG_NF(msg) std::cout << msg; std::cout.flush();
 
-#define WARNING_MSG(msg) std::cout << "WARNING: " << msg << std::endl;
-#define ERROR_MSG(msg)   std::cerr << "ERROR: " << msg << std::endl;
+#define WARNING_MSG(msg)  std::cout << "WARNING: " << msg << std::endl;
+#define ERROR_MSG(msg)    std::cerr << "ERROR: " << msg << std::endl;
 
 #ifdef TESTING
  #define TEST_HERE( test_code ) test_code
 #else
- #define TEST_HERE( test )
+ #define TEST_HERE( test_code )
 #endif
 
 #endif // COMMON_H

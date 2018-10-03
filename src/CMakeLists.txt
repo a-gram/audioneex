@@ -46,7 +46,7 @@ endif()
 
 # --- Platform-specific module compilation settings ---
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
    set(LIB_CXX_FLAGS -fvisibility=hidden -fno-rtti)
 
@@ -56,7 +56,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
       set(LIB_CXX_FLAGS ${LIB_CXX_FLAGS} -O2)
    endif()
 	
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
    set(LIB_CXX_FLAGS "")
    

@@ -13,13 +13,14 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
+#include <chrono>
+#include <thread>
 
 #include "Fingerprint.h"
 #include "DataStore.h"
 #include "Indexer.h"
 #include "Utils.h"
 #include "QFGenerator.h"
-#include "TCDataStore.h"
 #include "AudioSource.h"
 #include "audioneex.h"
 
@@ -149,6 +150,7 @@ public:
         // Testing indexer
 
         m_Indexer->Start();
+		
         // Try indexing some audio
         DoIndexing();
 
@@ -158,6 +160,13 @@ public:
         m_Indexer->End();
 
         DEBUG_MSG(" - OK")
+		
+		// NOTE: write operations may be asynchronous (e.g. in Couchbase),
+		// so we need to wait for all the fingerprints being indexed or
+		// else the following tests will fail.
+		while(m_DataStore->GetFingerprintsCount() != m_NQFs) {
+		    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		}
 
         // Validate index
 

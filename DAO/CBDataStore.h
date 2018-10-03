@@ -7,6 +7,7 @@
 
 */
 
+
 #ifndef CBDATASTORE_H
 #define CBDATASTORE_H
 
@@ -17,24 +18,24 @@
 
 struct CBKey
 {
-    int k1;
-    int k2;
+    int k1 {0};
+    int k2 {0};
 };
 
 struct CBGetResp
 {
-    lcb_error_t status;
-    std::vector<uint8_t>* buf;  // single-get buffer's handle
-    size_t   data_size;         // size of data to read from value
-    size_t   data_offset;       // offset from which to start reading
-    size_t   read_size;         // size of data actually read
-    size_t   value_size;        // the size of the value
+    lcb_error_t status        {};
+    std::vector<uint8_t>* buf {nullptr};  // single-get buffer's handle
+    size_t   data_size        {0};        // size of data to read from value
+    size_t   data_offset      {0};        // offset from which to start reading
+    size_t   read_size        {0};        // size of data actually read
+    size_t   value_size       {0};        // the size of the value
 };
 
 struct CBSetResp
 {
     std::string        sender;
-    lcb_error_t        status;
+    lcb_error_t        status {};
     std::vector<CBKey> failedKeys;
 };
 
@@ -49,223 +50,210 @@ struct CBHttpResp
 
 class CBDataStore;
 
-/// Defines a key-value database/collection in the data store.
-/// This is represented by a bucket on the datastore server.
+/// This class provides common database operations for accessing collections in
+/// the Couchbase datastore (where they're called 'buckets'), such as opening,
+/// closing, deleting, getting the number of records, etc. It does not provide 
+/// facilities to read and write data, which are implemented in derived classes 
+/// depending on the type of collection.
 
-// TODO: Refactor this inheritance by grouping common functionality
-//       between datastores under the KVDataStore file.
-
-class CBCollection
+class CBCollection : public KVCollection
 {
 protected:
 
-    CBDataStore&   m_Datastore;
-    lcb_t          m_DBHandle;
-    std::string    m_DBName;
-    bool           m_IsOpen;
-
-    /// Internal buffer for read/write operations
-    std::vector<uint8_t>   m_Buffer;
-	
-	/// Function object used to make low level access keys
-	/// used to fetch data from the Couchbase data store.
-    template<typename Tk, typename Tc = char*>
-    struct key_builder
-    {
-	    Tk key[2];
-	
-	    void operator()(Tk k1, Tk k2) {
-            key[0] = k1;
-            key[1] = k2;
-        }
-        const Tc get() const {
-            return (const Tc)(key);
-        }
-        size_t size() const {
-            return sizeof(key);
-        }
-    };
-
+    lcb_t  m_DBHandle;
 
     operator lcb_t() const {
-            return m_DBHandle;
+        return m_DBHandle;
     }
 	
 public:
 
-    CBCollection(CBDataStore &datastore);
-    virtual ~CBCollection();
+    CBCollection(CBDataStore*);
+    ~CBCollection();
 
-    /// Set the database file name
-    void SetName(const std::string &name) {
-        m_DBName = name;
-    }
+    /// Open the collection
+    void 
+    Open(int mode = OPEN_READ) override;
 
-    /// Get the database file name
-    std::string GetName() const { 
-        return m_DBName;
-    }
+    /// Close the collection
+    void 
+    Close() override;
 
-    /// Open the databse
-    void Open(int mode = OPEN_READ);
+    /// Drop the collection (all content cleared)
+    void 
+    Drop() override;
 
-    /// Close the database
-    void Close();
-
-    /// Drop the database (all content cleared)
-    void Drop();
-
-    /// Query open status
-    bool IsOpen() const {
-        return m_IsOpen;
-    }
-
-    /// Get the number of records in the database
-    std::uint64_t GetRecordsCount() const;
+    /// Get the number of records in the collection
+    std::uint64_t 
+    GetRecordsCount() const override;
 
 };
 
+
 // ----------------------------------------------------------------------------
 
-/// The fingerprints index
+/// This class implements functionalities to manipulate a fingerprinting index,
+/// a collection of data blocks with a specific layout used in the recognition
+/// process.
 
 class CBIndex : public CBCollection
 {
-    // Caches used during indexing 
     std::vector<CBKey>  m_KeyCache;
     BlockCache          m_BlocksCache;
     CBSetResp           m_StoreResp;
-	
+
+    /// Conversion method to turn a raw block byte stream into a block structure.
+    PListBlock 
+    RawBlockToBlock(uint8_t *block, 
+                    size_t block_size, 
+                    bool isFirst=false);
+
 public:
 
-    CBIndex(CBDataStore &dstore);
+    CBIndex(CBDataStore*);
     ~CBIndex() = default;
 
     /// Get the header for the specified index list
-    Audioneex::PListHeader GetPListHeader(int list_id);
+    Audioneex::PListHeader 
+    GetPListHeader(int list_id);
 
-    /// Get the header for the spcified block in the specified list
-    Audioneex::PListBlockHeader GetPListBlockHeader(int list_id, int block_id);
+    /// Get the header for the specified block in the specified list
+    Audioneex::PListBlockHeader 
+    GetPListBlockHeader(int list_id, int block_id);
 
     /// Read the specified index list block data into 'buffer'. The 'headers'
     /// flag specifies whether to include the block headers in the read data.
     /// Return the number of read bytes.
-    size_t ReadBlock(int list_id, 
-                     int block_id, 
-					 std::vector<uint8_t> &buffer, 
-					 bool headers=true);
+    size_t 
+    ReadBlock(int list_id, 
+              int block_id, 
+              std::vector<uint8_t> &buffer, 
+               bool headers=true);
 
     /// Write the contents of the given block in the specified index list.
     /// A new block is created if the specified block does not exist.
-    void WriteBlock(int list_id, 
-                    int block_id, 
-					std::vector<uint8_t> &buffer, 
-					size_t data_size);
+    void 
+    WriteBlock(int list_id, 
+               int block_id, 
+               std::vector<uint8_t> &buffer, 
+               size_t data_size);
 
     /// Append a chunk to the specified block. If the block does not exist,
     /// a new one is created.
-    void AppendChunk(int list_id,
-                     Audioneex::PListHeader &lhdr,
-                     Audioneex::PListBlockHeader &hdr,
-                     uint8_t* chunk, size_t chunk_size,
-                     bool new_block=false);
+    void 
+    AppendChunk(int list_id,
+                Audioneex::PListHeader &lhdr,
+                Audioneex::PListBlockHeader &hdr,
+                uint8_t* chunk, size_t chunk_size,
+                bool new_block=false);
 
     /// Update the specified list header
-    void UpdateListHeader(int list_id, Audioneex::PListHeader &lhdr);
+    void 
+    UpdateListHeader(int list_id, Audioneex::PListHeader &lhdr);
 
     /// Merge this index with the given one.
-    void Merge(CBIndex &lidx);
-
-    /// Turn a raw block byte stream into a block structure.
-    PListBlock RawBlockToBlock(uint8_t *block, 
-                               size_t block_size, 
-							   bool isFirst=false);
+    void 
+    Merge(CBIndex &lidx);
     
     /// Flush any remaining data in the block cache
-    void FlushBlockCache();
+    void 
+    FlushBlockCache();
 
     /// Reset all indexing caches
-    void ResetCaches();
+    void 
+    ResetCaches();
 };
+
 
 // ----------------------------------------------------------------------------
 
-/// The fingerprints database
+/// This class implements functionalities to manipulate a fingerprints collection.
 
 class CBFingerprints : public CBCollection
 {
 public:
 
-    CBFingerprints(CBDataStore &dstore);
+    CBFingerprints(CBDataStore*);
     ~CBFingerprints() = default;
 
     /// Read the size of the specified fingerprint (in bytes)
-    size_t ReadFingerprintSize(uint32_t FID);
+    size_t 
+    ReadFingerprintSize(uint32_t FID);
 
     /// Read the specified fingerprint's data into the given buffer. If 'size'
     /// is non zero, then 'size' bytes are read starting at offset bo (in bytes)
-    size_t ReadFingerprint(uint32_t FID, 
-                           std::vector<uint8_t> &buffer, 
-						   size_t size, 
-						   uint32_t bo);
+    size_t 
+    ReadFingerprint(uint32_t FID, 
+                    std::vector<uint8_t> &buffer, 
+                    size_t size, 
+                    uint32_t bo);
 
     /// Write the given fingerprint into the database
-    void   WriteFingerprint(uint32_t FID, 
-                            const uint8_t *data, 
-							size_t size);
+    void 
+    WriteFingerprint(uint32_t FID, 
+                     const uint8_t *data, 
+                     size_t size);
 };
+
 
 // ----------------------------------------------------------------------------
 
-/// Metadata database
+/// This class implements functionalities to manipulate a metadata collection.
 
 class CBMetadata : public CBCollection
 {
 public:
 
-    CBMetadata(CBDataStore &dstore);
+    CBMetadata(CBDataStore*);
     ~CBMetadata() = default;
 
     /// Read metadata for fingerprint FID
-    std::string Read(uint32_t FID);
+    std::string 
+    Read(uint32_t FID);
 
     /// Write metadata for fingerprint FID
-    void   Write(uint32_t FID, const std::string& meta);
+    void
+    Write(uint32_t FID, const std::string& meta);
 };
+
 
 // ----------------------------------------------------------------------------
 
-/// Datastore info database
+/// This class implements functionalities to manipulate a collection of custom info.
 
 class CBInfo : public CBCollection
 {
 public:
 
-    CBInfo(CBDataStore &dstore);
+    CBInfo(CBDataStore*);
     ~CBInfo() = default;
 
-    DBInfo_t Read();
-    void Write(const DBInfo_t &info);
+    /// Read custom info
+    DBInfo_t
+    Read();
+
+    /// Store custom info
+    void 
+    Write(const DBInfo_t &info);
 };
+
 
 // ----------------------------------------------------------------------------
 
-/// Implements a data store connection. In our context a connection is
-/// a communication channel (and related resources) to all the databases
-/// used by the audio identification library, namely the index database and
-/// the fingerprints database. Here we also use an additional "delta index"
-/// database for the build-merge strategy.
+/// This is an implementation of the KVDataStore interface that uses Couchbase
+/// as the data storage backend. It deals with all the low level data manipulation
+/// to store and retrieve objects to/from the database by using the CB C API.
+/// You can see it as a communication channel to all the stored data used by the
+/// recognition engine. We also use a "delta index" for build-merge strategies.
+
 
 class CBDataStore : public KVDataStore
 {
-    CBIndex               m_MainIndex;      ///< The index database
-    CBIndex               m_DeltaIndex;     ///< The delta index database
-    CBFingerprints        m_QFingerprints;  ///< The fingerprints database
-    CBMetadata            m_Metadata;       ///< The metadata database
-    CBInfo                m_Info;           ///< Datastore info
-    
-    /// Internal buffer used to cache all data accessed by the identification
-    /// instance using this connection.
+    CBIndex               m_MainIndex;
+    CBIndex               m_DeltaIndex;
+    CBFingerprints        m_QFingerprints;
+    CBMetadata            m_Metadata;
+    CBInfo                m_Info;
     std::vector<uint8_t>  m_ReadBuffer;
 
 public:
@@ -273,76 +261,116 @@ public:
     explicit CBDataStore(const std::string &url = std::string());
     ~CBDataStore() = default;
 
-    void Open(eOperation op = GET,
-              bool use_fing_db=false,
-              bool use_meta_db=false,
-              bool use_info_db=false);
+    /// Open the datastore in the specified mode using the specified collections.
+    void 
+    Open(eOperation op = GET,
+         bool use_fing_db=false,
+         bool use_meta_db=false,
+         bool use_info_db=false) override;
 
-    void Close();
+    /// Close the datastore
+    void 
+    Close() override;
 	
-    bool Empty();
+    /// Check whether the datastore contains no data
+    bool 
+    Empty() override;
 
-    void Clear();
+    /// Clear the datastore (delete all contents)
+    void 
+    Clear() override;
 
-    void PutFingerprint(uint32_t FID, const uint8_t* data, size_t size){
+    /// Store a fingerprint
+    void 
+    PutFingerprint(uint32_t FID, const uint8_t* data, size_t size)  override {
         m_QFingerprints.WriteFingerprint(FID, data, size);
     }
 
-    void PutMetadata(uint32_t FID, const std::string& meta){
+    /// Get a fingerprint
+    const uint8_t* 
+    GetFingerprint(uint32_t FID, 
+                   size_t &read, 
+                   size_t nbytes = 0, 
+                   uint32_t bo = 0) override;
+
+    /// Store metadata for the specified fingerprint
+    void 
+    PutMetadata(uint32_t FID, const std::string& meta) override {
         m_Metadata.Write(FID, meta);
     }
 
-    std::string GetMetadata(uint32_t FID) {
+    /// Get metadata for the specified fingerprint
+    std::string 
+    GetMetadata(uint32_t FID) override {
         return m_Metadata.Read(FID);
     }
 
-    DBInfo_t GetInfo() {
-        return m_Info.Read(); 
-    }
-
-    void PutInfo(const DBInfo_t& info) { 
+    /// Store custom info
+    void 
+    PutInfo(const DBInfo_t& info) override { 
         m_Info.Write(info); 
     }
 
+    /// Get custom info
+    DBInfo_t 
+    GetInfo() override {
+        return m_Info.Read(); 
+    }
+
+
     // API Interface
 
-    const uint8_t* GetPListBlock(int list_id, 
-                                 int block, 
-								 size_t& data_size, 
-								 bool headers=true);
-								 
-    size_t GetFingerprintSize(uint32_t FID);
+    const uint8_t*
+    GetPListBlock(int list_id, 
+                  int block, 
+                  size_t& data_size, 
+                  bool headers=true) override;
+
+    size_t
+    GetFingerprintSize(uint32_t FID) override;
+
+    size_t 
+    GetFingerprintsCount() override;
+
+    void 
+    OnIndexerStart() override;
+
+    void
+    OnIndexerEnd() override;
+
+    void
+    OnIndexerFlushStart() override;
+
+    void 
+    OnIndexerFlushEnd() override;
 	
-    const uint8_t* GetFingerprint(uint32_t FID, 
-                                  size_t &read, 
-								  size_t nbytes = 0, 
-								  uint32_t bo = 0);
-								  
-    size_t GetFingerprintsCount();
-    void   OnIndexerStart();
-    void   OnIndexerEnd();
-    void   OnIndexerFlushStart();
-    void   OnIndexerFlushEnd();
-	
-    Audioneex::PListHeader      OnIndexerListHeader(int list_id);
-    Audioneex::PListBlockHeader OnIndexerBlockHeader(int list_id, int block);
+    Audioneex::PListHeader
+    OnIndexerListHeader(int list_id) override;
 
-    void OnIndexerChunk(int list_id,
-                        Audioneex::PListHeader &lhdr,
-                        Audioneex::PListBlockHeader &hdr,
-                        uint8_t* data, size_t data_size);
+    Audioneex::PListBlockHeader 
+    OnIndexerBlockHeader(int list_id, int block) override;
 
-    void OnIndexerNewBlock (int list_id,
-                           Audioneex::PListHeader &lhdr,
-                           Audioneex::PListBlockHeader &hdr,
-                           uint8_t* data, size_t data_size);
+    void
+    OnIndexerChunk(int list_id,
+                   Audioneex::PListHeader &lhdr,
+                   Audioneex::PListBlockHeader &hdr,
+                   uint8_t* data, size_t data_size) override;
 
-    void OnIndexerFingerprint(uint32_t FID, uint8_t* data, size_t size);
+    void
+    OnIndexerNewBlock (int list_id,
+                       Audioneex::PListHeader &lhdr,
+                       Audioneex::PListBlockHeader &hdr,
+                       uint8_t* data, size_t data_size) override;
+
+    void
+    OnIndexerFingerprint(uint32_t FID,
+                         uint8_t* data,
+                         size_t size) override;
 
 private:
 
-    int   m_Run  {0};
+    int  m_Run  {0};
 };
 
-
 #endif
+

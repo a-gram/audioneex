@@ -15,15 +15,6 @@
 #include <memory>
 
 #include "IdTask.h"
-
-#if defined(DATASTORE_T_ID) && (DATASTORE_T_ID==DATASTORE_T_TC)
-  #include "TCDataStore.h"
-#elif defined(DATASTORE_T_ID) && (DATASTORE_T_ID==DATASTORE_T_CB)
-  #include "CBDataStore.h"
-#else
-  #error "Undefined datastore"
-#endif
-
 #include "audioneex.h"
 
 
@@ -58,7 +49,7 @@ class QFPIndexingTask : public IdTask
 
             std::cout <<"Indexing FID="<<FID<<std::endl;
 
-            m_Indexer->Index(FID, fp, fpsize);	
+            m_Indexer->Index(FID, fp, fpsize);
         }
     }
 

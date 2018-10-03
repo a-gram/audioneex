@@ -71,7 +71,7 @@ void AudioSource::StartCapture()
 {
     // Create the capture thread
     m_CaptureThread.reset( new boost::thread( boost::bind(&CaptureThread::Run,
-                                                           CaptureThread::ref
+                                                           CaptureThread::sptr
                                                           ( new CaptureThread(this) ))) );
 }
 

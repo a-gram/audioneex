@@ -14,6 +14,8 @@
 #include <cmath>
 #include <cassert>
 #include <memory>
+#include <limits>
+
 
 /// A no-frills class for manipulating audio buffers.
 

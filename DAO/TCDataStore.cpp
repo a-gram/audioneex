@@ -7,9 +7,6 @@
 
 */
 
-/// This is an implementation of the DataStore interface that uses Tokyo Cabinet
-/// as the data storage backend. It deals with all the low level data manipulation
-/// to store and retrieve objects to/from the database by using the TC C API.
 
 #ifdef WIN32
  #define  WIN32_LEAN_AND_MEAN  //< MS clashes here and there ...
@@ -31,16 +28,14 @@ using namespace Audioneex;
 // ----------------------------------------------------------------------------
 
 TCDataStore::TCDataStore(const std::string &url) :
-    m_MainIndex     (*this),
-    m_QFingerprints (*this),
-    m_DeltaIndex    (*this),
-    m_Metadata      (*this),
-    m_Info          (*this),
-    m_ReadBuffer    (32768)    
+    m_MainIndex     (this),
+    m_QFingerprints (this),
+    m_DeltaIndex    (this),
+    m_Metadata      (this),
+    m_Info          (this),
+    m_ReadBuffer    (32768)
 {
-    m_DBURL  = url;
-    m_Op     = GET;
-	m_IsOpen = false;
+	m_DBURL = url;
 	
     m_MainIndex.SetName("data.idx");
     m_QFingerprints.SetName("data.qfp");
@@ -56,6 +51,9 @@ void TCDataStore::Open(eOperation op,
                        bool use_meta_db,
                        bool use_info_db)
 {
+    if(m_IsOpen)
+       Close();
+
     int open_mode = op == GET ? OPEN_READ : OPEN_READ_WRITE;
 
     // Append the path separator if missing (Windows accepts '/' as well)
@@ -119,14 +117,6 @@ void TCDataStore::Clear()
     m_QFingerprints.Drop();
     m_Metadata.Drop();
     m_Info.Drop();
-}
-
-// ----------------------------------------------------------------------------
-
-void TCDataStore::SetOpMode(KVDataStore::eOperation mode)
-{
-    if(mode == m_Op) return;
-    Open(mode, m_QFingerprints.IsOpen(), m_Metadata.IsOpen());
 }
 
 // ----------------------------------------------------------------------------
@@ -331,11 +321,9 @@ const uint8_t* TCDataStore::GetFingerprint(uint32_t FID,
                               throw std::runtime_error(estr);        \
 
 
-TCCollection::TCCollection(TCDataStore &datastore) :
-    m_DBHandle  (),
-    m_Datastore (datastore),
-    m_IsOpen    (false),
-    m_Buffer    (32768)
+TCCollection::TCCollection(TCDataStore *datastore) :
+    KVCollection (datastore),
+    m_DBHandle   ()
 {
 }
 
@@ -369,7 +357,7 @@ void TCCollection::Open(int mode)
     tchdbtune(m_DBHandle, 1000000, 4, 10, HDBTLARGE);
     tchdbsetcache(m_DBHandle, 1000000);
 
-    std::string full_url = m_DBURL + m_DBName;
+    std::string full_url = m_DBURL + m_Name;
 
     if(tchdbopen(m_DBHandle, full_url.c_str(), db_mode)){
         //mDbMode = mode;
@@ -422,7 +410,7 @@ uint64_t TCCollection::GetRecordsCount() const
 
 
 
-TCIndex::TCIndex(TCDataStore &dstore) :
+TCIndex::TCIndex(TCDataStore *dstore) :
     TCCollection (dstore)
 {
 }
@@ -563,9 +551,11 @@ void TCIndex::AppendChunk(int list_id,
     if(list_id != m_BlocksCache.list_id){
 
        // Schedule blocks for batch write.
-       block_map::iterator iblock = m_BlocksCache.buffer.begin();
-       for (; iblock != m_BlocksCache.buffer.end(); ++iblock)
-           WriteBlock(m_BlocksCache.list_id, iblock->first, iblock->second, iblock->second.size());
+       for(auto &iblock : m_BlocksCache.buffer)
+           WriteBlock(m_BlocksCache.list_id,
+                      iblock.first,
+                      iblock.second,
+                      iblock.second.size());
 
        // Reset cache for current list
        m_BlocksCache.list_id = list_id;
@@ -758,9 +748,11 @@ void TCIndex::FlushBlockCache()
        return;
 
     // Schedule any remaining blocks for batched insert.
-    block_map::iterator block = m_BlocksCache.buffer.begin();
-    for (; block != m_BlocksCache.buffer.end(); ++block)
-        WriteBlock(m_BlocksCache.list_id, block->first, block->second, block->second.size());
+    for (auto &block : m_BlocksCache.buffer)
+         WriteBlock(m_BlocksCache.list_id,
+                    block.first, 
+                    block.second, 
+                    block.second.size());
 
     ClearCache();
 }
@@ -779,7 +771,7 @@ void TCIndex::ClearCache()
 
 
 
-TCFingerprints::TCFingerprints(TCDataStore &dstore) :
+TCFingerprints::TCFingerprints(TCDataStore *dstore) :
     TCCollection (dstore)
 {
 }
@@ -844,7 +836,7 @@ void TCFingerprints::WriteFingerprint(uint32_t FID, const uint8_t *data, size_t 
 
 
 
-TCMetadata::TCMetadata(TCDataStore &dstore) :
+TCMetadata::TCMetadata(TCDataStore *dstore) :
     TCCollection (dstore)
 {
 }
@@ -884,7 +876,7 @@ void TCMetadata::Write(uint32_t FID, const std::string &meta)
 
 
 
-TCInfo::TCInfo(TCDataStore &dstore) :
+TCInfo::TCInfo(TCDataStore *dstore) :
     TCCollection (dstore)
 {
 }

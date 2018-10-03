@@ -85,6 +85,7 @@ set(AX_SRC_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 # ----------------- Environment settings ------------------
 
+
 # Default setting
 if(NOT BINARY_TYPE)
   set(BINARY_TYPE dynamic)
@@ -112,6 +113,37 @@ if(NOT ARCH STREQUAL "x32" AND NOT ARCH STREQUAL "x64")
 endif()
 
 
+if(NOT DATASTORE_T)
+   set(DATASTORE_T "TCDataStore")
+endif()
+
+if(DATASTORE_T STREQUAL "TCDataStore")
+   # On Windows some libraries have different namings.
+   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+      set(DATASTORE_LIB_NAME libejdb)
+   else()
+      set(DATASTORE_LIB_NAME tokyocabinet)
+   endif()
+   add_definitions(-DDATASTORE_T_ID=1)
+   add_definitions(-DDATASTORE_T=${DATASTORE_T})
+elseif(DATASTORE_T STREQUAL "CBDataStore")
+   # On Windows some libraries have different namings.
+   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+      set(DATASTORE_LIB_NAME libcouchbase)
+   else()
+      set(DATASTORE_LIB_NAME couchbase)
+   endif()
+   add_definitions(-DDATASTORE_T_ID=2)
+   add_definitions(-DDATASTORE_T=${DATASTORE_T})
+else()
+   message(FATAL_ERROR "\nERROR: Unsupported data store.")
+endif()
+
+if(ID3_TAG_SUPPORT)
+   set(ID3TAG_LIB_NAME tag)
+   add_definitions(-DID3_TAG_SUPPORT)
+endif()
+
 # Set project's include paths
 
 foreach (dir ${MY_INCLUDE_DIRS})
@@ -120,7 +152,7 @@ endforeach()
 
 # Platform-specific global compilation settings (all modules)
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
    if(NOT TOOLCHAIN)
       set(TOOLCHAIN gcc72)
@@ -147,7 +179,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
    set(PLATFORM linux)
    
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
    if(NOT TOOLCHAIN)
      set(TOOLCHAIN vc141)

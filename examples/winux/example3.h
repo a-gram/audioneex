@@ -13,22 +13,11 @@
 #include <cstdint>
 #include <string>
 #include <memory>
-
 #include <boost/filesystem.hpp>
 
 #include "IdTask.h"
-
-#if defined(DATASTORE_T_ID) && (DATASTORE_T_ID==DATASTORE_T_TC)
-  #include "TCDataStore.h"
-#elif defined(DATASTORE_T_ID) && (DATASTORE_T_ID==DATASTORE_T_CB)
-  #include "CBDataStore.h"
-#else
-  #error "Undefined datastore"
-#endif
-
 #include "AudioSource.h"
 #include "AudioBlock.h"
-
 #include "audioneex.h"
 
 namespace bfs = boost::filesystem;
@@ -78,7 +67,7 @@ class IdentificationTask : public IdTask
                m_Recognizer->Identify(iaudio.Data(), iaudio.Size());
                results = m_Recognizer->GetResults();
            }
-           while(iblock.Size() > 0 && results == nullptr);
+           while(iblock.Size() > 0 && !results);
 
            // The id engine will always produce results if enough audio
            // is provided for it to make a decision. If the audio data

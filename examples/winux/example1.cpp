@@ -25,8 +25,9 @@
 /// indicates the directory containing the audio files to be indexed.
 ///
 
+
 #ifdef WIN32
- #define  WIN32_LEAN_AND_MEAN  //< there is a clash with winsock.h
+  #define WIN32_LEAN_AND_MEAN   // fix winsock.h clashes
 #endif
 
 #include <iostream>
@@ -38,6 +39,7 @@
 #include "CmdLineParser.h"
 
 using namespace Audioneex;
+
 
 void PrintUsage()
 {
@@ -81,13 +83,13 @@ int main(int argc, char** argv)
     }
     catch(const bad_cmd_line_exception &ex)
 	{
-        std::cout << "\nERROR: " << ex.what() << std::endl;
+        std::cerr << "\nERROR: " << ex.what() << std::endl;
         PrintUsage();
         return -1;
     }
     catch(const std::exception &ex)
 	{
-        std::cout << "\nERROR: " << ex.what() << std::endl;
+        std::cerr << "\nERROR: " << ex.what() << std::endl;
         return -1;
     }
 

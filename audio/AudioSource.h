@@ -92,8 +92,8 @@ class AudioSource
         AudioSource* m_AudioSource;
       public:
 
-        typedef std::unique_ptr<AudioSource::CaptureThread> ptr;
-        typedef boost::shared_ptr<AudioSource::CaptureThread> ref;
+        typedef std::unique_ptr<AudioSource::CaptureThread>   uptr;
+        typedef boost::shared_ptr<AudioSource::CaptureThread> sptr;
 		
         CaptureThread(AudioSource* asource) :
             m_AudioSource (asource)
@@ -136,8 +136,6 @@ class AudioSource
 #ifdef ID3_TAG_SUPPORT
     ID3Tag      m_ID3Tags;      ///< The stream's id3 tags, if present (for files only)
 #endif
-
-    friend class CaptureThread;
 
  public:
 

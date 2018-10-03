@@ -13,23 +13,12 @@
 #include <cstdint>
 #include <string>
 #include <memory>
-
 #include <boost/asio.hpp>
 
 #include "IdTask.h"
-
-#if defined(DATASTORE_T_ID) && (DATASTORE_T_ID==DATASTORE_T_TC)
-  #include "TCDataStore.h"
-#elif defined(DATASTORE_T_ID) && (DATASTORE_T_ID==DATASTORE_T_CB)
-  #include "CBDataStore.h"
-#else
-  #error "Undefined datastore"
-#endif
-
 #include "AudioSource.h"
 #include "AudioBlock.h"
 #include "RingBuffer.h"
-
 #include "audioneex.h"
 
 

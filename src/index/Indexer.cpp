@@ -77,7 +77,8 @@ void Audioneex::IndexerImpl::Start()
     // Get the audio codes (codebook) from the data store if none
     if(!m_AudioCodes)
     {
-       m_AudioCodes = Audioneex::Codebook::deserialize(GetAudioCodes(), GetAudioCodesSize());
+       m_AudioCodes = Audioneex::Codebook::deserialize(GetAudioCodes(),
+                                                       GetAudioCodesSize());
 
        if(!m_AudioCodes)
           throw Audioneex::InvalidAudioCodesException
@@ -330,7 +331,7 @@ void Audioneex::IndexerImpl::DoFlush()
 
         // Get the last block header. If we get a null list header then we
         // assume the postings list does not exist, else we must receive a
-        // non-null block's header. If not we have an inconsistent index.
+        // non-null block's header. If not, we have an inconsistent index.
         if(!IsNull(lhdr))
 		{
            hdr = m_DataStore->OnIndexerBlockHeader(term, lhdr.BlockCount);
@@ -374,8 +375,9 @@ void Audioneex::IndexerImpl::DoFlush()
                   throw Audioneex::InvalidIndexDataException
                        ("Invalid FID have been assigned. When adding new "
                         "fingerprints make sure that the new FID are strict "
-                        "increasing from the maximum FID in the database. "
-                        "("+std::to_string(*plchunk.back())+"<="+std::to_string(hdr.FIDmax)+")");
+                        "increasing from the maximum FID in the database "
+                        "(new FID "+std::to_string(*plchunk.back())+
+                        " must be > max FID "+std::to_string(hdr.FIDmax)+").");
 
                const uint32_t* const* plchunk_ptr = plchunk.data();
 

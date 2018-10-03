@@ -12,46 +12,19 @@ include_directories("${AX_SRC_ROOT}/src"
 
 # --- Check module-specific parameters ---
 
-if(NOT DATASTORE_T)
-   set(DATASTORE_T "TCDataStore")
-endif()
-
-if(DATASTORE_T STREQUAL "TCDataStore")
-   set(DATASTORE_LIB_NAME tokyocabinet)
-   add_definitions(-DDATASTORE_T_ID=1)
-   add_definitions(-DDATASTORE_T=${DATASTORE_T})
-elseif(DATASTORE_T STREQUAL "CBDataStore")
-   set(DATASTORE_LIB_NAME couchbase)
-   add_definitions(-DDATASTORE_T_ID=2)
-   add_definitions(-DDATASTORE_T=${DATASTORE_T})
-else()
-   message(FATAL_ERROR "\nERROR: Unsupported data store.")
-endif()
-
-if(ID3_TAG_SUPPORT)
-   set(ID3TAG_LIB_NAME tag)
-   add_definitions(-DID3_TAG_SUPPORT)
-endif()
-
+# ...
 
 # --- Platform-specific module compilation settings ---
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
    set(APP_CXX_FLAGS "")
    
    set(THREAD_LIB pthread)
    
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
    
    set(APP_CXX_FLAGS "")
-   
-   # On Windows some libraries have different namings.
-   if(DATASTORE_T STREQUAL "TCDataStore")
-      set(DATASTORE_LIB_NAME libejdb)
-   elseif(DATASTORE_T STREQUAL "CBDataStore")
-      set(DATASTORE_LIB_NAME libcouchbase)
-   endif()
    
 endif()
 
