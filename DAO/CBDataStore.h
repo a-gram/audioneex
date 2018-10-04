@@ -65,6 +65,10 @@ protected:
     operator lcb_t() const {
         return m_DBHandle;
     }
+
+    void 
+    THROW_ON_FAIL(const lcb_error_t &res, 
+                  const char *msg) const;
 	
 public:
 
@@ -93,8 +97,8 @@ public:
 // ----------------------------------------------------------------------------
 
 /// This class implements functionalities to manipulate a fingerprinting index,
-/// a collection of data blocks with a specific layout used in the recognition
-/// process.
+/// a specialized collection of data blocks with a specific layout used in the 
+/// recognition process.
 
 class CBIndex : public CBCollection
 {

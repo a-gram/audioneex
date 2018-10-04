@@ -31,28 +31,28 @@ inline void GetAudio(AudioSourceFile& source,
 
 class IndexFiles {
 	
-	size_t get_file_size(const std::string &file)
-	{
-		std::ifstream ifs (file, std::ios::binary | std::ios::ate);
-		return ifs.tellg();
-	}
+    size_t get_file_size(const std::string &file)
+    {
+        std::ifstream ifs (file, std::ios::binary | std::ios::ate);
+        return ifs.tellg();
+    }
 	
 public:
 
-	IndexFiles(KVDataStore *dstore, const std::string &file, uint32_t FID)
-	{
-		size_t fpsize = get_file_size(file);
+    IndexFiles(KVDataStore *dstore, const std::string &file, uint32_t FID)
+    {
+        size_t fpsize = get_file_size(file);
 		
-		REQUIRE( fpsize > 0 );
-        REQUIRE( (fpsize % sizeof Audioneex::QLocalFingerprint_t) == 0 );
-		
-		std::unique_ptr<char[]> fpbuf (new char[fpsize]);
+        REQUIRE( fpsize > 0 );
+        REQUIRE( (fpsize % sizeof(Audioneex::QLocalFingerprint_t)) == 0 );
+
+        std::unique_ptr<char[]> fpbuf (new char[fpsize]);
 		
         std::ifstream ifp (file, std::ios::binary);
-		ifp.read( fpbuf.get(), fpsize );
+        ifp.read( fpbuf.get(), fpsize );
 		
-		// Indexer requires a different buffer type
-		auto fp = reinterpret_cast<const uint8_t*>(fpbuf.get());
+        // Indexer requires a different buffer type
+        auto fp = reinterpret_cast<const uint8_t*>(fpbuf.get());
 
         std::unique_ptr <Audioneex::Indexer> 
         indexer ( Audioneex::Indexer::Create() );
@@ -61,7 +61,8 @@ public:
         REQUIRE_NOTHROW( indexer->Start() );
         REQUIRE_NOTHROW( indexer->Index(FID, fp, fpsize) );
         REQUIRE_NOTHROW( indexer->End() );
-	}
+    }
 };
 
 #endif
+

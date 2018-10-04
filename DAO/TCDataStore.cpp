@@ -890,7 +890,7 @@ DBInfo_t TCInfo::Read()
 
     int dsize, key = 0;
     void *data;
-    DBInfo_t dbinfo = {-1};
+    DBInfo_t dbinfo;
 
     data = tchdbget(m_DBHandle, &key, sizeof(int), &dsize);
 

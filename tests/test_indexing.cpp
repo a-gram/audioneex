@@ -71,13 +71,13 @@ TEST_CASE("Indexer indexing") {
     // We need an empty database to perform the tests.
     if(!dstore.Empty()) {
         dstore.Clear();
-		// Wait until the clearing is finished as it may be an asynchronous
-		// operation, such as in Couchbase, in which case the execution
-		// would continue and the tests will fail.
-		while(!dstore.Empty()) {
-		    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		}
-	}
+        // Wait until the clearing is finished as it may be an asynchronous
+        // operation, such as in Couchbase, in which case the execution
+        // would continue and the tests will fail.
+        while(!dstore.Empty()) {
+              std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        }
+    }
 
     std::unique_ptr <Audioneex::Indexer> 
     indexer ( Audioneex::Indexer::Create() );

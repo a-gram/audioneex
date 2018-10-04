@@ -33,7 +33,7 @@
 
 TEST_CASE("Matcher accessors") {
 
-    DATASTORE_T dstore ("./data/db");
+    DATASTORE_T dstore ("./data");
     Audioneex::Matcher matcher;
 
     matcher.SetDataStore( &dstore );
@@ -58,7 +58,7 @@ TEST_CASE("Matcher processing") {
 	
     DATASTORE_T dstore ("./data");
 	
-	// For client/server databases only (e.g. Couchbase)
+    // For client/server databases only (e.g. Couchbase)
     dstore.SetServerName( "localhost" );
     dstore.SetServerPort( 8091 );
     dstore.SetUsername( "admin" );
@@ -69,17 +69,17 @@ TEST_CASE("Matcher processing") {
     // We need an empty database to perform the tests.
     if(!dstore.Empty()) {
         dstore.Clear();
-		// Wait until the clearing is finished as it may be an asynchronous
-		// operation, such as in Couchbase, in which case the execution
-		// would continue and the tests will fail.
-		while(!dstore.Empty()) {
-		    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		}
-	}
+        // Wait until the clearing is finished as it may be an asynchronous
+        // operation, such as in Couchbase, in which case the execution
+        // would continue and the tests will fail.
+        while(!dstore.Empty()) {
+              std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        }
+    }
 
     IndexFiles(&dstore, "./data/rec1.fp", 1);
 	
-	REQUIRE_NOTHROW( dstore.Open() );
+    REQUIRE_NOTHROW( dstore.Open() );
 
     Audioneex::Matcher matcher;
 

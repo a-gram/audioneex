@@ -161,12 +161,12 @@ public:
 
         DEBUG_MSG(" - OK")
 		
-		// NOTE: write operations may be asynchronous (e.g. in Couchbase),
-		// so we need to wait for all the fingerprints being indexed or
-		// else the following tests will fail.
-		while(m_DataStore->GetFingerprintsCount() != m_NQFs) {
-		    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		}
+        // NOTE: write operations may be asynchronous (e.g. in Couchbase),
+        // so we need to wait for all the fingerprints being indexed or
+        // else the following tests will fail.
+        while(m_DataStore->GetFingerprintsCount() != m_NQFs) {
+              std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        }
 
         // Validate index
 

@@ -23,15 +23,6 @@
 
 #include "CBDataStore.h"
 
-#define THROW_ON_FAIL(db,res,msg)                           \
-    if (res != LCB_SUCCESS && res!=LCB_KEY_ENOENT){         \
-        std::string emsg = "[Couchbase] - ";                \
-        emsg.append(msg);                                   \
-        emsg.append(" Database '" + db->GetName() + "'. "); \
-        emsg.append(lcb_strerror((*db), res));              \
-        throw std::runtime_error(emsg);                     \
-    }                                                       \
-
 using namespace Audioneex;
 
 	
@@ -461,6 +452,20 @@ CBCollection::~CBCollection()
 
 // ----------------------------------------------------------------------------
 
+void CBCollection::THROW_ON_FAIL(const lcb_error_t &res, 
+                                 const char *msg) const
+{
+    if (res != LCB_SUCCESS && res!=LCB_KEY_ENOENT){
+        std::string emsg = "[Couchbase] - ";
+        emsg.append(msg);
+        emsg.append(" Database '" + this->GetName() + "'. ");
+        emsg.append(lcb_strerror((*this), res));
+        throw std::runtime_error(emsg);
+    }
+}
+
+// ----------------------------------------------------------------------------
+
 void CBCollection::Open(int mode)
 {
     // Close current database if open
@@ -486,7 +491,7 @@ void CBCollection::Open(int mode)
     // Create handle for database
     err = lcb_create(&m_DBHandle, &cropts);
 
-    THROW_ON_FAIL(this, err, "Couldn't create handle.")
+    THROW_ON_FAIL(err, "Couldn't create handle.");
 
     lcb_U32 curval = 10000000; //< us
     lcb_cntl(m_DBHandle,LCB_CNTL_SET, LCB_CNTL_OP_TIMEOUT, &curval);
@@ -502,12 +507,12 @@ void CBCollection::Open(int mode)
     // Initiate the connection
     err = lcb_connect(m_DBHandle);
 
-    THROW_ON_FAIL(this, err, "Couldn't initiate connection.")
+    THROW_ON_FAIL(err, "Couldn't initiate connection.");
 
     // Wait for the connection to execute
     err = lcb_wait(m_DBHandle);
 
-    THROW_ON_FAIL(this, err, "Couldn't connect.")
+    THROW_ON_FAIL(err, "Couldn't connect.");
 
     m_IsOpen = true;
 }
@@ -556,12 +561,12 @@ void CBCollection::Drop()
                                 &cmd, 
                                 &dummy);
 
-    THROW_ON_FAIL(this, err, "Couldn't initiate http request.")
+    THROW_ON_FAIL(err, "Couldn't initiate http request.");
 
     // Wait for http response
     lcb_wait(m_DBHandle);
 
-    THROW_ON_FAIL(this, hresp.status, "Couldn't drop database.")
+    THROW_ON_FAIL(hresp.status, "Couldn't drop database.");
 }
 
 // ----------------------------------------------------------------------------
@@ -597,12 +602,12 @@ uint64_t CBCollection::GetRecordsCount() const
                                 &cmd, 
                                 &dummy);
 
-    THROW_ON_FAIL(this, err, "Couldn't initiate http request.")
+    THROW_ON_FAIL(err, "Couldn't initiate http request.");
 
     // Wait for http response
     lcb_wait(m_DBHandle);
 
-    THROW_ON_FAIL(this, hresp.status, "Couldn't execute query.")
+    THROW_ON_FAIL(hresp.status, "Couldn't execute query.");
 
     std::stringstream json;
     json << hresp.response;
@@ -660,7 +665,7 @@ PListHeader CBIndex::GetPListHeader(int list_id)
     // Initiate get command
     lcb_error_t err = lcb_get(m_DBHandle, &gresp, 1, commands);
 
-    THROW_ON_FAIL(this, err, "Couldn't initiate get operation.")
+    THROW_ON_FAIL(err, "Couldn't initiate get operation.");
 
     // Wait for get command to execute
     lcb_wait(m_DBHandle);
@@ -670,7 +675,7 @@ PListHeader CBIndex::GetPListHeader(int list_id)
     // indexer would receive an incorrect response (empty header for an existing
     // list), so we throw even it's a temporary issue.
 
-    THROW_ON_FAIL(this, gresp.status, "Couldn't get list header.")
+    THROW_ON_FAIL(gresp.status, "Couldn't get list header.");
 
     // Block found. Copy header data into return struct.
     if(gresp.read_size > 0){
@@ -714,7 +719,7 @@ PListBlockHeader CBIndex::GetPListBlockHeader(int list_id, int block_id)
     // Initiate get command
     lcb_error_t err = lcb_get(m_DBHandle, &gresp, 1, commands);
 
-    THROW_ON_FAIL(this, err, "Couldn't initiate get operation.")
+    THROW_ON_FAIL(err, "Couldn't initiate get operation.");
 
     // Wait for get command to execute
     lcb_wait(m_DBHandle);
@@ -724,7 +729,7 @@ PListBlockHeader CBIndex::GetPListBlockHeader(int list_id, int block_id)
     // indexer would receive an incorrect response (empty header for an existing
     // block), so we throw even it's a temporary issue.
 
-    THROW_ON_FAIL(this, lcb_error_t(gresp.status), "Couldn't get block header.")
+    THROW_ON_FAIL(lcb_error_t(gresp.status), "Couldn't get block header.");
 
     // Block found. Copy header data into return struct.
     if(gresp.read_size > 0){
@@ -775,7 +780,7 @@ size_t CBIndex::ReadBlock(int list_id,
     // Initiate get command
     lcb_error_t err = lcb_get(m_DBHandle, &gresp, 1, commands);
 
-    THROW_ON_FAIL(this, err, "Couldn't initiate get operation.")
+    THROW_ON_FAIL(err, "Couldn't initiate get operation.");
 
     // Wait for get command to execute
     lcb_wait(m_DBHandle);
@@ -786,7 +791,7 @@ size_t CBIndex::ReadBlock(int list_id,
     //       The following line will throw for temporary failures as
     //       well (you may want to retry the operation).
 
-    THROW_ON_FAIL(this, gresp.status, "Couldn't get block.")
+    THROW_ON_FAIL(gresp.status, "Couldn't get block.");
 
 	return gresp.read_size;	
 }
@@ -828,7 +833,7 @@ void CBIndex::WriteBlock(int list_id,
     //       write is desired.
     lcb_error_t err = lcb_store(m_DBHandle, &m_StoreResp, 1, commands);
 
-    THROW_ON_FAIL(this, err, "Couldn't schedule set operation.")
+    THROW_ON_FAIL(err, "Couldn't schedule set operation.");
 
     // Wait for set command to execute
     //lcb_wait(m_DBHandle[db]);
@@ -1095,7 +1100,7 @@ void CBIndex::FlushBlockCache()
     // Execute the batch
     lcb_wait(m_DBHandle);
     
-    THROW_ON_FAIL(this, m_StoreResp.status, "Couldn't flush the data in the cache.")
+    THROW_ON_FAIL(m_StoreResp.status, "Couldn't flush the data in the cache.");
 
     m_BlocksCache.list_id = 0;
     m_BlocksCache.accum = 0;
@@ -1152,12 +1157,12 @@ size_t CBFingerprints::ReadFingerprintSize(uint32_t FID)
     // Initiate get command
     lcb_error_t err = lcb_get(m_DBHandle, &gresp, 1, commands);
 
-    THROW_ON_FAIL(this, err, "Couldn't initiate get operation.")
+    THROW_ON_FAIL(err, "Couldn't initiate get operation.");
 
     // Wait for get command to execute
     lcb_wait(m_DBHandle);
 
-    THROW_ON_FAIL(this, gresp.status, "Couldn't execute get operation.")
+    THROW_ON_FAIL(gresp.status, "Couldn't execute get operation.");
 
     return gresp.value_size;
 }
@@ -1190,12 +1195,12 @@ size_t CBFingerprints::ReadFingerprint(uint32_t FID,
     // Initiate get command
     lcb_error_t err = lcb_get(m_DBHandle, &gresp, 1, commands);
 
-    THROW_ON_FAIL(this, err, "Couldn't initiate get operation.")
+    THROW_ON_FAIL(err, "Couldn't initiate get operation.");
 
     // Wait for get command to execute
     lcb_wait(m_DBHandle);
 
-    THROW_ON_FAIL(this, gresp.status, "Couldn't execute get operation.")
+    THROW_ON_FAIL(gresp.status, "Couldn't execute get operation.");
 
     // The fingerprint data will be copied in 'buffer' in the get callback
     
@@ -1229,12 +1234,12 @@ void CBFingerprints::WriteFingerprint(uint32_t FID,
 
     lcb_error_t err = lcb_store(m_DBHandle, &sresp, 1, commands);
 
-    THROW_ON_FAIL(this, err, "Couldn't initiate set operation.")
+    THROW_ON_FAIL(err, "Couldn't initiate set operation.");
 
     // Wait for set command to execute
     lcb_wait(m_DBHandle);
 
-    THROW_ON_FAIL(this, sresp.status, "Couldn't store the data.")
+    THROW_ON_FAIL(sresp.status, "Couldn't store the data.");
 
 }
 
@@ -1271,7 +1276,7 @@ std::string CBMetadata::Read(uint32_t FID)
         // Initiate get command
         lcb_error_t err = lcb_get(m_DBHandle, &gresp, 1, commands);
 
-        THROW_ON_FAIL(this, err, "Couldn't initiate get operation.")
+        THROW_ON_FAIL(err, "Couldn't initiate get operation.");
 
         // Wait for get command to execute
         lcb_wait(m_DBHandle);
@@ -1311,12 +1316,12 @@ void CBMetadata::Write(uint32_t FID, const std::string &meta)
 
     lcb_error_t err = lcb_store(m_DBHandle, &sresp, 1, commands);
 
-    THROW_ON_FAIL(this, err, "Couldn't initiate set operation.")
+    THROW_ON_FAIL(err, "Couldn't initiate set operation.");
 
     // Wait for set command to execute
     lcb_wait(m_DBHandle);
 
-    THROW_ON_FAIL(this, sresp.status, "Couldn't store the data.")
+    THROW_ON_FAIL(sresp.status, "Couldn't store the data.");
 }
 
 
@@ -1336,7 +1341,7 @@ DBInfo_t CBInfo::Read()
        throw std::runtime_error
        ("Info database not open");
 
-    DBInfo_t dbinfo = {-1};
+    DBInfo_t dbinfo;
     int key = 0;
 
     // Create response structure
@@ -1354,17 +1359,17 @@ DBInfo_t CBInfo::Read()
     // Initiate get command
     lcb_error_t err = lcb_get(m_DBHandle, &gresp, 1, commands);
 
-    THROW_ON_FAIL(this, err, "Couldn't initiate get operation.")
+    THROW_ON_FAIL(err, "Couldn't initiate get operation.");
 
     // Wait for get command to execute
     lcb_wait(m_DBHandle);
 
-    THROW_ON_FAIL(this, gresp.status, "Couldn't execute get operation.")
+    THROW_ON_FAIL(gresp.status, "Couldn't execute get operation.");
 
     if(gresp.read_size > 0){
        assert(gresp.read_size == sizeof(DBInfo_t));
-	   dbinfo = *reinterpret_cast<DBInfo_t*>(m_Buffer.data());
-	}
+       dbinfo = *reinterpret_cast<DBInfo_t*>(m_Buffer.data());
+    }
     return dbinfo;
 }
 
@@ -1393,12 +1398,12 @@ void CBInfo::Write(const DBInfo_t &info)
 
     lcb_error_t err = lcb_store(m_DBHandle, &sresp, 1, commands);
 
-    THROW_ON_FAIL(this, err, "Couldn't initiate set operation.")
+    THROW_ON_FAIL(err, "Couldn't initiate set operation.");
 
     // Wait for set command to execute
     lcb_wait(m_DBHandle);
 
-    THROW_ON_FAIL(this, sresp.status, "Couldn't store the data.")
+    THROW_ON_FAIL(sresp.status, "Couldn't store the data.");
 
 }
 
