@@ -22,7 +22,7 @@ using namespace Audioneex;
 
 	
 // ============================================================================
-//                     C callbacks invoked by the driver
+//                  C callbacks invoked by Couchbase's driver
 // ============================================================================
 
 extern "C"{
