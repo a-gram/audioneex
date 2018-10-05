@@ -29,23 +29,23 @@ in [this paper](https://www.dropbox.com/s/0qvfq2o53uudaqx/agramaglia_acr_paper_2
 
 The engine needs, and has been tested with, the following dependencies
 
-- Boost 1.66
+- Boost 1.6
 - FFTSS 3.0
-- Tokyo Cabinet / Couchbase
+- Tokyo Cabinet 1.4 / Couchbase 5.1
 - TagLib  (optional)
 - FFMpeg  (optional)
 
 and the following tools
 
-- GCC 6/7, CLang 5, VC++ 14.1
+- GCC 6/7, CLang 5, MSVC++ 14
 - CMake 3.11
-- Android NDK r16b+
+- Android NDK r16b
 
 However, it should also work with any other fully compliant C++11 compiler.
 The TagLib and FFMpeg can be replaced with something else but you will need
 to make changes to the code. Support for other databases other than the default
 ones (Tokyo Cabinet/Couchbase) can be added by reimplementing the exposed
-interfaces and following the specifications.
+interfaces and following the specifications for the drivers.
 
 
 ## How to build on Linux and Windows
@@ -103,8 +103,8 @@ On Windows, replace the last two commands above with the following
     nmake
 
 By default, if no options are passed on, the script builds dynamic libraries
-targeting 64-bit architectures and gcc 7.2 (vc 14.1 on Windows) release mode.
-The final libraries will be put in the `/lib` folder of the root directory.
+targeting 64-bit architectures release mode. The final libraries will be put 
+in a `/lib` folder in the root directory.
 
 
 ## How to build for Android
