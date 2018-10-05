@@ -21,11 +21,6 @@
 /// the audio file(s) to be identified.
 ///
 
-
-#ifdef WIN32
-  #define WIN32_LEAN_AND_MEAN   // fix winsock.h clashes
-#endif
-
 #include <iostream>
 #include <vector>
 #include <algorithm>

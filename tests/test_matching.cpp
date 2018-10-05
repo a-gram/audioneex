@@ -7,11 +7,6 @@
 
 */
 
-
-#ifdef WIN32
-  #define WIN32_LEAN_AND_MEAN   // fix winsock.h clashes
-#endif
-
 #define CATCH_CONFIG_MAIN  // Tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
 

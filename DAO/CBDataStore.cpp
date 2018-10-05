@@ -7,11 +7,6 @@
 
 */
 
-
-#ifdef WIN32
- #define  WIN32_LEAN_AND_MEAN  //< MS clashes here and there ...
-#endif
-
 #include <string>
 #include <cassert>
 #include <sstream>
@@ -168,7 +163,7 @@ CBDataStore::CBDataStore(const std::string &url) :
     m_Info          (this),
     m_ReadBuffer    (32768)
 {
-	m_DBURL = url;
+    m_DBURL = url;
 	
     m_MainIndex.SetName("data_idx");
     m_QFingerprints.SetName("data_qfp");

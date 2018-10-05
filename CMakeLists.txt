@@ -186,6 +186,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
    endif()
 
    add_definitions(-DWIN32)
+   add_definitions(-DWIN32_LEAN_AND_MEAN) # Fix winsock.h clashes
    
    set(COMP_FLAGS "/WX- /EHsc /Gd")
    

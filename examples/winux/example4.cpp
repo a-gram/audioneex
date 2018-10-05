@@ -28,11 +28,6 @@
 ///       the application context. Usually this value can be found in the range
 ///       [0.6, 0.7].
 
-
-#ifdef WIN32
-  #define WIN32_LEAN_AND_MEAN   // fix winsock.h clashes
-#endif
-
 #include <iostream>
 #include <vector>
 #include <algorithm>
