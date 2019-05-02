@@ -1,4 +1,6 @@
 
+![logo](https://www.audioneex.com/wp-content/uploads/2019/05/logo_os.png)
+
 Audioneex-OS is an audio content recognition engine specifically designed
 for real-time applications. It is general purpose, based on content-agnostic
 algorithms and runs on desktop, server, mobile and embedded devices.
@@ -18,8 +20,8 @@ Limitations
 - Limited robustness to noisy over-the-air audio
 - Documentation is (currently) not available
 
-There is also a commercial version that provides more functionalities and
-better performances at www.audioneex.com
+A commercial version that provides more functionalities and better performances 
+is available at www.audioneex.com
 
 For the more curious, it is a partial implementation of the methods described
 in [this paper](https://www.dropbox.com/s/0qvfq2o53uudaqx/agramaglia_acr_paper_2014.pdf)
@@ -44,7 +46,7 @@ and the following tools
 However, it should also work with any other fully compliant C++11 compiler.
 The TagLib and FFMpeg can be replaced with something else but you will need
 to make changes to the code. Support for other databases other than the default
-ones (Tokyo Cabinet/Couchbase) can be added by reimplementing the exposed
+ones (Tokyo Cabinet, Couchbase) can be added by reimplementing the exposed
 interfaces and following the specifications for the drivers.
 
 
@@ -58,16 +60,16 @@ for few specific tweaks that may occur.
 
 - Install Boost. The library requires the header-only part, but the examples 
 will need some compiled modules (thread, filesystem, regex and their dependencies).
-- Get the [FFTSS library](http://www.ssisc.org/fftss/), compile it in static
+- Get the [FFTSS](http://www.ssisc.org/fftss/) library, compile it in static
 mode and install it somewhere in your system (remember to compile with the
 `-fPIC` flag on Linux otherwise linking errors will occur).
-- Get the Tokyo Cabinet library (for Windows there is a port from the EJDB 
-project). Alternatively, you can use the Couchbase database (requires
-the libcouchbase driver).
-- Get the TagLib library for ID3 tag support (used by the examples to 
-extract metadata from audio files).
-- Get the FFmpeg executable and install it in a location visible from PATH
-(used by the examples to decode and read audio).
+- Get the [Tokyo Cabinet](https://fallabs.com/tokyocabinet/) library (for Windows 
+there is a port from the EJDB project [here](https://github.com/Softmotions/ejdb/tree/ejdb_1.x) ). 
+Alternatively, you can use the Couchbase database (requires the libcouchbase driver).
+- Get the [TagLib](https://taglib.org/) library for ID3 tag support (used by 
+the examples to extract metadata from audio files).
+- Get the [FFmpeg](https://ffmpeg.org/) executable and install it in a location 
+visible from `PATH` (used by the examples to decode and read audio).
 
 **Step 2. Set include and library paths**
 
