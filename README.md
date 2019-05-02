@@ -1,5 +1,5 @@
 
-![logo](https://www.audioneex.com/wp-content/uploads/2019/05/logo_os.png)
+![logo](https://www.audioneex.com/wp-content/uploads/2019/05/logo_360.png)
 
 Audioneex-OS is an audio content recognition engine specifically designed
 for real-time applications. It is general purpose, based on content-agnostic
