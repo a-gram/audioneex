@@ -3,7 +3,8 @@
 
 Audioneex-OS is an audio content recognition engine specifically designed
 for real-time applications. It is general purpose, based on content-agnostic
-algorithms and runs on all kinds of devices, from big servers to mobile and embedded.
+algorithms and runs on all kinds of machines, from big servers to mobile and 
+embedded devices.
 
 Features
 
@@ -45,9 +46,15 @@ and the following tools
 
 However, it should also work with any other fully compliant C++11 compiler.
 The TagLib and FFMpeg can be replaced with something else but you will need
-to make changes to the code. Support for other databases other than the default
-ones (Tokyo Cabinet, Couchbase) can be added by reimplementing the exposed
-interfaces and following the specifications for the drivers.
+to make changes to the code.
+
+## Database
+
+Audioneex is database-agnostic, so technically it can be used with any database. 
+However, using databases other than the default ones requires writing the drivers 
+using the exposed interfaces and following the specifications. The default
+databases are Tokyo Cabinet and Couchbase. The former is an embedded/in-process
+database (suitable for mobile/embedded apps), while the latter is client/server.
 
 
 ## How to build on Linux and Windows
@@ -65,7 +72,8 @@ mode and install it somewhere in your system (remember to compile with the
 `-fPIC` flag on Linux otherwise linking errors will occur).
 - Get the [Tokyo Cabinet](https://fallabs.com/tokyocabinet/) library (for Windows 
 there is a port from the EJDB project [here](https://github.com/Softmotions/ejdb/tree/ejdb_1.x) ). 
-Alternatively, you can use the Couchbase database (requires the libcouchbase driver).
+Alternatively, you can use the Couchbase database (requires building the libcouchbase 
+driver, which can be downloaded from the website).
 - Get the [TagLib](https://taglib.org/) library for ID3 tag support (used by 
 the examples to extract metadata from audio files).
 - Get the [FFmpeg](https://ffmpeg.org/) executable and install it in a location 
@@ -146,10 +154,10 @@ This code is released under the Mozilla Public License 2.0.
 
 In a nutshell:
 
-- You can use it in commercial projects without publishing your closed source code
-- If you distribute it publicly under any form (code or binary, stand-alone or combined) you 
-  must make its source code available, including any modification you have made, under the 
-  same license, retain all copyright notices and inform the users where they can get it.
+- You can use it in commercial projects without publishing your closed source code.
+- If you distribute it under any form or modify it, you must make its source code 
+  available, including your modifications, under the same license and retain all 
+  copyright notices.
   
   
 ## TODO
