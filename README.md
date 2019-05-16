@@ -52,7 +52,7 @@ to make changes to the code.
 
 Audioneex is database-agnostic, so technically it can be used with any database. 
 However, using databases other than the default ones requires writing the drivers 
-using the exposed interfaces and following the specifications. The default
+by implementing the exposed interfaces and following the specifications. The default
 databases are Tokyo Cabinet and Couchbase. The former is an embedded/in-process
 database (suitable for mobile/embedded apps), while the latter is client/server.
 
