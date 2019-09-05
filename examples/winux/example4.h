@@ -19,8 +19,6 @@
 #include "AudioSource.h"
 #include "AudioBlock.h"
 #include "RingBuffer.h"
-#include "audioneex.h"
-
 
 
 class StreamMonitoringTask : public IdTask,
@@ -128,18 +126,21 @@ public:
     /// Terminate the stream monitoring task.
     /// Wait for the audio thread to finish and stop the event loop.
     void Terminate()
-	{
+    {
         m_AudioSource.StopCapture( true );
         m_AudioSource.Close();
         m_event_loop.stop();
     }
 
     void Connect(IdentificationResultsListener *listener)
-	{
+    {
         m_Listener = listener;
     }
 
-    AudioSource* GetAudioSource() { return &m_AudioSource; }
+    AudioSource* GetAudioSource()
+    { 
+        return &m_AudioSource; 
+    }
 
 };
 
@@ -152,7 +153,7 @@ public:
 
 class StreamMonitoringResultsParser : public IdentificationResultsListener
 {
-    std::shared_ptr<KVDataStore> m_Datastore;
+    std::shared_ptr<KVDataStore>  m_Datastore;
 
     std::string FormatTime(int sec)
     {
@@ -169,7 +170,7 @@ class StreamMonitoringResultsParser : public IdentificationResultsListener
 
         // Get the best match(es), if any (there may be ties)
         if(results)
-           for(int i=0; !Audioneex::IsNull(results[i]); i++)
+		   for(int i=0; !Audioneex::IsNull(results[i]); i++)
                BestMatch.push_back( results[i] );
 
         // We have a single best match
@@ -182,16 +183,38 @@ class StreamMonitoringResultsParser : public IdentificationResultsListener
            // Get metadata for the best match
            std::string meta = m_Datastore->GetMetadata(BestMatch[0].FID);
 
-           std::cout << std::endl;
-           std::cout << "IDENTIFIED  FID: " << BestMatch[0].FID << std::endl;
-           std::cout << "Score: " << BestMatch[0].Score << ", ";
-           std::cout << "Conf.: " << BestMatch[0].Confidence << std::endl;
-           //std::cout << "Id.Time: " << m_Recognizer->GetIdentificationTime() << "s"<<std::endl;
-           std::cout << (meta.empty() ? "No metadata" : meta) << std::endl;
-           std::cout << "-----------------------------------" << std::endl;
+           // The audio was identified.
+           if(BestMatch[0].IdClass == Audioneex::IDENTIFIED)
+           {
+               std::cout << "=========================================================\n";
+               std::cout << "IDENTIFIED  FID: " << BestMatch[0].FID << std::endl;
+               std::cout << "Score: " << BestMatch[0].Score << ", ";
+               std::cout << "Conf.: " << BestMatch[0].Confidence << std::endl;
+               //std::cout << "Id.Time: " << m_Recognizer->GetIdentificationTime() << "s"<<std::endl;
+               std::cout << "Cue Point: " << FormatTime( BestMatch[0].CuePoint ) << std::endl;
+               std::cout << (meta.empty() ? "No metadata" : meta) << std::endl;
+               std::cout << "=========================================================\n";
+           }
+
+           // The audio have similarities with the found match, but not so strong
+           // to call it identified. You can accept or ignore these matches.
+           // NOTE: This result is only given in the fuzzy identification.
+           else if(BestMatch[0].IdClass == Audioneex::SOUNDS_LIKE)
+           {
+               std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+               std::cout << "SOUNDS LIKE FID: " << BestMatch[0].FID << std::endl;
+               std::cout << "Conf.: " << BestMatch[0].Confidence << std::endl;
+               std::cout << "Cue Point: " << FormatTime( BestMatch[0].CuePoint ) << std::endl;
+               std::cout << (meta.empty() ? "No metadata" : meta) << std::endl;
+               std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+           }
+           // This should never happen
+           else
+               std::cout << "FATAL ERROR: Unexpected identification class" << std::endl;
         }
         // There are ties for the best match
-        else if(BestMatch.size() > 1){
+        else if(BestMatch.size() > 1)
+        {
             std::cout << "There are " << BestMatch.size() << " ties for the best match\n";
         }
         else{
@@ -199,11 +222,10 @@ class StreamMonitoringResultsParser : public IdentificationResultsListener
         }
 
         std::cout << "Listening ...\r";
-
-        std::cout.flush();
     }
 
-    void SetDatastore(std::shared_ptr<KVDataStore> &store) {
+    void SetDatastore(std::shared_ptr<KVDataStore> &store)
+    {
         m_Datastore = store;
     }
 };

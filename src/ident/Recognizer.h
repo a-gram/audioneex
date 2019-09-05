@@ -11,6 +11,7 @@
 #define RECOGNIZER_H
 
 #include "Matcher.h"
+#include "MatchFuzzyClassifier.h"
 
 // The following classes are not part of the public API but we need
 // their interfaces exposed when testing DLLs.
@@ -42,9 +43,12 @@ class AUDIONEEX_API_TEST RecognizerImpl : public Audioneex::Recognizer
     AudioBlock<float>                 m_AudioBuffer;
     Fingerprint                       m_Fingerprint;
     Matcher                           m_Matcher;
+    MatchFuzzyClassifier              m_Classifier;
     std::vector<Audioneex::IdMatch>   m_IdMatches;
+    Audioneex::eIdentificationType    m_IdType;
+    Audioneex::eIdentificationMode    m_IdMode;
     float                             m_BinaryIdThreshold;
-    float                             m_BinaryIdMinTime;
+	float                             m_BinaryIdMinTime;
     hashtable_acc                     m_MatchAcc;
     double                            m_IdTime;
 
@@ -64,9 +68,12 @@ class AUDIONEEX_API_TEST RecognizerImpl : public Audioneex::Recognizer
     ///                   is the length of the audio being processed.
     ///
     void ProcessMatchResults(int processed, float dt_proc);
-	
+    
+    /// Do classification of best matches at current step.
+    int DoClassification(float Hu, float dT);
+    
     /// Create results data.
-    void FillResults();
+    void FillResults(int cresult=0);
 
 public:
 
@@ -76,19 +83,29 @@ public:
 
     // Public interface (see audioneex.h)
 
+    void       SetMatchType(Audioneex::eMatchType type);
+    void       SetMMS(float value);
+    void       SetIdentificationType(Audioneex::eIdentificationType type);
+    void       SetIdentificationMode(Audioneex::eIdentificationMode mode);
     void       SetBinaryIdThreshold(float value);
-    void       SetBinaryIdMinTime(float value);
+	void       SetBinaryIdMinTime(float value);
     void       SetMaxRecordingDuration(size_t duration);
     void       SetDataStore(Audioneex::DataStore* dstore);
+
+    eMatchType GetMatchType() const { return m_Matcher.GetMatchType(); }
+    float      GetMMS() const { return m_Matcher.GetRerankThreshold(); }
+    eIdentificationType GetIdentificationType() const { return m_IdType; }
+    eIdentificationMode GetIdentificationMode() const { return m_IdMode; }
     float      GetBinaryIdThreshold() const { return m_BinaryIdThreshold; }
-    float      GetBinaryIdMinTime() const { return m_BinaryIdMinTime; }
+	float      GetBinaryIdMinTime() const { return m_BinaryIdMinTime; }
     DataStore* GetDataStore() const { return m_Matcher.GetDataStore(); }
+
     double     GetIdentificationTime() const { return m_IdTime; }
     void       Identify(const float *audio, size_t nsamples);
     Audioneex::IdMatch* GetResults();
     void       Flush();
     void       Reset();
-
+    
 };
 
 }// end namespace Audioneex

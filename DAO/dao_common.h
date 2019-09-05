@@ -20,8 +20,9 @@
 // Define the supported data store backends that can be used.
 // Currently supported backends are Tokyo Cabinet and Couchbase.
 
-#define DATASTORE_T_TC 1
-#define DATASTORE_T_CB 2
+#define DATASTORE_T_TC  1
+#define DATASTORE_T_CB  2
+#define DATASTORE_T_ALL 0
 
 #ifndef DATASTORE_T_ID
  #error "DATASTORE_T_ID not defined. You must add a DATASTORE_T_ID \
@@ -39,9 +40,11 @@
   #include "TCDataStore.h"
 #elif defined(DATASTORE_T_ID) && (DATASTORE_T_ID==DATASTORE_T_CB)
   #include "CBDataStore.h"
+#elif defined(DATASTORE_T_ID) && (DATASTORE_T_ID==DATASTORE_T_ALL)
+  #include "TCDataStore.h"
+  #include "CBDataStore.h"
 #else
   #error "Undefined datastore"
 #endif
-
 
 #endif // DAOCOMMON_H

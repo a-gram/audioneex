@@ -15,18 +15,16 @@
 /// other helper classes, which you can use as templates or modify to suit
 /// your needs. The general command is as follows:
 ///
-/// Usage: example4 [-u <db_url>] [-b <b_thresh>] [-l] <audio_line>
+/// Usage: example4 [-u <db_url>] [-m <match_type>] [-i <id_type>] 
+///                 [-d <id_mode>] [-b <b_thresh>] [-l] <audio_line>
 ///
-/// where <db_url> is the location of the database, <b_thresh> the binary
-/// identification threshold, the option -l if used alone will list the 
-/// available audio input devices installed on the machine (the output may 
+/// where <db_url>, <match_type>, <id_type>, <id_mode> and <b_thresh> are 
+/// the same as in example3, the option -l, if used alone, will list the 
+/// available audio capture devices installed on the machine (the output may 
 /// differ depending on the platform) and <audio_line> is a string identifying 
 /// the audio line that can be retrieved from the output of the -l command.
 ///
-/// NOTE: You will need to experiment with the binary id threshold (-b) to find
-///       the optimal value that gives the best recognition results based on
-///       the application context. Usually this value can be found in the range
-///       [0.6, 0.7].
+
 
 #include <iostream>
 #include <vector>
@@ -42,9 +40,10 @@
 using namespace Audioneex;
 
 
-void PrintUsage()
-{
-    std::cout << "\nUSAGE: example4 [-u <db_url>] [-b <b_thresh>] [-l] <audio_line>\n\n";
+void PrintUsage(){
+    std::cout << "\nUSAGE: example4 [-u <db_url>] [-m <match_type>] "
+                 "[-i <id_type>] [-d <id_mode>]"
+                 " [-b <b_thresh>] [-l] <audio_line>\n\n";
 }
 
 
@@ -58,7 +57,8 @@ int main(int argc, char** argv)
         cmdLine.Parse(argv, argc, opts);
 
         // Just list the audio devices
-        if(opts.list_dev){
+        if(opts.list_dev)
+        {
            AudioSource::ListCaptureDevices();
            return 0;
         }
@@ -68,18 +68,22 @@ int main(int argc, char** argv)
 
         std::shared_ptr<KVDataStore> 
         dstore ( new DATASTORE_T (opts.db_url) );
-		
-		// For client/server databases only (e.g. Couchbase)
+
+        // For client/server databases only (e.g. Couchbase)
         dstore->SetServerName( "localhost" );
         dstore->SetServerPort( 8091 );
         dstore->SetUsername( "admin" );
         dstore->SetPassword( "password" );
 
-        dstore->Open( KVDataStore::GET, false, true );
+        dstore->Open( KVDataStore::GET, true, true );
 
         std::shared_ptr<Recognizer>
         recognizer ( Recognizer::Create() );
         recognizer->SetDataStore( dstore.get() );
+        recognizer->SetMatchType( opts.mtype );
+        recognizer->SetMMS( opts.mms );
+        recognizer->SetIdentificationType( opts.id_type );
+        recognizer->SetIdentificationMode( opts.id_mode );
         recognizer->SetBinaryIdThreshold( opts.b_thresh );
 
         idparser.SetDatastore( dstore );
@@ -103,13 +107,13 @@ int main(int argc, char** argv)
         std::cout << "Done" << std::endl;
     }
     catch(const bad_cmd_line_exception &ex)
-	{
+    {
         std::cerr << "ERROR: " << ex.what() << std::endl;
         PrintUsage();
         return -1;
     }
     catch(const std::exception &ex)
-	{
+    {
         std::cerr << "ERROR: " << ex.what() << std::endl;
         return -1;
     }

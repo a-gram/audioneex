@@ -55,6 +55,12 @@ extern "C"
     JNIEXPORT jboolean JNICALL Java_com_audioneex_recognition_Recognizer_Identify(JNIEnv *env, jclass clazz, jfloatArray audio, jint audiolen);
     JNIEXPORT jstring JNICALL Java_com_audioneex_recognition_Recognizer_GetResults(JNIEnv *env, jclass clazz);
     JNIEXPORT void JNICALL Java_com_audioneex_recognition_Recognizer_Reset(JNIEnv *env, jclass clazz);
+    JNIEXPORT void JNICALL Java_com_audioneex_recognition_Recognizer_SetMatchType(JNIEnv *env, jclass clazz, jint mtype);
+    JNIEXPORT jint JNICALL Java_com_audioneex_recognition_Recognizer_GetMatchType(JNIEnv *env, jclass clazz);
+    JNIEXPORT void JNICALL Java_com_audioneex_recognition_Recognizer_SetIdentificationType(JNIEnv *env, jclass clazz, jint idtype);
+    JNIEXPORT jint JNICALL Java_com_audioneex_recognition_Recognizer_GetIdentificationType(JNIEnv *env, jclass clazz);
+    JNIEXPORT void JNICALL Java_com_audioneex_recognition_Recognizer_SetIdentificationMode(JNIEnv *env, jclass clazz, jint idmode);
+    JNIEXPORT jint JNICALL Java_com_audioneex_recognition_Recognizer_GetIdentificationMode(JNIEnv *env, jclass clazz);
     JNIEXPORT void JNICALL Java_com_audioneex_recognition_Recognizer_SetBinaryIdThreshold(JNIEnv *env, jclass clazz, jfloat value);
     JNIEXPORT jfloat JNICALL Java_com_audioneex_recognition_Recognizer_GetBinaryIdThreshold(JNIEnv *env, jclass clazz);
 
@@ -153,6 +159,81 @@ void Java_com_audioneex_recognition_Recognizer_Reset(JNIEnv *env, jclass clazz)
     }
 }
 
+void Java_com_audioneex_recognition_Recognizer_SetMatchType(JNIEnv *env, jclass clazz, jint mtype)
+{
+    try
+    {
+        ACIEngine::instance().recognizer()->SetMatchType(static_cast<Audioneex::eMatchType>(mtype));
+    }
+    catch(const std::exception &ex)
+    {
+        LOG_E("EXCEPTION [Recognizer.SetMatchType()]: %s", ex.what())
+    }
+}
+
+jint Java_com_audioneex_recognition_Recognizer_GetMatchType(JNIEnv *env, jclass clazz)
+{
+    try
+    {
+        return ACIEngine::instance().recognizer()->GetMatchType();
+    }
+    catch(const std::exception &ex)
+    {
+        LOG_E("EXCEPTION [Recognizer.GetMatchType()]: %s", ex.what())
+    }
+    return UNSPECIFIED_ERROR;
+}
+
+void Java_com_audioneex_recognition_Recognizer_SetIdentificationType(JNIEnv *env, jclass clazz, jint idtype)
+{
+    try
+    {
+        ACIEngine::instance().recognizer()->SetIdentificationType(static_cast<Audioneex::eIdentificationType>(idtype));
+    }
+    catch(const std::exception &ex)
+    {
+        LOG_E("EXCEPTION [Recognizer.SetIdentificationType()]: %s", ex.what())
+    }
+}
+
+jint Java_com_audioneex_recognition_Recognizer_GetIdentificationType(JNIEnv *env, jclass clazz)
+{
+    try
+    {
+        return ACIEngine::instance().recognizer()->GetIdentificationType();
+    }
+    catch(const std::exception &ex)
+    {
+        LOG_E("EXCEPTION [Recognizer.GetIdentificationType()]: %s", ex.what())
+    }
+    return UNSPECIFIED_ERROR;
+}
+
+void Java_com_audioneex_recognition_Recognizer_SetIdentificationMode(JNIEnv *env, jclass clazz, jint idmode)
+{
+    try
+    {
+        ACIEngine::instance().recognizer()->SetIdentificationMode(static_cast<Audioneex::eIdentificationMode>(idmode));
+    }
+    catch(const std::exception &ex)
+    {
+        LOG_E("EXCEPTION [Recognizer.SetIdentificationMode()]: %s", ex.what())
+    }
+}
+
+jint Java_com_audioneex_recognition_Recognizer_GetIdentificationMode(JNIEnv *env, jclass clazz)
+{
+    try
+    {
+        return ACIEngine::instance().recognizer()->GetIdentificationMode();
+    }
+    catch(const std::exception &ex)
+    {
+        LOG_E("EXCEPTION [Recognizer.GetIdentificationMode()]: %s", ex.what())
+    }
+    return UNSPECIFIED_ERROR;
+}
+
 void Java_com_audioneex_recognition_Recognizer_SetBinaryIdThreshold(JNIEnv *env, jclass clazz, jfloat value)
 {
     try
@@ -184,6 +265,10 @@ std::string ResultsToJSON(const Audioneex::IdMatch* results)
     std::stringstream ss;
     std::map<int, std::string> idclass;
 
+    idclass[Audioneex::UNIDENTIFIED] = "UNIDENTIFIED";
+    idclass[Audioneex::SOUNDS_LIKE] = "SOUNDS_LIKE";
+    idclass[Audioneex::IDENTIFIED] = "IDENTIFIED";
+
     ss << "{ \"status\":\"OK\", \"Matches\":[";
 
     for(int i=0; !Audioneex::IsNull(results[i]); i++){
@@ -193,6 +278,7 @@ std::string ResultsToJSON(const Audioneex::IdMatch* results)
            << "\"FID\":" << results[i].FID << ","
            << "\"Score\":" << results[i].Score << ","
            << "\"Confidence\":" << results[i].Confidence << ","
+           << "\"IdClass\":\"" << idclass[results[i].IdClass] << "\","
            << "\"Metadata\":" << "\"" << meta << "\""
            << "}";
     }

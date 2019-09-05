@@ -7,7 +7,6 @@
 
 */
 
-
 #ifndef TCDATASTORE_H
 #define TCDATASTORE_H
 
@@ -240,7 +239,7 @@ public:
     /// Open the datastore in the specified mode using the specified collections.
     void 
     Open(eOperation op = GET,
-         bool use_fing_db=false,
+         bool use_fing_db=true,
          bool use_meta_db=false,
          bool use_info_db=false) override;
 
@@ -256,6 +255,9 @@ public:
     void 
     Clear() override;
     
+    void 
+    SetOpMode(eOperation mode) override;  // TODO: Check why this method is overridden...
+
     /// Store a fingerprint
     void 
     PutFingerprint(uint32_t FID, const uint8_t* data, size_t size) override {

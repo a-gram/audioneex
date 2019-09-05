@@ -33,11 +33,16 @@ package com.audioneex.recognition;
 
 class Recognizer {
 
-   native void  SetBinaryIdThreshold(float value);
-   native float GetBinaryIdThreshold();
-   native boolean Identify(float[] audioclip, int nsamples);
-   native String GetResults();
-   native void   Reset();
+	native void  SetMatchType(int type);
+	native int   GetMatchType();
+	native void  SetIdentificationType(int type);
+	native int   GetIdentificationType();
+	native void  SetIdentificationMode(int mode);
+	native int   GetIdentificationMode();
+	native void  SetBinaryIdThreshold(float value);
+	native float GetBinaryIdThreshold();
+	native boolean Identify(float[] audioclip, int nsamples);
+	native String GetResults();
+	native void   Reset();
 	
 }
-

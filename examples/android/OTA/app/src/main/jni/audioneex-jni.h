@@ -65,7 +65,7 @@ public:
 	void init(std::string dataDir)
 	{
 	    mDataStore.reset( new TCDataStore (dataDir) );
-	    mDataStore->Open( KVDataStore::GET, false, true );
+	    mDataStore->Open( KVDataStore::GET, true, true );
 	   
         mRecognizer.reset( Audioneex::Recognizer::Create() );
         mRecognizer->SetDataStore( mDataStore.get() );

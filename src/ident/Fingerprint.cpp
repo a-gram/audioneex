@@ -21,8 +21,7 @@
 TEST_HERE( namespace { Audioneex::Tester TEST; } )
 
 
-Audioneex::Fingerprint::Fingerprint(size_t bufferSize)
-:
+Audioneex::Fingerprint::Fingerprint(size_t bufferSize):
     m_OSBuffer (bufferSize, Pms::Fs, Pms::Ca, 0),
     m_OSWindow (Pms::OrigWindowSize, Pms::Fs, Pms::Ca, 0),
     m_fftFrame (Pms::OrigWindowSize + 1),

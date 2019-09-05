@@ -177,7 +177,7 @@ public:
         std::unique_ptr<Audioneex::DataStoreImpl::PListIterator> it;
 
         uint32_t max_term;
-        max_term = Audioneex::IndexerImpl::GetMaxTermValue();
+        max_term = Audioneex::IndexerImpl::GetMaxTermValue(m_Indexer->GetMatchType());
 
         int prog;
 

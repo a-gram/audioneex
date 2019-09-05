@@ -1,10 +1,12 @@
 /*
-  Copyright (c) 2014, Alberto Gramaglia
-
-  This Source Code Form is subject to the terms of the Mozilla Public
-  License, v. 2.0. If a copy of the MPL was not distributed with this
-  file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+   Copyright (c) 2014, Audioneex.com.
+   Copyright (c) 2014, Alberto Gramaglia.
+	
+   This source code is part of the Audioneex software package and is
+   subject to the terms and conditions stated in the accompanying license.
+   Please refer to the license document provided with the package
+   for more information.
+	
 */
 
 ///
@@ -23,6 +25,7 @@
 /// containing the audio file(s) to be identified.
 ///
 
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -32,6 +35,8 @@
 #include "performance.h"
 #include "CmdLineParser.h"
 
+using namespace std;
+using namespace boost;
 using namespace Audioneex;
 
 
@@ -53,13 +58,16 @@ int main(int argc, char** argv)
         PerformanceTask ptask (opts.apath);
 
         // Get a connection instance to the datastore
-        std::unique_ptr<KVDataStore> dstore ( new DATASTORE_T (opts.db_url) );
+        unique_ptr<KVDataStore> dstore ( new DATASTORE_T (opts.db_url) );
         dstore->Open( KVDataStore::GET, true, true );
 
         // Create and set up the recognizer
-        std::unique_ptr<Recognizer> recognizer ( Recognizer::Create() );
+        unique_ptr<Recognizer> recognizer ( Recognizer::Create() );
         recognizer->SetDataStore( dstore.get() );
         recognizer->SetMatchType( opts.mtype );
+		// For noisy audio (such as OTA identification) it is recommended
+		// to set the MMS parameter value to 1
+        recognizer->SetMMS( opts.mms );
         recognizer->SetIdentificationType( opts.id_type );
         recognizer->SetIdentificationMode( opts.id_mode );
         recognizer->SetBinaryIdThreshold( opts.b_thresh );

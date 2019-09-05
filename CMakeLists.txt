@@ -11,7 +11,7 @@
 #  BINARY_TYPE     = dynamic|static
 #  BUILD_MODE      = debug|release
 #  WITH_EXAMPLES   = ON|OFF
-#  DATASTORE_T     = TCDataStore|CBDataStore
+#  DATASTORE_T     = TCDataStore|CBDataStore  (for the examples only)
 #  ID3_TAG_SUPPORT = ON|OFF  (for the examples only)
 #  WITH_TESTS      = ON|OFF  (for project developers only)
 #
@@ -45,7 +45,7 @@ list(APPEND MY_LIBRARY_x64_RELEASE_DIRS
 
     "c:/dev/cpp/lib/fftss/x64/vc141/release"
     "c:/dev/cpp/lib/ejdb/x64/vc141/release"
-	"c:/dev/cpp/lib/libcouchbase/x64/vc141/release"
+    "c:/dev/cpp/lib/libcouchbase/x64/vc141/release"
     "c:/dev/cpp/lib/taglib/x64/vc141/release"
     "/usr/local/lib/7"
 
@@ -55,11 +55,18 @@ list(APPEND MY_LIBRARY_x32_DEBUG_DIRS
 )
 
 list(APPEND MY_LIBRARY_x64_DEBUG_DIRS
+
+    "c:/dev/cpp/lib/fftss/x64/vc141/debug"
+    "c:/dev/cpp/lib/ejdb/x64/vc141/debug"
+	"c:/dev/cpp/lib/libcouchbase/x64/vc141/debug"
+    "c:/dev/cpp/lib/taglib/x64/vc141/debug"
+    "/usr/local/lib/7"
+
 )
 
 set(MY_BOOST_INCLUDE_DIR
 
-    "/usr/local/share/boost_1_66_0"
+    "/use/local/share/boost_1_66_0"
 )
 
 set(MY_BOOST_LIBRARY_x32_DIR
@@ -84,7 +91,6 @@ set(AX_SRC_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 # ----------------- Environment settings ------------------
-
 
 # Default setting
 if(NOT BINARY_TYPE)
@@ -134,7 +140,7 @@ elseif(DATASTORE_T STREQUAL "CBDataStore")
       set(DATASTORE_LIB_NAME couchbase)
    endif()
    add_definitions(-DDATASTORE_T_ID=2)
-   add_definitions(-DDATASTORE_T=${DATASTORE_T})
+   add_definitions(-DDATASTORE_T=${DATASTORE_T})   
 else()
    message(FATAL_ERROR "\nERROR: Unsupported data store.")
 endif()
@@ -144,6 +150,7 @@ if(ID3_TAG_SUPPORT)
    add_definitions(-DID3_TAG_SUPPORT)
 endif()
 
+
 # Set project's include paths
 
 foreach (dir ${MY_INCLUDE_DIRS})
@@ -152,7 +159,7 @@ endforeach()
 
 # Platform-specific global compilation settings (all modules)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
    if(NOT TOOLCHAIN)
       set(TOOLCHAIN gcc72)
@@ -179,7 +186,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
    set(PLATFORM linux)
    
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 
    if(NOT TOOLCHAIN)
      set(TOOLCHAIN vc141)

@@ -17,7 +17,7 @@
 #include <set>
 #include <boost/lexical_cast.hpp>
 
-/// Custom exception for illformed cmd lines
+/// Custom exception for malformed cmd lines
 class bad_cmd_line_exception : public std::logic_error {
  public: explicit bad_cmd_line_exception(const std::string& msg) :
                   std::logic_error(msg) {}
@@ -27,13 +27,17 @@ class bad_cmd_line_exception : public std::logic_error {
 /// This structure defines all the supported options
 struct CmdLineOptions_t
 {
-    std::string                 apath     {};
-    std::string                 db_url    {"./data"};
-    KVDataStore::eOperation     db_op     {KVDataStore::BUILD};
-    uint32_t                    FID_base  {0};
-    float                       b_thresh  {0.6f};
-    bool                        list_dev  {false};
-    float                       offset    {0};
+    std::string                    apath     {};
+    std::string                    db_url    {"./data"};
+    KVDataStore::eOperation        db_op     {KVDataStore::BUILD};
+    uint32_t                       FID_base  {0};
+    Audioneex::eMatchType          mtype     {Audioneex::MSCALE_MATCH};
+    float                          mms       {1};
+    Audioneex::eIdentificationType id_type   {Audioneex::FUZZY_IDENTIFICATION};
+    Audioneex::eIdentificationMode id_mode   {Audioneex::EASY_IDENTIFICATION};
+    float                          b_thresh  {0.7f};
+    bool                           list_dev  {false};
+    float                          offset    {0};
 };
 
 
@@ -54,7 +58,7 @@ class CmdLineParser
 			   
         return true;
     }
-
+	
     template<typename T>
     bool GetOptionValue(const std::string& opt, T& val)
     {
@@ -72,7 +76,7 @@ class CmdLineParser
 		
         return false;
     }
-
+	
     bool OptionExists(const std::string& opt)
     {
         return
@@ -84,6 +88,9 @@ class CmdLineParser
     CmdLineParser()
 	{
         m_SupportedOptions.insert("-f");
+        m_SupportedOptions.insert("-m");
+        m_SupportedOptions.insert("-i");
+        m_SupportedOptions.insert("-d");
         m_SupportedOptions.insert("-b");
         m_SupportedOptions.insert("-l");
         m_SupportedOptions.insert("-u");
@@ -116,12 +123,46 @@ class CmdLineParser
          // Look for -f argument
          GetOptionValue("-f", opts.FID_base);
 
+         // Look for -m argument
+         std::string mstr;
+         if(GetOptionValue("-m", mstr))
+         {
+            if(mstr != "MSCALE" && mstr != "XSCALE")
+               throw std::invalid_argument("Invalid match type");
+            opts.mtype = mstr == "MSCALE" ? Audioneex::MSCALE_MATCH :
+                                            Audioneex::XSCALE_MATCH;
+         }
+
+         // Look for -i argument
+         std::string istr;
+         if(GetOptionValue("-i", istr))
+         {
+            if(istr != "BINARY" && istr != "FUZZY")
+               throw std::invalid_argument("Invalid identification type");
+            opts.id_type = istr == "BINARY" ? Audioneex::BINARY_IDENTIFICATION :
+                                              Audioneex::FUZZY_IDENTIFICATION;
+         }
+
+         // Look for -d argument
+         std::string dstr;
+         if(GetOptionValue("-d", dstr))
+         {
+            if(opts.id_type != Audioneex::FUZZY_IDENTIFICATION)
+               throw std::invalid_argument("Option -d only allowed with fuzzy identification");
+            if(dstr != "STRICT" && dstr != "EASY")
+               throw std::invalid_argument("Invalid identification mode");
+            opts.id_mode = dstr == "STRICT" ? Audioneex::STRICT_IDENTIFICATION :
+                                              Audioneex::EASY_IDENTIFICATION;
+         }
+
          // Look for -b argument
          float bval;
-         if(GetOptionValue("-b", bval)){
+         if(GetOptionValue("-b", bval))
+         {
+            if(opts.id_type != Audioneex::BINARY_IDENTIFICATION)
+               throw std::invalid_argument("Option -b only allowed with binary identification");
             if(bval<0.5 || bval>1)
-               throw std::invalid_argument
-               ("Invalid -b threshold. Must be a number in [0.5,1].");
+               throw std::invalid_argument("Invalid -b threshold. Must be a number in [0.5,1].");
             opts.b_thresh = bval;
          }
 

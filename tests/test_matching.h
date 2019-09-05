@@ -20,7 +20,7 @@
 
 
 inline void GetAudio(AudioSourceFile& source,
-                     AudioBlock<int16_t>& ibuf,
+                     AudioBlock<int16_t>& ibuf, 
                      AudioBlock<float>& obuf)
 {
     REQUIRE_NOTHROW( source.GetAudioBlock(ibuf) );
@@ -29,30 +29,59 @@ inline void GetAudio(AudioSourceFile& source,
 }
 
 
+/// A dummy and broken data store for testing purposes
+class BrokenDataStore : public DATASTORE_T
+{
+public:
+    explicit BrokenDataStore(const std::string &url = std::string()) :
+        DATASTORE_T(url) {}
+
+    size_t GetFingerprintSize(uint32_t FID){
+        return sizeof(Audioneex::QLocalFingerprint_t) * 5 + 1;
+    }
+};
+
+
+/// Another dummy and broken data store for testing purposes
+class BrokenDataStore2 : public DATASTORE_T
+{
+public:
+    explicit BrokenDataStore2(const std::string &url = std::string()) :
+        DATASTORE_T(url) {}
+
+    const uint8_t* GetFingerprint(uint32_t FID, 
+                                  size_t &read, 
+                                  size_t nbytes = 0, 
+                                  uint32_t bo = 0){
+        return nullptr;
+    }
+};
+
+
 class IndexFiles {
 	
-    size_t get_file_size(const std::string &file)
-    {
-        std::ifstream ifs (file, std::ios::binary | std::ios::ate);
-        return ifs.tellg();
-    }
+	size_t get_file_size(const std::string &file)
+	{
+		std::ifstream ifs (file, std::ios::binary | std::ios::ate);
+		return ifs.tellg();
+	}
 	
 public:
 
-    IndexFiles(KVDataStore *dstore, const std::string &file, uint32_t FID)
-    {
-        size_t fpsize = get_file_size(file);
+	IndexFiles(KVDataStore *dstore, const std::string &file, uint32_t FID)
+	{
+		size_t fpsize = get_file_size(file);
 		
-        REQUIRE( fpsize > 0 );
+		REQUIRE( fpsize > 0 );
         REQUIRE( (fpsize % sizeof(Audioneex::QLocalFingerprint_t)) == 0 );
-
-        std::unique_ptr<char[]> fpbuf (new char[fpsize]);
+		
+		std::unique_ptr<char[]> fpbuf (new char[fpsize]);
 		
         std::ifstream ifp (file, std::ios::binary);
-        ifp.read( fpbuf.get(), fpsize );
+		ifp.read( fpbuf.get(), fpsize );
 		
-        // Indexer requires a different buffer type
-        auto fp = reinterpret_cast<const uint8_t*>(fpbuf.get());
+		// Indexer requires a different buffer type
+		auto fp = reinterpret_cast<const uint8_t*>(fpbuf.get());
 
         std::unique_ptr <Audioneex::Indexer> 
         indexer ( Audioneex::Indexer::Create() );
@@ -61,8 +90,10 @@ public:
         REQUIRE_NOTHROW( indexer->Start() );
         REQUIRE_NOTHROW( indexer->Index(FID, fp, fpsize) );
         REQUIRE_NOTHROW( indexer->End() );
-    }
+		
+		// Store the fingerprint
+		dstore->PutFingerprint(FID, fp, fpsize);
+	}
 };
 
 #endif
-

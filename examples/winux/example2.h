@@ -15,7 +15,6 @@
 #include <memory>
 
 #include "IdTask.h"
-#include "audioneex.h"
 
 
 class QFPIndexingTask : public IdTask
@@ -33,8 +32,8 @@ class QFPIndexingTask : public IdTask
 	
         std::cout << "Indexing " << nrec << " fingerprints" << std::endl;
 	
-        for(size_t FID=1; FID<=nrec; FID++)
-        {
+	    for(size_t FID=1; FID<=nrec; FID++)
+	    {
             if(m_Terminated) break;
 
             size_t fpsize;
@@ -49,9 +48,9 @@ class QFPIndexingTask : public IdTask
 
             std::cout <<"Indexing FID="<<FID<<std::endl;
 
-            m_Indexer->Index(FID, fp, fpsize);
-        }
-    }
+            m_Indexer->Index(FID, fp, fpsize);	
+	    }		
+	}
 
 public:
 
@@ -68,10 +67,17 @@ public:
         m_Indexer->Start();
         DoIndexing();
         m_Indexer->End();
-    }
+	}
 
-    void Terminate() { m_Terminated = true; }
-    AudioSource* GetAudioSource() { return nullptr; }
+    void Terminate()
+    { 
+        m_Terminated = true; 
+    }
+    
+	AudioSource* GetAudioSource()
+    { 
+        return nullptr; 
+    }
 };
 
 

@@ -18,7 +18,6 @@
 #include "IdTask.h"
 #include "AudioSource.h"
 #include "AudioBlock.h"
-#include "audioneex.h"
 
 namespace bfs = boost::filesystem;
 
@@ -73,7 +72,7 @@ class IdentificationTask : public IdTask
            // is provided for it to make a decision. If the audio data
            // is exhausted before the engine returns a results you may
            // flush the internal buffers and check again.
-           if(results == nullptr){
+           if(!results){
               m_Recognizer->Flush();
               results = m_Recognizer->GetResults();
            }
@@ -124,14 +123,20 @@ public:
         Identify( m_Audiofile );
     }
 
-    void Terminate() { m_Terminated = true; }
+    void Terminate()
+    { 
+        m_Terminated = true; 
+    }
 
     void Connect(IdentificationResultsListener *listener)
-	{
+    {
         m_Listener = listener;
     }
 
-    AudioSource* GetAudioSource() { return &m_AudioSource; }
+    AudioSource* GetAudioSource()
+    { 
+        return &m_AudioSource;
+    }
 
 };
 
@@ -166,32 +171,54 @@ class FileIdentificationResultsParser : public IdentificationResultsListener
            // Get metadata for the best match
            std::string meta = m_Datastore->GetMetadata(BestMatch[0].FID);
 
-           std::cout << std::endl;
-           std::cout << "IDENTIFIED  FID: " << BestMatch[0].FID << std::endl;
-           std::cout << "Score: " << BestMatch[0].Score << ", ";
-           std::cout << "Conf.: " << BestMatch[0].Confidence << ", ";
-           std::cout << "Id.Time: " << m_Recognizer->GetIdentificationTime() << "s"<<std::endl;
-           std::cout << (meta.empty() ? "No metadata" : meta) << std::endl;
-           std::cout << "-----------------------------------" << std::endl;
+           // The audio was identified.
+           if(BestMatch[0].IdClass == Audioneex::IDENTIFIED)
+           {
+               std::cout << "=========================================================" << std::endl;
+               std::cout << "IDENTIFIED  FID: " << BestMatch[0].FID << std::endl;
+               std::cout << "Score: " << BestMatch[0].Score << ", ";
+               std::cout << "Conf.: " << BestMatch[0].Confidence << ", ";
+               std::cout << "Id.Time: " << m_Recognizer->GetIdentificationTime() << "s"<<std::endl;
+               std::cout << (meta.empty() ? "No metadata" : meta) << std::endl;
+               std::cout << "=========================================================" << std::endl;
+           }
+
+           // The audio have similarities with the found match, but not so strong
+           // to call it identified. You can accept or ignore these matches.
+           // NOTE: This result is only given in the fuzzy identification.
+           else if(BestMatch[0].IdClass == Audioneex::SOUNDS_LIKE)
+           {
+               std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+               std::cout << "SOUNDS LIKE FID: " << BestMatch[0].FID << std::endl;
+               std::cout << "Conf.: " << BestMatch[0].Confidence << std::endl;
+               std::cout << (meta.empty() ? "No metadata" : meta) << std::endl;
+               std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+           }
+           // This should never happen
+           else
+               std::cout << "FATAL ERROR: Unexpected identification class" << std::endl;
+
         }
         // There are ties for the best match
         else if(BestMatch.size() > 1)
-		{
+        {
             std::cout << "There are " << BestMatch.size() << " ties for the best match" << std::endl;
         }
         else
-		{
+        {
             std::cout << "NO MATCH FOUND" << std::endl;
         }
 
         std::cout << "ID Time: " << m_Recognizer->GetIdentificationTime() << " s" << std::endl;
     }
 
-    void SetDatastore(std::shared_ptr<KVDataStore> &store) {
+    void SetDatastore(std::shared_ptr<KVDataStore> &store)
+    {
         m_Datastore = store;
     }
 	
-    void SetRecognizer(std::shared_ptr<Audioneex::Recognizer> &recognizer) {
+    void SetRecognizer(std::shared_ptr<Audioneex::Recognizer> &recognizer)
+    {
         m_Recognizer = recognizer;
     }
 };

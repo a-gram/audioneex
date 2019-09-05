@@ -33,12 +33,12 @@ AX_INCLUDES := $(MY_LOCAL_INCLUDE) \
 AX_SOURCES := \
     src/ident/Fingerprint.cpp \
     src/ident/Matcher.cpp \
+    src/ident/MatchFuzzyClassifier.cpp \
     src/ident/Recognizer.cpp \
     src/index/BlockCodec.cpp \
     src/index/Indexer.cpp \
     src/quant/Codebook.cpp \
     src/audiocodes/AudioCodes.cpp
-
 
 ifdef AUDIONEEX_DLL
 # SHARED LIB

@@ -106,7 +106,7 @@ class CBIndex : public CBCollection
     BlockCache          m_BlocksCache;
     CBSetResp           m_StoreResp;
 
-    /// Conversion method to turn a raw block byte stream into a block structure.
+    /// Conversion method to turn a raw block of bytes into a block structure.
     PListBlock 
     RawBlockToBlock(uint8_t *block, 
                     size_t block_size, 
@@ -132,7 +132,7 @@ public:
     ReadBlock(int list_id, 
               int block_id, 
               std::vector<uint8_t> &buffer, 
-               bool headers=true);
+              bool headers=true);
 
     /// Write the contents of the given block in the specified index list.
     /// A new block is created if the specified block does not exist.
@@ -268,7 +268,7 @@ public:
     /// Open the datastore in the specified mode using the specified collections.
     void 
     Open(eOperation op = GET,
-         bool use_fing_db=false,
+         bool use_fing_db=true,
          bool use_meta_db=false,
          bool use_info_db=false) override;
 

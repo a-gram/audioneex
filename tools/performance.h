@@ -1,10 +1,12 @@
 /*
-  Copyright (c) 2014, Alberto Gramaglia
-
-  This Source Code Form is subject to the terms of the Mozilla Public
-  License, v. 2.0. If a copy of the MPL was not distributed with this
-  file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+   Copyright (c) 2014, Audioneex.com.
+   Copyright (c) 2014, Alberto Gramaglia.
+	
+   This source code is part of the Audioneex software package and is
+   subject to the terms and conditions stated in the accompanying license.
+   Please refer to the license document provided with the package
+   for more information.
+	
 */
 
 #ifndef PERFORMANCETASK_H
@@ -32,10 +34,14 @@ const char* NOISE_FILE = "./noise.wav";
 
 struct Performance_t
 {
-    float TP {0.f};
-	float FP {0.f};
-	float TN {0.f};
-	float FN {0.f};
+    float TP,FP,TN,FN;
+
+    Performance_t() : 
+		TP(0.f), 
+		FP(0.f), 
+		TN(0.f), 
+		FN(0.f) 
+	{}
 
     float GetPrecision()   { return TP/(TP+FP); }
     float GetSensitivity() { return TN/(TN+FN); }
@@ -94,10 +100,10 @@ class PerformanceTask : public IdTask
                m_Recognizer->Identify(m_iaudio.Data(), m_iaudio.Size());
                results = m_Recognizer->GetResults();
            }
-           while(m_iblock.Size() > 0 && results == nullptr);
+           while(m_iblock.Size() > 0 && results == NULL);
 
 
-           if(!results){
+           if(results == NULL){
               m_Recognizer->Flush();
 			  results = m_Recognizer->GetResults();
 		   }
@@ -245,7 +251,7 @@ public:
 		{
 			DEBUG_MSG("Loading noise sample ...")
 
-			AudioSourceFile noise;
+				AudioSourceFile noise;
 			AudioBlock<int16_t> iblock;
 
 			int duration = AudioSourceFile::GetID3TagsFromFile(NOISE_FILE).GetDuration() ;

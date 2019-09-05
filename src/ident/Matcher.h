@@ -163,6 +163,12 @@ struct AUDIONEEX_API_TEST MatchResults_t
         }
     }
 
+    int GetCuePoint(int Qi) const {
+        hashtable_Qc::const_iterator it = Qc.find(Qi);
+        return it!=Qc.end() ? it->second.Tmatch : -1;
+    }
+
+    bool Reranked;
 };
 
 
@@ -177,10 +183,12 @@ class AUDIONEEX_API_TEST Matcher
     std::vector<QLocalFingerprint_t> Xk;
     std::vector<uint32_t>            m_XkSeq;
 
+    Audioneex::eMatchType            m_MatchType        {MSCALE_MATCH};
+    float                            m_RerankThreshold  {0.5};
     hashtable_Qhisto                 m_TopKMc;
     Qhisto_t                         m_H;
     
-	Audioneex::DataStore*            m_DataStore {nullptr};
+	Audioneex::DataStore*            m_DataStore        {nullptr};
 
     /// Pointer to the start of current LF batch being matched.
     int m_ko     {0};
@@ -203,6 +211,9 @@ class AUDIONEEX_API_TEST Matcher
     void  DoMatch(int ko, int kn);
     void  FindCandidatesBWords(int ko, int kn);
     void  FindCandidatesSWords(int ko, int kn);
+    void  Reranking();
+    void  GraphMatching(Qhisto_t& Qhisto_i, int bin, /*[out]*/Qhisto_t& Qhisto);
+    void  BuildGraphs(const QLocalFingerprint_t *lfs, size_t Nlfs, int iRef, hashtable_qlf_pair &H);
 
 friend class RecognizerImpl;
 
@@ -257,6 +268,23 @@ friend class RecognizerImpl;
     /// Getter
     DataStore* GetDataStore() const { return m_DataStore; }
 
+    /// Set the matching algorithm.
+    /// NOTE: This value must match the algorithm used for indexing.
+    void SetMatchType(Audioneex::eMatchType type) { m_MatchType = type; }
+
+    /// Get the match type
+    Audioneex::eMatchType GetMatchType() const { return m_MatchType; }
+
+    /// Set the threshold to be used by the reranking algorithm. This value determines
+    /// when the reranking should kick in based on the current state of the match.
+    /// The provisional top-k list is analyzed and this value is used in the decision
+    /// making of whether to apply the reranking or not. It's value is in the range
+    /// [0,1]
+    void SetRerankThreshold(float value) { m_RerankThreshold = value; }
+
+    /// Get the threshold used for adaptive reranking.
+    float GetRerankThreshold() const { return m_RerankThreshold; }
+    
     /// Set the maximum duration of the recordings in the database.
     /// This value will be used internally to optimize the efficiency of some data
     /// structures used during the matching process. It is not mandatory to set it

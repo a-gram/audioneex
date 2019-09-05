@@ -1,10 +1,12 @@
 /*
-  Copyright (c) 2014, Alberto Gramaglia
-
-  This Source Code Form is subject to the terms of the Mozilla Public
-  License, v. 2.0. If a copy of the MPL was not distributed with this
-  file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+   Copyright (c) 2014, Audioneex.com.
+   Copyright (c) 2014, Alberto Gramaglia.
+	
+   This source code is part of the Audioneex software package and is
+   subject to the terms and conditions stated in the accompanying license.
+   Please refer to the license document provided with the package
+   for more information.
+	
 */
 
 #ifdef WIN32
@@ -31,8 +33,7 @@ AudioFileWriter::AudioFileWriter(const AudioFormat &aformat)
 #endif
 
    if(hDLL_LIBSNDFILE == nullptr)
-      throw std::runtime_error
-      ("Couldn't load library "+std::string(LIBSNDFILE_MOD_NAME));
+      throw std::runtime_error("Couldn't load library "+std::string(LIBSNDFILE_MOD_NAME));
 
    // Get Interface functions from the DLL
 #ifdef WIN32
@@ -78,36 +79,34 @@ void AudioFileWriter::Open(std::string filename)
        else if(mFormat.Format == FLAC)
           sfInfo.format = SF_FORMAT_FLAC;
        else
-          throw std::invalid_argument
-          ("Unsupported audio format");
+          throw std::invalid_argument("Unsupported audio format");
 
        sfInfo.samplerate = mFormat.SampleRate;
        sfInfo.channels   = mFormat.ChannelsCount;
 
        // set sample resolution
-       if(mFormat.SampleResolution == UNSIGNED_8_BIT)
+	   if(mFormat.SampleResolution == UNSIGNED_8_BIT)
            sfInfo.format |= SF_FORMAT_PCM_U8;
-       else if(mFormat.SampleResolution == SIGNED_8_BIT)
+	   else if(mFormat.SampleResolution == SIGNED_8_BIT)
            sfInfo.format |= SF_FORMAT_PCM_S8;
-       else if(mFormat.SampleResolution == SIGNED_16_BIT)
+	   else if(mFormat.SampleResolution == SIGNED_16_BIT)
            sfInfo.format |= SF_FORMAT_PCM_16;
-       else if(mFormat.SampleResolution == SIGNED_24_BIT)
+	   else if(mFormat.SampleResolution == SIGNED_24_BIT)
            sfInfo.format |= SF_FORMAT_PCM_24;
-       else if(mFormat.SampleResolution == SIGNED_32_BIT)
+	   else if(mFormat.SampleResolution == SIGNED_32_BIT)
            // NOTE: libsndfile FLAC only supports 8/16/24 bits
            sfInfo.format |= (mFormat.Format != FLAC ? SF_FORMAT_PCM_32 : SF_FORMAT_PCM_24);
-       else if(mFormat.SampleResolution == NORMALIZED_FLOAT)
+	   else if(mFormat.SampleResolution == NORMALIZED_FLOAT)
            sfInfo.format |= SF_FORMAT_FLOAT;
-       else if(mFormat.SampleResolution == NORMALIZED_DOUBLE)
+	   else if(mFormat.SampleResolution == NORMALIZED_DOUBLE)
            sfInfo.format |= SF_FORMAT_DOUBLE;
        else
-           throw std::invalid_argument
-           ("Unsupported sample resolution");
+           throw std::invalid_argument("Unsupported sample resolution");
 
 
        mFile = sfOpen(filename.c_str(), SFM_WRITE, &sfInfo);
 
-       if(mFile == nullptr)
+       if(mFile == NULL)
           throw std::runtime_error(sfError(mFile));
 
    }

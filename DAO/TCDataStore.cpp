@@ -1,10 +1,12 @@
 /*
-  Copyright (c) 2014, Alberto Gramaglia
-
-  This Source Code Form is subject to the terms of the Mozilla Public
-  License, v. 2.0. If a copy of the MPL was not distributed with this
-  file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+   Copyright (c) 2014, Audioneex.com.
+   Copyright (c) 2014, Alberto Gramaglia.
+	
+   This source code is part of the Audioneex software package and is
+   subject to the terms and conditions stated in the accompanying license.
+   Please refer to the license document provided with the package
+   for more information.
+	
 */
 
 #include <string>
@@ -31,7 +33,7 @@ TCDataStore::TCDataStore(const std::string &url) :
     m_ReadBuffer    (32768)
 {
     m_DBURL = url;
-	
+    
     m_MainIndex.SetName("data.idx");
     m_QFingerprints.SetName("data.qfp");
     m_Metadata.SetName("data.met");
@@ -48,7 +50,6 @@ void TCDataStore::Open(eOperation op,
 {
     if(m_IsOpen)
        Close();
-
     int open_mode = op == GET ? OPEN_READ : OPEN_READ_WRITE;
 
     // Append the path separator if missing (Windows accepts '/' as well)
@@ -112,6 +113,14 @@ void TCDataStore::Clear()
     m_QFingerprints.Drop();
     m_Metadata.Drop();
     m_Info.Drop();
+}
+
+// ----------------------------------------------------------------------------
+
+void TCDataStore::SetOpMode(KVDataStore::eOperation mode)
+{
+    if(mode == m_Op) return;
+    Open(mode, m_QFingerprints.IsOpen(), m_Metadata.IsOpen());
 }
 
 // ----------------------------------------------------------------------------
@@ -348,6 +357,9 @@ void TCCollection::Open(int mode)
        Close();
 
     m_DBHandle = tchdbnew();
+
+    if(!m_DBHandle)
+       throw std::runtime_error("Got an invalid db handle");
 
     tchdbtune(m_DBHandle, 1000000, 4, 10, HDBTLARGE);
     tchdbsetcache(m_DBHandle, 1000000);
@@ -775,6 +787,9 @@ TCFingerprints::TCFingerprints(TCDataStore *dstore) :
 
 size_t TCFingerprints::ReadFingerprintSize(uint32_t FID)
 {
+    if(!m_IsOpen)
+       throw std::runtime_error("Fingerprint database not open");
+
     int vsize = tchdbvsiz(m_DBHandle, &FID, sizeof(uint32_t));
     return vsize > 0 ? static_cast<size_t>(vsize) : 0;
 }
@@ -788,6 +803,9 @@ size_t TCFingerprints::ReadFingerprint(uint32_t FID,
 {
     int dsize;
     void *data;
+
+    if(!m_IsOpen)
+       throw std::runtime_error("Fingerprint database not open");
 
     data = tchdbget(m_DBHandle, &FID, sizeof(uint32_t), &dsize);
 
@@ -812,8 +830,8 @@ size_t TCFingerprints::ReadFingerprint(uint32_t FID,
 
 void TCFingerprints::WriteFingerprint(uint32_t FID, const uint8_t *data, size_t size)
 {
-    if(m_DBHandle==nullptr)
-       throw std::runtime_error("Fingerprints database not open.");
+    if(!m_IsOpen)
+       throw std::runtime_error("Fingerprint database not open");
 
     assert(data);
     assert(size > 0);
@@ -840,6 +858,9 @@ TCMetadata::TCMetadata(TCDataStore *dstore) :
 
 std::string TCMetadata::Read(uint32_t FID)
 {
+    if(!m_IsOpen)
+       throw std::runtime_error("Metadata database not open");
+
     std::string str;
     if(m_DBHandle){
        str = std::to_string(FID);
@@ -854,7 +875,7 @@ std::string TCMetadata::Read(uint32_t FID)
 
 void TCMetadata::Write(uint32_t FID, const std::string &meta)
 {
-    if(m_DBHandle==nullptr)
+    if(!m_IsOpen)
        throw std::runtime_error("Metadata database not open");
 
     std::string str = std::to_string(FID);
@@ -880,7 +901,7 @@ TCInfo::TCInfo(TCDataStore *dstore) :
 
 DBInfo_t TCInfo::Read()
 {
-    if(m_DBHandle==nullptr)
+    if(!m_IsOpen)
        throw std::runtime_error("Info database not open");
 
     int dsize, key = 0;
@@ -901,8 +922,8 @@ DBInfo_t TCInfo::Read()
 
 void TCInfo::Write(const DBInfo_t &info)
 {
-    if(m_DBHandle==nullptr)
-       throw std::runtime_error("Metadata database not open");
+    if(!m_IsOpen)
+       throw std::runtime_error("Info database not open");
 
     int key = 0;
     if(!tchdbput(m_DBHandle, &key, sizeof(int), &info, sizeof(DBInfo_t))){

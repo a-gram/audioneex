@@ -1,10 +1,12 @@
 /*
-  Copyright (c) 2014, Alberto Gramaglia
-
-  This Source Code Form is subject to the terms of the Mozilla Public
-  License, v. 2.0. If a copy of the MPL was not distributed with this
-  file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+   Copyright (c) 2014, Audioneex.com.
+   Copyright (c) 2014, Alberto Gramaglia.
+	
+   This source code is part of the Audioneex software package and is
+   subject to the terms and conditions stated in the accompanying license.
+   Please refer to the license document provided with the package
+   for more information.
+	
 */
 
 #ifndef COMMAND_H
@@ -16,7 +18,7 @@
 #include <boost/lexical_cast.hpp>
 
 
-/// Custom exception for illformed cmd lines
+/// Custom exception for malformed cmd lines
 class bad_cmd_line_exception : public std::logic_error {
  public: explicit bad_cmd_line_exception(const std::string& msg) :
                   std::logic_error(msg) {}
@@ -29,8 +31,7 @@ class bad_cmd_exception : public std::logic_error {
 };
 
 /// Abstract Command.
-class Command
-{
+class Command{
 protected:
     std::set<std::string>    m_SupportedArgs;
     std::vector<std::string> m_Args;
@@ -74,15 +75,13 @@ protected:
         return true;
     }
 
-    void PrintUsageAndThrow(const std::string& emsg)
-	{
+    void PrintUsageAndThrow(const std::string& emsg){
         throw bad_cmd_exception(emsg + m_Usage);
     }
 
 public:
     void SetArgs(const std::vector<std::string>& args) { m_Args = args; }
     virtual void Execute() = 0;
-    virtual ~Command(){}
 };
 
 /// A dummy command

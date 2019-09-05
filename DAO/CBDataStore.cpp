@@ -163,8 +163,8 @@ CBDataStore::CBDataStore(const std::string &url) :
     m_Info          (this),
     m_ReadBuffer    (32768)
 {
-    m_DBURL = url;
-	
+    m_DBURL  = url;
+
     m_MainIndex.SetName("data_idx");
     m_QFingerprints.SetName("data_qfp");
     m_Metadata.SetName("data_met");

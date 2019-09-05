@@ -1,10 +1,12 @@
 /*
-  Copyright (c) 2014, Alberto Gramaglia
-
-  This Source Code Form is subject to the terms of the Mozilla Public
-  License, v. 2.0. If a copy of the MPL was not distributed with this
-  file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+   Copyright (c) 2014, Audioneex.com.
+   Copyright (c) 2014, Alberto Gramaglia.
+	
+   This source code is part of the Audioneex software package and is
+   subject to the terms and conditions stated in the accompanying license.
+   Please refer to the license document provided with the package
+   for more information.
+	
 */
 
 #ifndef COMMANDMAKEAUDIOCODES_H
@@ -24,8 +26,7 @@ class CommandMakeAudioCodes : public Command
 
 public:
 
-    CommandMakeAudioCodes()
-	{
+    CommandMakeAudioCodes(){
         m_Usage = "\nSyntax: --make-audiocodes -i <codes_file> -o <cpp_file>\n";;
         m_SupportedArgs.insert("-i");
         m_SupportedArgs.insert("-o");

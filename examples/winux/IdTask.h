@@ -13,8 +13,8 @@
 #include <cassert>
 #include <memory>
 
-#include "AudioSource.h"
 #include "KVDataStore.h"
+#include "AudioSource.h"
 #include "audioneex.h"
 
 
@@ -39,18 +39,18 @@ public:
 
     virtual AudioSource* GetAudioSource() = 0;
 
-    void SetIndexer(std::shared_ptr<Audioneex::Indexer> &indexer)
-	{
+    void SetIndexer(std::shared_ptr<Audioneex::Indexer> &indexer) 
+    {
         m_Indexer = indexer;
     }
 
-    void SetRecognizer(std::shared_ptr<Audioneex::Recognizer> &recognizer)
-	{
+    void SetRecognizer(std::shared_ptr<Audioneex::Recognizer> &recognizer) 
+    {
         m_Recognizer = recognizer;
     }
 
-    void SetDataStore(std::shared_ptr<KVDataStore> &datastore)
-	{
+    void SetDataStore(std::shared_ptr<KVDataStore> &datastore) 
+    {
         m_DataStore = datastore;
     }
 

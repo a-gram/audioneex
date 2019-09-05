@@ -14,8 +14,8 @@
 #include <cstdlib>
 #include <stdexcept>
 
-#define ENGINE_VERSION      010201L
-#define ENGINE_VERSION_STR  "1.2.1"
+#define ENGINE_VERSION      010300L
+#define ENGINE_VERSION_STR  "1.3.0"
 
 /// API linkage management code.
 /// Clients should define AUDIONEEX_DLL if they are using the DLL version
@@ -49,14 +49,73 @@
 namespace Audioneex
 {
 
+/// These constants determine the type of algorithm used to scan the
+/// search space. It must be set before the index is created and must be
+/// used with all the identifications performed using that index. Trying
+/// to identify audio using a match type that's different from the one
+/// used to build the index will result in wrong recognitions or undefined
+/// behavior.
+enum eMatchType {
+     MSCALE_MATCH,
+     XSCALE_MATCH
+};
+
+/// These constants determine the type of classification used internally
+/// by the recognizer to perform the identification. The fuzzy mode
+/// mode uses an internal 3-class fuzzy classifier (see eIdClass) while the binary
+/// mode is a simple thresholded classification around a value set by
+/// clients using Recognizer::SetBinaryIdThreshold().
+enum eIdentificationType {
+     FUZZY_IDENTIFICATION,
+     BINARY_IDENTIFICATION
+};
+
+/// These identification modes only apply to the fuzzy identification type.
+/// In "strict" mode the algorithm uses very tight requirements in order
+/// to identify a potential best match. This makes the identification
+/// process quite robust against false positives at the cost of a lower
+/// speed as it may require several seconds of audio to find a match.
+/// In "easy" mode the identification is more permissive, the requirements
+/// are more relaxed and as a consequence the decision on the presence of
+/// a match is faster, at the expense of robustness.
+enum eIdentificationMode {
+     STRICT_IDENTIFICATION,
+     EASY_IDENTIFICATION
+};
+
+/// These labels are attached to the results returned by the Recognizer::GetResults()
+/// method to indicate the outcome of the identification.
+/// The label IDENTIFIED indicates that there is clear evidence of a match
+/// and the results can be considered as the best matches to the audio.
+/// The label SOUNDS_LIKE indicates that there are similarities between the
+/// results and the audio but evidence is not strong enough for it to be
+/// considered the best match.
+/// The label UNIDENTIFIED indicates that there is no evidence of a match.
+/// When using the binary identification type only two of these labels are
+/// are used.
+enum eIdClass {
+    UNIDENTIFIED,  ///< There is no clear evidence of a match
+    SOUNDS_LIKE,   ///< There is some evidence of a match
+    IDENTIFIED     ///< There is a clear evidence of a match
+};
+
 /// Structure for identified best matches returned by the Recognizer. Clients
-/// will use this information to link the identified audio to its metadata and
-/// to verify the degree of confidence of the identification.
-struct IdMatch
-{
+/// will use this information to link the identified audio to its metadata,
+/// to verify the degree of confidence of the identification and to get the
+/// time point within the identified recording at which the match of the current
+/// audio occurred.
+/// @note The CuePoint is an estimation and may not exactly represent the real point.
+///       The engine works by identifying similarities between the given audio snippet
+///       and the reference recordings and it may happen that there are many parts in
+///       a recording that are perceptually identical. This is common in music (for
+///       example in refrains) so the current audio snippet may match the recording at
+///       different time points that cannot be easily disambiguated.
+struct IdMatch{
     uint32_t FID;          ///< The fingerprint's unique identifier
     float    Confidence;   ///< A measure of the confidence of match
     float    Score;        ///< The score assigned to the match
+    eIdClass IdClass;      ///< The identification class label (see eIdClass)
+    uint32_t CuePoint;     ///< Estimated time point within the recording being identified
 };
 
 /// A structure holding the header for an index list
@@ -76,25 +135,22 @@ struct PListBlockHeader
 // ----------------------------------------------------------------------------
 
 /// Convenience functions to check for null id match results
-inline bool IsNull(const IdMatch& res)
-{
-    return res.FID == 0 &&
-           res.Score == 0 &&
-           res.Confidence == 0;
+inline bool IsNull(const IdMatch& res){
+    return res.FID==0 &&
+           res.IdClass==0 &&
+           res.Score==0 &&
+           res.Confidence==0 &&
+           res.CuePoint==0;
 }
 
 /// Convenience functions to check for null list headers
-inline bool IsNull(const PListHeader& hdr)
-{
-    return hdr.BlockCount == 0;
+inline bool IsNull(const PListHeader& hdr){
+    return hdr.BlockCount==0;
 }
 
 /// Convenience functions to check for null block headers
-inline bool IsNull(const PListBlockHeader& hdr)
-{
-    return hdr.ID == 0 &&
-           hdr.BodySize == 0 &&
-           hdr.FIDmax == 0;
+inline bool IsNull(const PListBlockHeader& hdr){
+    return hdr.ID==0 && hdr.BodySize==0 && hdr.FIDmax==0;
 }
 
 // ----------------------------------------------------------------------------
@@ -227,7 +283,9 @@ public:
     /// As part of the indexing process a fingerprint for each processed audio recording
     /// is emitted. This method is called by the indexer to signal the creation of the
     /// fingerprint. Clients may choose not to implement this method if the original
-    /// fingerprints are not needed.
+    /// fingerprints are not needed (for example if MMS is always set to zero the only match
+    /// level used by the algorithm will not use the fingerprints original data).
+    /// We recommend to store the fingerprints anyways.
     ///
     /// @param[in] FID   The fingerprint's unique identifier.
     /// @param[in] data  Pointer to the memory location containing the fingerprint's data.
@@ -243,7 +301,7 @@ public:
 	/// Get fingerprint data from the datastore. The match algorithm does not need the entire
 	/// fingerprints for recognition but only small chunks of them, so this method is flexible
 	/// with respect to the amount of data that can be retrieved, being it the whole fingerprint
-	/// or just portions of it.
+	/// or just portions of it. This method is never called if the MMS parameter is set to 0.
     ///
     /// @param[in]  FID    The fingerprint's unique identifier.
     /// @param[out] read   The size of the data actually read.
@@ -304,7 +362,43 @@ public:
     /// Create an instance of recognizer
     static Recognizer* Create();
 
-    /// Set the binary identification threshold.
+    /// Set the type of match to be used.
+    ///
+    /// @param[in]  type  The match type. This must be one of the supported
+    ///                   values in eMatchType.
+    virtual void SetMatchType(eMatchType type) = 0;
+
+    /// The engine uses a multi-level matching system in order to find the best matches.
+	/// Using multiple levels of matching significantly increases the accuracy of the
+	/// recognition by increasing the magnitude of the collected evidence. Obviously it also takes
+	/// more processing resources, so our algorithm is designed to be quite flexible
+	/// on this respect. Clients can control this behaviour by setting this parameter
+	/// according to the specific application being used.
+    ///
+    /// @param[in] value  This parameter controls how adaptive the match algorithm should be to
+    ///                   the current state of the recognition. The values are in the range
+    ///                   [0,1], where a value of '0' means that the adaptive behaviour is
+    ///                   turned off (the engine will only use the current evidence to find a
+    ///                   match), a value of '1' means that the engine will collect the maximum
+    ///                   possible amount of evidence, while any value in between affects the
+	///                   system's decision of whether to use additional evidence or not
+	///                   (adaptive behaviour). The closer the value to 1 the more evidence the
+	///                   system will collect (and the more the processing power), and viceversa.
+    virtual void SetMMS(float value) = 0;
+
+    /// Set the type of identification to be used.
+    ///
+    /// @param[in]  type  The identification type. This must be one of the supported
+    ///                   values in eIdentificationType.
+    virtual void SetIdentificationType(eIdentificationType type) = 0;
+
+    /// Set the classification mode used by the fuzzy classifier.
+    ///
+    /// @param[in]  mode  The identification mode. This must be one of the supported
+    ///                   values in eIdentificationMode.
+    virtual void SetIdentificationMode(eIdentificationMode mode) = 0;
+
+    /// Set the threshold to be used in binary identification mode.
     ///
     /// @param[in]  value  The value of the threshold is in the range [0.5, 1] and the
     ///                    optimal value is highly application dependent, so you need to
@@ -313,12 +407,12 @@ public:
     ///                    current best match is considered identified.
     virtual void SetBinaryIdThreshold(float value) = 0;
 
-    /// Set the minimum identification time for the binary identification mode. This is
-    /// the minimum time interval that shall elapse before results are returned if an
-    /// identification occurs and that can be used to increase the confidence of match.
-    ///
-    /// @param[in] value   The minimum identification time in seconds.
-    virtual void SetBinaryIdMinTime(float value) = 0;
+	/// Set the minimum identification time for the binary identification mode. This is
+	/// the minimum time interval that shall elapse before results are returned if an
+	/// identification occurs and that can be used to increase the confidence of match.
+	///
+	/// @param[in] value   The minimum identification time in seconds.
+	virtual void SetBinaryIdMinTime(float value) = 0;
 
     /// This method can be used to set the maximum recording duration (or its expected value)
     /// in the dataset to be fingerprinted. This value will be used internally to optimize
@@ -331,13 +425,29 @@ public:
     /// @param[in]  duration  The max duration in seconds.
     virtual void SetMaxRecordingDuration(size_t duration) = 0;
 
+    /// Get the currently set match type.
+	/// @return The currently set match type.
+    virtual eMatchType GetMatchType() const = 0;
+
+    /// Get the currently set MMS value.
+	/// @return The currently set MMS.
+    virtual float GetMMS() const = 0;
+
+    /// Get the currently set identification type.
+	/// @return The currently set identification type.
+    virtual eIdentificationType GetIdentificationType() const = 0;
+
+    /// Get the currently set identification mode.
+	/// @return The currently set identification mode.
+    virtual eIdentificationMode GetIdentificationMode() const = 0;
+
     /// Get the currently set binary id threshold.
-    /// @return The currently set binary id threshold.
+	/// @return The currently set binary id threshold.
     virtual float GetBinaryIdThreshold() const = 0;
 
-    /// Get the currently set binary id minimum identification time.
-    /// @return The currently set binary id minimum identification time.
-    virtual float GetBinaryIdMinTime() const = 0;
+	/// Get the currently set binary id minimum identification time.
+	/// @return The currently set binary id minimum identification time.
+	virtual float GetBinaryIdMinTime() const = 0;
 
     /// This method is the heart of the identification engine. Given an audio
     /// clip it tries to match it against the reference fingerprints in the database
@@ -467,6 +577,24 @@ public:
     ///
     /// @param[in]  flush  Flag specifying whether to flush the indexer's cache.
     virtual void End(bool flush = true) = 0;
+
+    /// Set the match type to be used with the index. This determines the
+    /// type and size of the index.
+    ///
+    /// @param[in]  type  The match type. This must be one of the supported
+    ///                   values in eMatchType.
+    ///
+    /// @note Once the index has been created with a specific match type it
+    ///       can only be used to perform identifications using that type of
+    ///       matching strategy. To set the match type for the identification
+    ///       use the Recognizer::SetMatchType() method passing the same value
+    ///       used to build the index. Mixing match types (that is trying to
+    ///       identify audio using an index built with a different match type)
+    ///       will produce incorrect results.
+    virtual void SetMatchType(eMatchType type) = 0;
+
+    /// Get the currently set match type;
+    virtual eMatchType GetMatchType() const = 0;
 
     /// Set the cache size (in MB). The indexer will flush the cache once this
     /// limit is reached.

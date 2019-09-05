@@ -16,13 +16,12 @@ include_directories("${AX_SRC_ROOT}/src"
 
 # --- Platform-specific module compilation settings ---
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
    set(APP_CXX_FLAGS "")
-   
    set(THREAD_LIB pthread)
    
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
    
    set(APP_CXX_FLAGS "")
    

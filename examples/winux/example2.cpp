@@ -10,17 +10,18 @@
 ///
 /// example2
 ///
-/// This example shows how to perform the indexing of a set of fingerprints from a
-/// previously fingerprinted set of audio files.
+/// This example shows how to perform the indexing of fingerprints from a
+/// previously fingerprinted set of audio files. To use the program, issue 
+/// the following command
 ///
-/// To use the program, issue the following command
+/// example2 [-u <db_url>] -m <match_type>
 ///
-/// example2 [-u <db_url>]
+/// where <db_url> specifies the location of the database (for TCDataStore 
+/// it is the directory hosting the database files, while for CBDataStore 
+/// it is the server address or host name), the argument <match_type> is one 
+/// of [MSCALE | XSCALE] and indicates the match algorithm being used.
 ///
-/// where <db_url> specifies the location of the database (for TCDataStore it is the 
-/// directory hosting the database files, while for CBDataStore it is the server address
-/// or host name).
-///
+
 
 #include <iostream>
 #include <vector>
@@ -32,10 +33,8 @@
 
 using namespace Audioneex;
 
-
-void PrintUsage()
-{
-    std::cout << "\nUSAGE: example2 [-u <db_url>]\n\n";
+void PrintUsage(){
+    std::cout << "\nUSAGE: example2 [-u <db_url>] -m <match_type>\n\n";
 }
 
 
@@ -52,18 +51,19 @@ int main(int argc, char** argv)
 
         std::shared_ptr<KVDataStore> 
         dstore ( new DATASTORE_T (opts.db_url) );
-		
-		// For client/server databases only (e.g. Couchbase)
+
+        // For client/server databases only (e.g. Couchbase)
         dstore->SetServerName( "localhost" );
         dstore->SetServerPort( 8091 );
         dstore->SetUsername( "admin" );
         dstore->SetPassword( "password" );
 
-        dstore->Open( KVDataStore::BUILD, true );
-
+        dstore->Open( opts.db_op, true );
+        
         std::shared_ptr<Indexer> 
         indexer ( Indexer::Create() );
         indexer->SetDataStore( dstore.get() );
+        indexer->SetMatchType( opts.mtype );
         indexer->SetCacheLimit( 256 );
 
         itask.SetDataStore( dstore );
@@ -73,13 +73,13 @@ int main(int argc, char** argv)
         std::cout << "Done" << std::endl;
     }
     catch(const bad_cmd_line_exception &ex)
-	{
+    {
         std::cerr << "ERROR: " << ex.what() << std::endl;
         PrintUsage();
         return -1;
     }
     catch(const std::exception &ex)
-	{
+    {
         std::cerr << "ERROR: " << ex.what() << std::endl;
         return -1;
     }

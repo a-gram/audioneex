@@ -13,13 +13,16 @@
 /// This example shows how to perform the identification of audio from files.
 /// To run the program, use the following command
 ///
-/// example3 [-u <db_url>] [-b <b_thresh>] [-s <offset>] <audio_path>
+/// example3 [-u <db_url>] [-m <match_type>] [-i <id_type>] [-d <id_mode>] 
+///          [-b <b_thresh>] [-s <offset>] <audio_path>
 ///
-/// where <db_url> specifies the location of the database, <b_thresh> the binary 
-/// identification threshold, <offset> the starting point within the audio at which 
-/// to perform the identification and <audio_path> the path to the directory hosting
-/// the audio file(s) to be identified.
+/// where <db_url> specifies the location of the database, <match_type> is one 
+/// of [MSCALE | XSCALE], <id_type> one of [BINARY | FUZZY], <id_mode> one of 
+/// [STRICT | EASY], <b_thresh> the binary identification threshold, <offset> 
+/// the starting point within the audio at which to perform the identification 
+/// and <audio_path> the path to the directory containing the audio file(s).
 ///
+
 
 #include <iostream>
 #include <vector>
@@ -35,7 +38,9 @@ using namespace Audioneex;
 
 void PrintUsage()
 {
-    std::cout << "\nUSAGE: example3 [-u <db_url>] [-b <b_thresh>] [-s <offset>] <audio_path>\n\n";
+    std::cout << "\nUSAGE: example3 [-u <db_url>] [-m <match_type>] "
+                 "[-i <id_type>] [-d <id_mode>] "
+                 "[-b <b_thresh>] [-s <offset>] <audio_path>\n\n";
 }
 
 
@@ -55,20 +60,24 @@ int main(int argc, char** argv)
 
         // Get a connection instance to the datastore
         std::shared_ptr<KVDataStore> 
-		dstore ( new DATASTORE_T (opts.db_url) );
-		
-		// For client/server databases only (e.g. Couchbase)
+        dstore ( new DATASTORE_T (opts.db_url) );
+
+        // For client/server databases only (e.g. Couchbase)
         dstore->SetServerName( "localhost" );
         dstore->SetServerPort( 8091 );
         dstore->SetUsername( "admin" );
         dstore->SetPassword( "password" );
 
-        dstore->Open( KVDataStore::GET, false, true );
+        dstore->Open( KVDataStore::GET, true, true );
 
         // Create and set up the recognizer
         std::shared_ptr<Recognizer> 
         recognizer ( Recognizer::Create() );
         recognizer->SetDataStore( dstore.get() );
+        recognizer->SetMatchType( opts.mtype );
+        recognizer->SetMMS( opts.mms );
+        recognizer->SetIdentificationType( opts.id_type );
+        recognizer->SetIdentificationMode( opts.id_mode );
         recognizer->SetBinaryIdThreshold( opts.b_thresh );
 
         idparser.SetDatastore( dstore );
@@ -83,13 +92,13 @@ int main(int argc, char** argv)
         std::cout << "Done" << std::endl;
     }
     catch(const bad_cmd_line_exception &ex)
-	{
+    {
         std::cerr << "ERROR: " << ex.what() << std::endl;
         PrintUsage();
         return -1;
     }
     catch(const std::exception &ex)
-	{
+    {
         std::cerr << "ERROR: " << ex.what() << std::endl;
         return -1;
     }

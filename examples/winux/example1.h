@@ -18,7 +18,6 @@
 #include "IdTask.h"
 #include "AudioSource.h"
 #include "AudioBlock.h"
-#include "audioneex.h"
 
 namespace bfs = boost::filesystem;
 
@@ -63,82 +62,83 @@ class AudioIndexingTask : public IdTask,
                   buffer);
 
         return m_AudioBlock.Size();
-    }
+	}
 	
 
     void DoIndexing(const std::string &audiofile)
     {
         if(m_Terminated) return;
 
-		if(bfs::is_regular_file(audiofile))
-		{
-		   std::string filename = bfs::path(audiofile).filename().string();
-		   std::string ext = filename.substr(filename.find_last_of(".")+1);
 
-		   if(AudioSource::IsFormatSupported(ext))
-		   {
-			  m_AudioSource.Open(audiofile);
+	    if(bfs::is_regular_file(audiofile))
+	    {
+           std::string filename = bfs::path(audiofile).filename().string();
+           std::string ext = filename.substr(filename.find_last_of(".")+1);
 
-			  std::cout << "[FID:"<<(m_FID+1)<<"] - " << filename << " ... ";
-			  std::cout.flush();
+           if(AudioSource::IsFormatSupported(ext))
+           {
+              m_AudioSource.Open(audiofile);
 
-			  // Assign a strict increasing FID to the recordings.
-			  m_FID++;
+              std::cout << "[FID:"<<(m_FID+1)<<"] - " << filename << " ... ";
+              std::cout.flush();
 
-			  // You may want to catch indexing errors here for recoverable failures
-			  // to avoid aborting the whole indexing process.
-			  // Invalid fingerprint exceptions are thrown if a fingerprint cannot be
-			  // extracted for some reason, such as invalid audio or incorrect FIDs.
-			  // These errors may be recovered by just skipping the failed fingerprint.
-			  // Anything else is a serious error and indexing should be aborted.
-			  try{
-				  // Start indexing of current audio file.
-				  // This call is synchronous. It will call OnAudioData() repeatedly
-				  // and will return once all audio for the current recording has been
-				  // consumed (this must be signalled in OnAudioData() by returning 0).
-				  m_Indexer->Index(m_FID);
+              // Assign a strict increasing FID to the recordings.
+              m_FID++;
 
-				  // Here, after the recording has been successfully indexed,
-				  // you may want to store the FID and associated metadata in
-				  // a database ...
+              // You may want to catch indexing errors here for recoverable 
+              // failures in order to avoid aborting the whole indexing process.
+              // Invalid fingerprint exceptions are thrown if a fingerprint 
+              // cannot be extracted for some reason, such as invalid audio or 
+              // incorrect FIDs. These errors may be recovered by just skipping 
+              // the failed fingerprint. Anything else is a serious error and 
+              // indexing should be aborted.
+              try{
+                  // Start indexing of current audio file.
+                  // This call is synchronous (i.e. blocking). It will call 
+                  // OnAudioData() repeatedly and will return once all audio 
+                  // for the current recording has been consumed (this must be 
+                  // signalled in OnAudioData() by returning 0).
+                  m_Indexer->Index(m_FID);
 
-				  std::string meta;
+                  // Here, after the recording has been successfully indexed,
+                  // you may want to store the FID and associated metadata in
+                  // a database ...
+
+                  std::string meta;
 
 #ifdef ID3_TAG_SUPPORT
-				  if(m_AudioSource.GetID3Tags().GetTitle().empty() &&
-					 m_AudioSource.GetID3Tags().GetArtist().empty())
-					 meta = filename;
-				  else
-					 meta = m_AudioSource.GetID3Tags().GetTitle() + " by " +
-					 m_AudioSource.GetID3Tags().GetArtist();
+                  if(m_AudioSource.GetID3Tags().GetTitle().empty() &&
+                     m_AudioSource.GetID3Tags().GetArtist().empty())
+                     meta = filename;
+                  else
+                     meta = m_AudioSource.GetID3Tags().GetTitle() + " by " +
+                            m_AudioSource.GetID3Tags().GetArtist();
 
                   m_DataStore->PutMetadata( m_FID, meta );
 #endif
 
-				  std::cout << "OK. (" << m_AudioSource.GetFormattedDuration() << ")"
-									   << (meta.empty()?"":" (ID3)") << std::endl;
-			  }
-			  catch(const Audioneex::InvalidFingerprintException &ex)
-			  {
-				  std::cerr << "FAILED. " << ex.what() << std::endl;
-				  m_FID--; // reuse FID
-			  }
+				  std::cout << "OK. (" << m_AudioSource.GetFormattedDuration() 
+                            << ")" << (meta.empty()?"":" (ID3)") << std::endl;
+              }
+              catch(const Audioneex::InvalidFingerprintException &ex)
+              {
+                  std::cerr << "FAILED. " << ex.what() << std::endl;
+                  m_FID--; // reuse FID
+              }
 
-			  // Reset all resources for next audio file
-			  m_AudioSource.Close();
-		   }
-		   else 
-		   {
-			  std::cout << "Unsupported format: " << filename << std::endl;
-		   }
-		}
-		else if(bfs::is_directory(audiofile))
-		{
-		   bfs::directory_iterator it(audiofile);
-		   for(; it!=bfs::directory_iterator(); ++it)
-			   DoIndexing(it->path().string());
-		}
-    }
+              // Reset all resources for next audio file
+              m_AudioSource.Close();
+           }
+           else
+              std::cout << "Unsupported format: " << filename << std::endl;
+	    }
+	    else if(bfs::is_directory(audiofile))
+	    {
+	       bfs::directory_iterator it(audiofile);
+	       for(; it!=bfs::directory_iterator(); ++it)
+	           DoIndexing(it->path().string());
+	    }
+	}
 
 public:
 
@@ -155,8 +155,7 @@ public:
         assert(m_Indexer);
 
         if(!bfs::exists( m_AudioDatabaseDir ))
-           throw std::invalid_argument
-           (m_AudioDatabaseDir+" does not exist");
+           throw std::invalid_argument(m_AudioDatabaseDir+" does not exist");
 
         m_AudioSource.SetSampleRate( 11025 );
         m_AudioSource.SetChannelCount( 1 );
@@ -165,11 +164,22 @@ public:
         m_Indexer->Start();
         DoIndexing( m_AudioDatabaseDir );
         m_Indexer->End( !m_Terminated ); //< don't flush the cache if terminated
-    }
+	}
 
-    void Terminate() { m_Terminated = true; }
-    void SetFID(uint32_t fid) { m_FID = fid; }
-    AudioSource* GetAudioSource() { return &m_AudioSource; }
+    void Terminate()
+    { 
+        m_Terminated = true; 
+    }
+    
+    void SetFID(uint32_t fid)
+    { 
+        m_FID = fid; 
+    }
+    
+    AudioSource* GetAudioSource()
+    { 
+        return &m_AudioSource; 
+    }
 
 };
 

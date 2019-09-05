@@ -25,18 +25,21 @@ set(AX_TEST_MATCHER_SRC     test_matching.cpp
                             ${AX_SRC_ROOT}/audio/AudioSource.cpp
                             ${AX_SRC_ROOT}/DAO/${DATASTORE_T}.cpp)
 
+add_definitions(-DDATASTORE_T_ID=1)
 
 # --- Platform-specific module compilation settings ---
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
     set(TEST_CXX_FLAGS "")
 	set(THREAD_LIB pthread)
 	
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 
+	# Apparently we have to disable optimizations when using the library 
+	# compiled in TEST mode, otherwise it crashes (at least on VC 14.1)
     set(TEST_CXX_FLAGS "/Od")
-
+	
 endif()
 
 # --- Check for required libraries ---

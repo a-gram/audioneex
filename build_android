@@ -7,9 +7,9 @@
 # Usage: build_android <arch> <comp> <api> <bmode> <btype>
 #
 #       where <arch> is one of the supported architectures (armeabi-v7a, 
-#       mips, x86, etc.), <comp> the compiler (gcc, clang), <bmode> the 
-#       build mode (debug, release) and <btype> the lib binary type 
-#       (static, dynamic)
+#       mips, x86, etc.), <comp> the compiler (gcc, clang), <bmode> the build
+#       mode (debug, release), <api> the target Android API and <btype> the 
+#       library binary type (static, dynamic)
 #
 #       This script has been tested with NDK r16b. Eventually it must be
 #       revised once support for GCC is completely removed from the NDK.

@@ -23,12 +23,12 @@ namespace Audioneex
 {
 
 int BlockEncoder::Encode(const uint32_t* const* plist_chunk,
-                          size_t plist_chunk_size,
-                          uint8_t* enc_chunk,
-                          size_t enc_chunk_size,
-                          size_t &enc_bytes,
-                          uint32_t FIDo,
-                          bool delta_encode)
+                         size_t plist_chunk_size,
+                         uint8_t* enc_chunk,
+                         size_t enc_chunk_size,
+                         size_t &enc_bytes,
+                         uint32_t FIDo,
+                         bool delta_encode)
 {
     // Serialize the postings list chunk into an array of integers converting
     // from the cache layout to the final layout.
@@ -65,12 +65,12 @@ int BlockEncoder::Encode(const uint32_t* const* plist_chunk,
 // ----------------------------------------------------------------------------
 
 int BlockEncoder::Decode(const uint8_t* enc_chunk,
-                          size_t enc_chunk_size,
-                          uint32_t* dec_chunk,
-                          size_t dec_chunk_size,
-                          size_t &dec_elem,
-                          uint32_t base_FID,
-                          bool delta_decode)
+                         size_t enc_chunk_size,
+                         uint32_t* dec_chunk,
+                         size_t dec_chunk_size,
+                         size_t &dec_elem,
+                         uint32_t base_FID,
+                         bool delta_decode)
 {
     assert(enc_chunk && dec_chunk);
 

@@ -59,7 +59,7 @@ option, like in the following example
 > cmake -DWITH_EXAMPLES=ON -DDATASTORE_T=TCDataStore ..
 
 where TCDataStore indicates Tokyo Cabinet (use CBDataStore for
-Couchbase. If no options are passed in, only the lib will be built.
+Couchbase). If no options are passed in, only the lib will be built.
 Please see the CMake script for all available options.
 
 Make sure that the architecture and compiler match with your

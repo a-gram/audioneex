@@ -22,7 +22,7 @@
 /// 2) Copy the 'data' folder from the 'tests' directory in the root of the source tree,
 ///    to the test programs directory.
 ///
-/// Usage test_indexing
+/// Usage: test_indexing
 ///
 
 TEST_CASE("Indexer accessors") {
@@ -31,6 +31,8 @@ TEST_CASE("Indexer accessors") {
     IndexingTest itest;
     DATASTORE_T dstore ("./data");
 
+    indexer->SetMatchType( Audioneex::MSCALE_MATCH );
+    REQUIRE( indexer->GetMatchType() == Audioneex::MSCALE_MATCH );
     REQUIRE( indexer->GetCacheLimit() > 0 );
     indexer->SetCacheLimit( 128 );
     REQUIRE( indexer->GetCacheLimit() == 128 );
@@ -39,9 +41,11 @@ TEST_CASE("Indexer accessors") {
     REQUIRE( indexer->GetAudioProvider() == &itest );
     indexer->SetDataStore( &dstore );
     REQUIRE( indexer->GetDataStore() == &dstore );
-    uint32_t maxv = Audioneex::IndexerImpl::GetMaxTermValue();
+    uint32_t maxv = Audioneex::IndexerImpl::GetMaxTermValue( Audioneex::MSCALE_MATCH );
     // NOTE: The following tests depend on values that may be changed in the future ...
     REQUIRE( (maxv > 5000 && maxv < 7000) );
+    maxv = Audioneex::IndexerImpl::GetMaxTermValue( Audioneex::XSCALE_MATCH );
+    REQUIRE( (maxv > 1E7 && maxv < 6E7) );
 }
 
 
@@ -104,14 +108,14 @@ TEST_CASE("Indexer indexing") {
 
     // Try indexing
 
-    REQUIRE_NOTHROW( indexer->SetAudioProvider( &itest ) );
+    REQUIRE_NOTHROW( indexer->SetMatchType( Audioneex::MSCALE_MATCH ) );REQUIRE_NOTHROW( indexer->SetAudioProvider( &itest ) );
     //indexer->SetCacheLimit( 512 );
 
     REQUIRE( dstore.GetFingerprintsCount() == 0 );
 
     REQUIRE_NOTHROW( itest.SetDatastore( &dstore ) );
     REQUIRE_NOTHROW( itest.SetIndexer( indexer.get() ) );
-    REQUIRE_NOTHROW( itest.SetFingerprintsNum( 100 ) );
+    REQUIRE_NOTHROW( itest.SetFingerprintsNum( 1000 ) );
     REQUIRE_NOTHROW( itest.Run() );
 
 }

@@ -143,9 +143,10 @@ public class OTAFragment extends Fragment implements AudioIdentificationListener
             if (!dbdir.exists() && !dbdir.mkdir())
                 throw new IOException("Couldn't create id datastore directory");
 
-            File[] dbfiles = new File[2];
+            File[] dbfiles = new File[3];
             dbfiles[0] = new File(dbdir, "data.idx");
             dbfiles[1] = new File(dbdir, "data.met");
+            dbfiles[2] = new File(dbdir, "data.qfp");
 
             // Extract datastore files from assets
             for(File db: dbfiles) {

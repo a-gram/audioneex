@@ -165,6 +165,12 @@ public:
     /// End the indexing session
     void End(bool flush = true);
 
+    /// Set the indexing algorithm. This determines the type and size of the
+    /// inverted index.
+    void SetMatchType(Audioneex::eMatchType type) { m_MatchType = type; }
+
+    Audioneex::eMatchType GetMatchType() const { return m_MatchType; }
+    
     /// Set the memory limit (in MB) after which the cached index is flushed
     void SetCacheLimit(size_t limit) { m_Cache.SetMemoryLimit(limit); }
 
@@ -184,17 +190,20 @@ public:
     Audioneex::AudioProvider* GetAudioProvider() const { return m_AudioProvider; }
 
     /// Get the maximum possible value that a term can take.
-    static uint32_t GetMaxTermValue();
-
+    /// This value depends on how the various components that make up a term
+    /// are combined by the indexing algorithm.
+    static uint32_t GetMaxTermValue(Audioneex::eMatchType type);
+    
 private:
 
     Audioneex::DataStore*       m_DataStore      {nullptr};
     Audioneex::AudioProvider*   m_AudioProvider  {nullptr};
     bool                        m_SessionOpen    {false};
     uint32_t                    m_CurrFID        {0};
+    Audioneex::eMatchType       m_MatchType      {MSCALE_MATCH};
     IndexCache                  m_Cache;
     std::unique_ptr <Codebook>  m_AudioCodes;
-
+    
     void DoFlush();
     void IndexSTerms(uint32_t FID, const QLocalFingerprint_t* lfs, size_t Nlfs);
     void IndexBTerms(uint32_t FID, const QLocalFingerprint_t *lfs, size_t Nlfs);
