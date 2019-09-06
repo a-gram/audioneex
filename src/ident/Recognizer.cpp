@@ -135,7 +135,7 @@ void Audioneex::RecognizerImpl::Identify(const float *audio, size_t nsamples)
     m_IdTime += m_AudioBuffer.Duration();
 
     m_Fingerprint.Process(m_AudioBuffer);
-    const lf_vector &lfs = m_Fingerprint.Get();  //< LFs deleted in Matcher::Process()
+    const lf_vector &lfs = m_Fingerprint.Get();
     int processed = m_Matcher.Process(lfs);
 
     // Process match results, if any (see Match::Process())
