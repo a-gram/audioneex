@@ -16,7 +16,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/thread.hpp>
 
-#ifdef ID3_TAG_SUPPORT
+#ifdef WITH_ID3
  #include <taglib/fileref.h>
  #include <taglib/tag.h>
 #endif
@@ -27,7 +27,7 @@
 #define AUDIO_ENGINE_NAME "FFMPEG"
 
 
-#ifdef ID3_TAG_SUPPORT
+#ifdef WITH_ID3
 /// ID3 Tag class
 class ID3Tag
 {
@@ -133,7 +133,7 @@ class AudioSource
     /// The audio capture thread
     std::unique_ptr<boost::thread> m_CaptureThread;
 
-#ifdef ID3_TAG_SUPPORT
+#ifdef WITH_ID3
     ID3Tag      m_ID3Tags;      ///< The stream's id3 tags, if present (for files only)
 #endif
 
@@ -221,7 +221,7 @@ class AudioSource
          }
      }
 
-#ifdef ID3_TAG_SUPPORT
+#ifdef WITH_ID3
      const ID3Tag&  GetID3Tags() const { return m_ID3Tags; }
 
      /// Get id3 tags from the specified audio file without opening a stream.

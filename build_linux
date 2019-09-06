@@ -74,10 +74,12 @@ BUILD_MODE=$4
 BUILD_BTYPE=$5
 
 declare -A SUPPORTED_PLAT=(["linux"]=1 ["android"]=1 ["osx"]=1)
-declare -A SUPPORTED_ARCH=(["x32"]=1 ["x64"]=1 ["arm64-v8a"]=1 ["armeabi-v7a"]=1 ["mips"]=1 ["mips64"]=1 ["x86"]=1 ["x86_64"]=1)
+declare -A SUPPORTED_ARCH=(["x32"]=1 ["x64"]=1 ["arm64-v8a"]=1 ["armeabi-v7a"]=1 \
+                           ["mips"]=1 ["mips64"]=1 ["x86"]=1 ["x86_64"]=1)
 declare -A SUPPORTED_COMP=(["gcc54"]=1 ["gcc64"]=1 ["gcc72"]=1 ["clang"]=1 ["4.9"]=1)
 declare -A SUPPORTED_BMODE=(["debug"]=1 ["release"]=1)
 declare -A SUPPORTED_BTYPE=(["static"]=1 ["dynamic"]=1)
+
 # Maps Android ABIs to their NDK toolchain directories
 declare -A NDK_TOOLCHAIN_DIR=( \
     ["armeabi-v7a"]="arm-linux-androideabi" \

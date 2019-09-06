@@ -60,7 +60,7 @@ void AudioSource::Close()
     if(m_Pipe.IsOpen())
        m_Pipe.Close();
 
-#ifdef ID3_TAG_SUPPORT
+#ifdef WITH_ID3
     m_ID3Tags = ID3Tag();
 #endif
 }
@@ -173,7 +173,7 @@ void AudioSourceFile::Open(const std::string &source_name)
     m_TotalSamples = 0;
     m_FileName = source_name;
 
-#ifdef ID3_TAG_SUPPORT
+#ifdef WITH_ID3
     m_ID3Tags = ID3Tag(source_name);
 #endif
 }
@@ -263,7 +263,7 @@ void AudioSource::CaptureThread::Run()
 // ----------------------------------------------------------------------------
 
 
-#ifdef ID3_TAG_SUPPORT
+#ifdef WITH_ID3
 
 ID3Tag::ID3Tag(const std::string& file) :
    mFilename(file)

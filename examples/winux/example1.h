@@ -106,7 +106,7 @@ class AudioIndexingTask : public IdTask,
 
                   std::string meta;
 
-#ifdef ID3_TAG_SUPPORT
+#ifdef WITH_ID3
                   if(m_AudioSource.GetID3Tags().GetTitle().empty() &&
                      m_AudioSource.GetID3Tags().GetArtist().empty())
                      meta = filename;

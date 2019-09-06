@@ -28,8 +28,9 @@ set(AX_LIB_SRC
 
 if(WITH_TESTS)
    add_definitions(-DTESTING)
-   message(WARNING "\nWARNING: The library is being built in TEST MODE, which is not meant for release. \
-                    If you're not a project developer, rebuild without the WITH_TESTS definition.")
+   message(WARNING "\nWARNING: The library is being built in TEST MODE, which \
+                      is not meant for production. If you're not a project \
+                      developer, rebuild without the WITH_TESTS definition.")
 endif()
 
 # --- Check module-specific parameters ---
@@ -42,7 +43,8 @@ elseif(BINARY_TYPE STREQUAL "static")
    set(BUILD_SHARED_LIBS OFF)
    message(STATUS "Building static library")
 else()
-   message(FATAL_ERROR "\nERROR: Unsupported build type '${BINARY_TYPE}'. Use -DBINARY_TYPE=static|dynamic.")
+   message(FATAL_ERROR "\nERROR: Unsupported build type '${BINARY_TYPE}'. \
+                          Use -DBINARY_TYPE=static|dynamic.")
 endif()
 
 # --- Platform-specific module compilation settings ---

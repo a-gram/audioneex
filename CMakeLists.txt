@@ -1,19 +1,19 @@
 #
-#  Audioneex build script.
+#  Audioneex build script for Linux and Windows.
 #
 #  Usage (Linux)  : cmake [options] ..
 #        (Windows): cmake -G "NMake Makefiles" [options] ..
 #
 #  where [options] is one or more of the following parameters
 #
-#  ARCH            = x32|x64
-#  TOOLCHAIN       = gcc64|vc14|...
-#  BINARY_TYPE     = dynamic|static
-#  BUILD_MODE      = debug|release
-#  WITH_EXAMPLES   = ON|OFF
-#  DATASTORE_T     = TCDataStore|CBDataStore  (for the examples only)
-#  ID3_TAG_SUPPORT = ON|OFF  (for the examples only)
-#  WITH_TESTS      = ON|OFF  (for project developers only)
+#  ARCH           = x32|x64
+#  TOOLCHAIN      = gcc64|vc14|...
+#  BINARY_TYPE    = dynamic|static
+#  BUILD_MODE     = debug|release
+#  DATASTORE_T    = TCDataStore|CBDataStore  (for the examples only)
+#  WITH_EXAMPLES  = ON|OFF
+#  WITH_ID3       = ON|OFF  (for the examples only)
+#  WITH_TESTS     = ON|OFF  (for project developers only)
 #
 
 cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
@@ -28,7 +28,7 @@ project (audioneex VERSION 1.2.0 LANGUAGES CXX)
 
 # Most include and library paths are automatically found by
 # cmake. Should it fail to find something, in this section it
-# is possible to set useful paths according to the current user's
+# is possible to set useful paths according to the current 
 # environment, which will be passed on to cmake as hints.
 
 list(APPEND MY_INCLUDE_DIRS
@@ -111,11 +111,13 @@ if(BUILD_MODE STREQUAL "debug")
 elseif(BUILD_MODE STREQUAL "release")
    set(CMAKE_BUILD_TYPE RELEASE)
 else()
-   message(FATAL_ERROR "\nERROR: Unsupported build mode '${BUILD_MODE}'. Use -BUILD_MODE=debug|release")
+   message(FATAL_ERROR "\nERROR: Unsupported build mode '${BUILD_MODE}'. \
+                          Use BUILD_MODE=debug|release")
 endif()
 
 if(NOT ARCH STREQUAL "x32" AND NOT ARCH STREQUAL "x64")
-   message(FATAL_ERROR "\nERROR: Unsupported architecture '${ARCH}'. Use -DARCH=x32|x64")
+   message(FATAL_ERROR "\nERROR: Unsupported architecture '${ARCH}'. \
+                          Use ARCH=x32|x64")
 endif()
 
 
@@ -145,9 +147,9 @@ else()
    message(FATAL_ERROR "\nERROR: Unsupported data store.")
 endif()
 
-if(ID3_TAG_SUPPORT)
+if(WITH_ID3)
    set(ID3TAG_LIB_NAME tag)
-   add_definitions(-DID3_TAG_SUPPORT)
+   add_definitions(-DWITH_ID3)
 endif()
 
 
@@ -216,6 +218,7 @@ set(AX_VERSION ${PROJECT_VERSION})
 set(AX_OUTPUT_LIB_DIR "${AX_SRC_ROOT}/build/${PLATFORM}-${ARCH}-${TOOLCHAIN}/${BUILD_MODE}")
 set(AX_OUTPUT_EXE_DIR "${AX_SRC_ROOT}/build/${PLATFORM}-${ARCH}-${TOOLCHAIN}-bin")
 set(AX_POST_BUILD_SCRIPT_ARGS ${PLATFORM} ${ARCH} ${TOOLCHAIN} ${BUILD_MODE} ${BINARY_TYPE})
+set(AX_POST_BUILD_SCRIPT build_${PLATFORM})
 
 # Find project's required libraries
 
@@ -223,7 +226,7 @@ find_package(Boost 1.55 COMPONENTS filesystem system thread regex)
 
 # Try the user settings if Boost is not found in BOOST_ROOT.
 if(NOT Boost_FOUND)
-   message (STATUS "[!] Boost not found in BOOST_ROOT. Trying user's paths.")
+   message (STATUS "[!] Boost not found in BOOST_ROOT. Trying user's paths ...")
    set(BOOST_INCLUDEDIR ${MY_BOOST_INCLUDE_DIR})
    set(BOOST_LIBRARYDIR ${MY_BOOST_LIBRARY_${ARCH}_DIR})
    find_package(Boost 1.55 REQUIRED COMPONENTS filesystem system thread regex)
@@ -235,7 +238,8 @@ endif()
 
 # Build the project
 
-message(STATUS "Building for ${PLATFORM}-${ARCH}-${TOOLCHAIN} (${CMAKE_BUILD_TYPE}) ...")
+message(STATUS "Building for ${PLATFORM}-${ARCH}-${TOOLCHAIN} \
+                (${CMAKE_BUILD_TYPE}) ...")
 
 add_subdirectory(src)
 
@@ -251,7 +255,7 @@ endif()
 # Post-build script (note that this is executed after the audioneex target has
 # been built, not after the whole project build)
 add_custom_target(buildlib ALL
-                  COMMAND ${AX_SRC_ROOT}/build_dist_libs ${AX_POST_BUILD_SCRIPT_ARGS}
+                  COMMAND ${AX_SRC_ROOT}/${AX_POST_BUILD_SCRIPT} ${AX_POST_BUILD_SCRIPT_ARGS}
                   WORKING_DIRECTORY ${AX_SRC_ROOT}
                   DEPENDS audioneex)
 

@@ -50,7 +50,7 @@ find_library(DATASTORE_LIB
              NAMES ${DATASTORE_LIB_NAME} 
              PATHS ${MY_LIBRARY_${ARCH}_${CMAKE_BUILD_TYPE}_DIRS})
 			 
-if(ID3_TAG_SUPPORT)
+if(WITH_ID3)
 find_library(ID3TAG_LIB
              NAMES ${ID3TAG_LIB_NAME} 
              PATHS ${MY_LIBRARY_${ARCH}_${CMAKE_BUILD_TYPE}_DIRS})

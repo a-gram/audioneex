@@ -11,20 +11,11 @@ Features
 - **Compact fingerprints** - 1 hr of audio encoded in less than a MB
 - **Content-agnostic** - recognition of audio of different nature
 - **Fast identification** - can be used for real-time recognitions
-- **Cross-platform** - runs anywhere there is a fully compliant C++11 compiler
+- **Cross-platform** - runs anywhere there is a modern C++ compiler (v11+)
 - **IoT & Mobile-ready** - runs well on small devices for on-device ACR
 - **Database-agnostic** - can use different databases by rewriting the drivers
 
-Limitations
-
-- Limited scaling on a single instance
-- Limited robustness to noisy over-the-air audio
-- Documentation is (currently) not available
-
-A commercial version that provides more functionalities and better performances 
-is available at www.audioneex.com
-
-For the more curious, it is a partial implementation of the methods described
+For the more curious, it is an implementation of the methods described
 in [this paper](https://www.dropbox.com/s/0qvfq2o53uudaqx/agramaglia_acr_paper_2014.pdf)
 
 
@@ -44,17 +35,17 @@ and the following tools
 - CMake 3.11
 - Android NDK r16b
 
-However, it should also work with any other fully compliant C++11 compiler.
-The TagLib and FFMpeg can be replaced with something else but you will need
+TagLib and FFMpeg can be replaced with something similar, but you will need
 to make changes to the code.
 
 ## Database
 
 Audioneex is database-agnostic, so technically it can be used with any database. 
-However, using databases other than the default ones requires writing the drivers 
-by implementing the exposed interfaces and following the specifications. The default
-databases are Tokyo Cabinet and Couchbase. The former is an embedded/in-process
-database (suitable for mobile/embedded apps), while the latter is client/server.
+However, using databases other than the ones supported out of the box requires 
+writing the drivers by implementing the exposed interfaces and following the 
+specifications. The default databases are Tokyo Cabinet and Couchbase. 
+The former is an embedded/in-process database (suitable for mobile/embedded apps), 
+while the latter is a client/server type.
 
 
 ## How to build on Linux and Windows
@@ -97,14 +88,14 @@ On Linux, open a shell and issue the following commands
 where `[options]` is one or more of the following command line parameters in
 the form `-D<var=value>`
 
-    ARCH            = x32|x64
-    TOOLCHAIN       = gcc64|vc14|...
-    BINARY_TYPE     = dynamic|static
-    BUILD_MODE      = debug|release
-    WITH_EXAMPLES   = ON|OFF
-    DATASTORE_T     = TCDataStore|CBDataStore  (for the examples only)
-    ID3_TAG_SUPPORT = ON|OFF  (for the examples only)
-    WITH_TESTS      = ON|OFF  (for project developers only)
+    ARCH           = x32|x64
+    TOOLCHAIN      = gcc64|gcc72|vc14|...
+    BINARY_TYPE    = dynamic|static
+    BUILD_MODE     = debug|release
+    DATASTORE_T    = TCDataStore|CBDataStore
+    WITH_EXAMPLES  = ON|OFF
+    WITH_ID3       = ON|OFF  (for the examples only, includes metadata)
+    WITH_TESTS     = ON|OFF  (for project developers only)
 
 
 On Windows, replace the last two commands above with the following
@@ -155,15 +146,15 @@ This code is released under the Mozilla Public License 2.0.
 In a nutshell:
 
 - You can use it in commercial projects without publishing your closed source code.
-- If you distribute it under any form or modify it, you must make its source code 
-  available, including your modifications, under the same license and retain all 
-  copyright notices.
-  
-  
+- If you distribute it under any form, you must retain all copyright notices 
+  as they appear in the source files.
+- If you distribute it in binary form, you must clearly state that your software 
+  uses Audioneex and specify where its source code can be obtained.
+- Any modifications to the source code must be made available, under the same license.
+
+
 ## TODO
 
 1. More drivers for other databases would be nice
-2. A more comprehensive test suite
-3. Use more C++ new features and drop old compilers support
-
+2. Maybe a more comprehensive test suite ?
 
