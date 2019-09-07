@@ -90,9 +90,8 @@ set(Boost_USE_STATIC_RUNTIME    OFF)
 set(AX_SRC_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 
-# ----------------- Environment settings ------------------
+# Default settings
 
-# Default setting
 if(NOT BINARY_TYPE)
   set(BINARY_TYPE dynamic)
 endif()
@@ -105,24 +104,27 @@ if(NOT ARCH)
    set(ARCH x64)
 endif()
 
+if(NOT DATASTORE_T)
+   set(DATASTORE_T "TCDataStore")
+endif()
+
+
+# Parameters check
 
 if(BUILD_MODE STREQUAL "debug")
    set(CMAKE_BUILD_TYPE DEBUG)
 elseif(BUILD_MODE STREQUAL "release")
    set(CMAKE_BUILD_TYPE RELEASE)
 else()
-   message(FATAL_ERROR "\nERROR: Unsupported build mode '${BUILD_MODE}'. \
-                          Use BUILD_MODE=debug|release")
+   message(FATAL_ERROR 
+       "\nERROR: Invalid build mode: ${BUILD_MODE}. Use BUILD_MODE=debug|release"
+   )
 endif()
 
 if(NOT ARCH STREQUAL "x32" AND NOT ARCH STREQUAL "x64")
-   message(FATAL_ERROR "\nERROR: Unsupported architecture '${ARCH}'. \
-                          Use ARCH=x32|x64")
-endif()
-
-
-if(NOT DATASTORE_T)
-   set(DATASTORE_T "TCDataStore")
+   message(FATAL_ERROR 
+       "\nERROR: Invalid architecture: ${ARCH}. Use ARCH=x32|x64"
+   )
 endif()
 
 if(DATASTORE_T STREQUAL "TCDataStore")
@@ -144,7 +146,8 @@ elseif(DATASTORE_T STREQUAL "CBDataStore")
    add_definitions(-DDATASTORE_T_ID=2)
    add_definitions(-DDATASTORE_T=${DATASTORE_T})   
 else()
-   message(FATAL_ERROR "\nERROR: Unsupported data store.")
+   message(FATAL_ERROR 
+           "\nERROR: Unsupported data store: ${DATASTORE_T}.")
 endif()
 
 if(WITH_ID3)
@@ -209,7 +212,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
    set(PLATFORM win)
    
 else()
-   message(FATAL_ERROR "\nERROR: Unsupported compiler")
+   message(FATAL_ERROR 
+           "\nERROR: Unsupported compiler")
 endif()
 
 set(CMAKE_CXX_FLAGS ${COMP_FLAGS})
@@ -226,7 +230,9 @@ find_package(Boost 1.55 COMPONENTS filesystem system thread regex)
 
 # Try the user settings if Boost is not found in BOOST_ROOT.
 if(NOT Boost_FOUND)
-   message (STATUS "[!] Boost not found in BOOST_ROOT. Trying user's paths ...")
+   message(STATUS 
+       "[!] Boost not found in BOOST_ROOT. Trying user's paths ..."
+   )
    set(BOOST_INCLUDEDIR ${MY_BOOST_INCLUDE_DIR})
    set(BOOST_LIBRARYDIR ${MY_BOOST_LIBRARY_${ARCH}_DIR})
    find_package(Boost 1.55 REQUIRED COMPONENTS filesystem system thread regex)
@@ -238,8 +244,9 @@ endif()
 
 # Build the project
 
-message(STATUS "Building for ${PLATFORM}-${ARCH}-${TOOLCHAIN} \
-                (${CMAKE_BUILD_TYPE}) ...")
+message(STATUS 
+   "Building for ${PLATFORM}-${ARCH}-${TOOLCHAIN} (${CMAKE_BUILD_TYPE})"
+)
 
 add_subdirectory(src)
 
@@ -254,9 +261,11 @@ endif()
 
 # Post-build script (note that this is executed after the audioneex target has
 # been built, not after the whole project build)
-add_custom_target(buildlib ALL
-                  COMMAND ${AX_SRC_ROOT}/${AX_POST_BUILD_SCRIPT} ${AX_POST_BUILD_SCRIPT_ARGS}
-                  WORKING_DIRECTORY ${AX_SRC_ROOT}
-                  DEPENDS audioneex)
+add_custom_target(
+    buildlib ALL
+    COMMAND ${AX_SRC_ROOT}/${AX_POST_BUILD_SCRIPT} ${AX_POST_BUILD_SCRIPT_ARGS}
+    WORKING_DIRECTORY ${AX_SRC_ROOT}
+    DEPENDS audioneex
+)
 
 

@@ -126,5 +126,5 @@ ${ANDROID_NDK_HOME}/ndk-build \
                     $AX_BUILD_BTYPE 
 
 # Call the distribution lib build script              
-/bin/bash ./build_dist_libs android $BUILD_ARCH $BUILD_COMP $BUILD_MODE $BUILD_BTYPE
+/bin/bash ./build_linux android $BUILD_ARCH $BUILD_COMP $BUILD_MODE $BUILD_BTYPE
 

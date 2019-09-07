@@ -389,7 +389,7 @@ void Audioneex::Matcher::FindCandidatesBWords(int ko, int kn)
                               Bpivot << IndexerImpl::B_SHIFT |
                               W2 << IndexerImpl::W2_SHIFT |
                               Vpt << IndexerImpl::VPT_SHIFT |
-                              Vpf & 0x3F;
+                              (Vpf & 0x3F);
 
                    // Get postings list iterator for term from cache.
                    // If we get a miss then get a new one;
