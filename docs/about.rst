@@ -33,53 +33,60 @@ services, mobile and desktop apps, embedded systems and more.
 Features
 --------
 
-* *Highly efficient fingerprinting* - The extraction of fingerprints is much faster 
-  than real-time even on commodity hardware and the resulting fingerprints have a 
-  low footprint. On average, one hour of audio will be encoded into a fingerprint 
-  of less than 1 MB (in uncompressed form).
+* **Highly efficient fingerprinting** - The fingerprints generation is much faster 
+  than real-time even on low-end hardware and the resulting fingerprints have a 
+  low storage requirement. On average, one hour of audio will be encoded into 
+  less than 1 MB (in uncompressed form).
   
-* *Fast response times* - Typical recognition times are in the order of a few 
-  seconds (3-4 seconds for non-distorted or moderately distorted audio) making it 
+* **Fast response times** - Typical recognition times are in the order of a few 
+  seconds (3-4 seconds on average for moderately distorted audio) making it 
   suitable for real-time applications.
   
-* *Cross-platform implementation* - The engine has been developed in C++ in order
-  to guarantee a highly performant native experience. It builds and runs anywhere
-  there is a modern C++ compiler (version 11 and above), which means any 
-  software/hardware platform out there.
+* **Cross-platform API** - Implemented in standard C++ to guarantee native high 
+  performances while providing a suitable level of abstraction, it builds and 
+  runs anywhere there is a modern C++ compiler (version 11 and above), which means 
+  most software/hardware platforms out there.
 
-* *Content-agnostic recognition* - The core algorithms are independent of the 
-  nature of the audio to be identified allowing the identification of basically 
+* **Content-agnostic recognition** - The core algorithms are independent of the 
+  nature of the audio to be recognized, allowing the identification of basically 
   any kind of content, from music, to TV/Radio shows, movies, commercials, 
   news and even generic sounds.
   
-* *Highly flexible recognition system* - By providing several parameters that can
+* **Highly flexible recognition system** - By providing several parameters that can
   be set through the API, the engine allows fine-tuning of performances based on 
   the kind of application at hand. 
+
+* **Mobile & IoT-ready** - Its efficient algorithms make it suitable for devices 
+  with limited resources, such as mobile and embedded platforms, for on-device ACR.
+
+* **Database-neutral** - Designed to be independent of specific storage solutions, 
+   it does not lock you into a pre-determined technology and can be used with many
+   databases by rewriting the drivers.
 
 
 Architecture
 ------------
 
-The architecture is extremely modular, with three main interfaces that provide 
+The architecture is extremely modular, with three main interfaces that abstract 
 access to most of the functionality of the engine: ``Recognizer``, ``Indexer`` and 
 ``DataStore``.
 
 .. figure:: _static/arch.png
 
 The ``Recognizer`` can be considered as the front-end to all of the identification 
-functionality. It deals with the collection of the audio supplied by the clients, 
+functionality. It deals with the collection of audio supplied by the clients, 
 dispatching of the audio to the ``Fingerprinter`` for fingerprint extraction, 
 dispatching of the extracted fingerprints to the ``Matcher`` to initiate the search 
 of the best candidates, analysis of the results returned by the matching process 
 and production of the final results.
 
-The ``Indexer`` provides access to all of the functionality regarding the production 
-of the reference fingerprints. It deals with the collection of the audio from 
+The ``Indexer`` provides access to functionality concerning the generation 
+of the reference fingerprints. It deals with the collection of audio from 
 client applications, initiating the fingerprinting process, processing the 
 resulting fingerprints into a format suitable for quick searches and storing the 
 data into the appropriate structures. In the context of the Audioneex engine, 
 all these processes collectively are referred to as “indexing”, and the outcome 
-is the production of the “reference database”, which is the first step to take 
+is the generation of the “reference database”, which is the first step to take 
 before using the engine for any recognition operation.
 
 The ``Datastore`` interface is probably the most important entity of the whole 

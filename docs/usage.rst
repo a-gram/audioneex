@@ -47,17 +47,22 @@ internal buffer until all audio is consumed
 
 .. code-block:: cpp
 
-   int SomeAudioProvider::OnAudioData(uint32_t FID, 
-                                      float *buffer, 
-                                      size_t nsamples)
+   class SomeAudioProvider : public Audioneex::AudioProvider
    {
-       // Read nsamples from the source in 16 bit, 11025Hz, mono
-       auto audio = someAudioSource->Read( nsamples, 16, 11025, 1 );
+       // ...
+       
+       int OnAudioData(uint32_t FID, float *buffer, size_t nsamples)
+       {
+           // Read nsamples from the source in 16 bit, 11025Hz, mono
+           auto audio = someAudioSource->Read( nsamples, 16, 11025, 1 );
     
-       if( audio )
-           copy( audio->data(), buffer, nsamples )
+           if( audio )
+               copy( audio->data(), buffer, nsamples )
         
-       return audio->size();
+           return audio->size();
+       }
+       
+       // ...
    }
 
 Obviously this is a simplified code, but that's the whole process. To perform 

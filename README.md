@@ -1,7 +1,7 @@
 
 ![logo](https://www.audioneex.com/wp-content/uploads/2019/05/logo_280.png)
 
-Audioneex-OS is an audio content recognition engine specifically designed
+Audioneex is an audio content recognition engine specifically designed
 for real-time applications. It is general purpose, based on content-agnostic
 algorithms and runs on all kinds of machines, from big servers to mobile and 
 embedded devices.
@@ -19,9 +19,15 @@ For the more curious, it is an implementation of the methods described
 in [this paper](https://www.dropbox.com/s/0qvfq2o53uudaqx/agramaglia_acr_paper_2014.pdf)
 
 
-## Prerequisites
+## Documentation
 
-The engine needs, and has been tested with, the following dependencies
+The official documentation can be found [here](https://audioneex.readthedocs.io)
+
+
+## Quick start
+
+Clone or download the repository into a directory of your choice. The engine 
+needs the following dependencies
 
 - Boost 1.6
 - FFTSS 3.0
@@ -29,114 +35,28 @@ The engine needs, and has been tested with, the following dependencies
 - TagLib  (optional)
 - FFMpeg  (optional)
 
-and the following tools
+After compiling and installing the dependencies, on Linux simply run the 
+following command to build the engine
 
-- GCC 6/7, CLang 5, MSVC++ 14
-- CMake 3.11
-- Android NDK r16b
-
-TagLib and FFMpeg can be replaced with something similar, but you will need
-to make changes to the code.
-
-## Database
-
-Audioneex is database-agnostic, so technically it can be used with any database. 
-However, using databases other than the ones supported out of the box requires 
-writing the drivers by implementing the exposed interfaces and following the 
-specifications. The default databases are Tokyo Cabinet and Couchbase. 
-The former is an embedded/in-process database (suitable for mobile/embedded apps), 
-while the latter is a client/server type.
-
-
-## How to build on Linux and Windows
-
-The project uses the CMake build system on both Linux and Windows.
-The steps to follow are pretty much the same on both platforms, aside
-for few specific tweaks that may occur.
-
-**Step 1. Set up the build environment**
-
-- Install Boost. The library requires the header-only part, but the examples 
-will need some compiled modules (thread, filesystem, regex and their dependencies).
-- Get the [FFTSS](http://www.ssisc.org/fftss/) library, compile it in static
-mode and install it somewhere in your system (remember to compile with the
-`-fPIC` flag on Linux otherwise linking errors will occur).
-- Get the [Tokyo Cabinet](https://fallabs.com/tokyocabinet/) library (for Windows 
-there is a port from the EJDB project [here](https://github.com/Softmotions/ejdb/tree/ejdb_1.x) ). 
-Alternatively, you can use the Couchbase database (requires building the libcouchbase 
-driver, which can be downloaded from the website).
-- Get the [TagLib](https://taglib.org/) library for ID3 tag support (used by 
-the examples to extract metadata from audio files).
-- Get the [FFmpeg](https://ffmpeg.org/) executable and install it in a location 
-visible from `PATH` (used by the examples to decode and read audio).
-
-**Step 2. Set include and library paths**
-
-This step is not mandatory but it will most likely be necessary since these paths
-are system-dependent. You can set them in the "User Configuration" section
-of the CMake build script located in the root directory.
-
-**Step 3. Build**
-
-On Linux, open a shell and issue the following commands
-
-    cd <source_root_directory>
-    mkdir build && cd build
-    cmake [options] ..
-    make
-
-where `[options]` is one or more of the following command line parameters in
-the form `-D<var=value>`
-
-    ARCH           = x32|x64
-    TOOLCHAIN      = gcc64|gcc72|vc14|...
-    BINARY_TYPE    = dynamic|static
-    BUILD_MODE     = debug|release
-    DATASTORE_T    = TCDataStore|CBDataStore
-    WITH_EXAMPLES  = ON|OFF
-    WITH_ID3       = ON|OFF  (for the examples only, includes metadata)
-    WITH_TESTS     = ON|OFF  (for project developers only)
-
+    $ cd <root_directory>
+    $ mkdir build && cd build
+    $ cmake ..
+    $ make
 
 On Windows, replace the last two commands above with the following
 
-    cmake -G "NMake Makefiles" [options] ..
-    nmake
+    > cmake -G "NMake Makefiles" [options] ..
+    > nmake
 
-By default, if no options are passed on, the script builds dynamic libraries
-targeting 64-bit architectures release mode. The final libraries will be put 
-in a `/lib` folder in the root directory.
+The final libraries will be put into a `/lib` folder in the root directory.
+
+Please refer to the [documentation](https://audioneex.readthedocs.io) for more details.
 
 
-## How to build for Android
+## Demo app
 
-There is a build script in the root directory called `build_android` that
-will ease the compilation of the library for Android platforms. This script
-uses the Android NDK build system (ndk-build et al.) to build the library
-without the need for exporting individual toolchains for each architecture.
-
-Usage:
-
-    build_android <arch> <comp> <api> <bmode> <btype>
-
-where
-
-    <arch>   is one of the supported architectures (armeabi-v7a, x86, etc.)
-    <comp>   the compiler (clang, gcc)
-    <api>    the target Android API version
-    <bmode>  the build mode (debug, release)
-    <btype>  the library type (static, dynamic)
-
-The final libraries will be put in the `/lib` folder of the root directory.
-
-As a prerequisite, you will have to build the required external libraries
-for the specific Android platforms you're targeting. There is a build script
-in the root directory called `android-configure` that will help you with the
-cross-compilation of the libraries without the need for exporting toolchains
-for each target architecture. For more info, have a look at the script itself.
-
-This script has been tested with the NDK r16b. Please refer to the script for
-more information (especially for how to fix some bugs present in r16b).
+If you want to see the engine in action and play around with it straight away
+there is a demo app for Windows that can be downloaded from [here](https://www.audioneex.com/downloads/)
 
 
 ## License
@@ -151,10 +71,4 @@ In a nutshell:
 - If you distribute it in binary form, you must clearly state that your software 
   uses Audioneex and specify where its source code can be obtained.
 - Any modifications to the source code must be made available, under the same license.
-
-
-## TODO
-
-1. More drivers for other databases would be nice
-2. Maybe a more comprehensive test suite ?
 

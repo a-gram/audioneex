@@ -12,15 +12,25 @@ here. Generally, any POSIX-compliant platform with a modern C++ compiler
 Prerequisites
 -------------
 
-To build the full package the following dependencies are required
+The engine itself only needs the following dependencies to build
 
 * Boost 1.6
 * FFTSS 3.0
-* Tokyo Cabinet 1.4 / Couchbase 5.1
-* TagLib  (optional)
-* FFMpeg  (optional)
 
-and the following toolchains
+however, for it to be usable it must be plugged into a databases, so you need
+one of the following supported by default 
+
+* Tokyo Cabinet 1.4 / Couchbase 5.1
+
+and to build the full package, including the examples, you need to add the
+following optional dependencies
+
+* TagLib
+* FFMpeg
+
+The code has been developed mostly using the below mentioned tools, but anything
+more recent should also work fine, so these are considered the minimum
+requirements
 
 * GCC 6/7, CLang 5, MSVC++ 14
 * CMake 3.11
@@ -32,12 +42,12 @@ only needed for the example programs and can be replaced with something similar,
 but doing so will require changes to the code.
 
 
-Database
---------
+About the database
+------------------
 
-Audioneex is database-agnostic, so technically it can be used with any database. 
+Audioneex is database-neutral, so technically it can be used with any database. 
 However, using databases other than the ones supported out of the box requires 
-writing the drivers. The default databases are Tokyo Cabinet and Couchbase. 
+writing the drivers. The default databases are *Tokyo Cabinet* and *Couchbase*. 
 The former is an embedded/in-process database (suitable for mobile/embedded apps), 
 while the latter is a client/server type.
 
@@ -58,8 +68,8 @@ for few specific tweaks that may occur.
   ``-fPIC`` flag on Linux otherwise linking errors will occur).
 * Get the `Tokyo Cabinet <https://fallabs.com/tokyocabinet/>`_ library (for 
   Windows there is a port from the EJDB project `here <https://github.com/Softmotions/ejdb/tree/ejdb_1.x>`_). 
-  Alternatively, you can use the Couchbase database (requires building the *libcouchbase* 
-  driver, which can be downloaded from their website).
+  Alternatively, you can use the Couchbase database, which has a nice and free
+  "community edition" (requires building their *libcouchbase* driver).
 * Get the `TagLib <https://taglib.org/>`_ library for ID3 tag support (used by 
   the examples to extract metadata from audio files).
 * Get the `FFmpeg <https://ffmpeg.org/>`_ executable and install it in a location 

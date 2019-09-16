@@ -11,7 +11,7 @@ may be supported in the future, but there is no immediate plan for that.
 Linux and Windows examples
 --------------------------
 
-Example programs for Linux and Windows can be found in the ``example/winux`` directory.
+Example programs for Linux and Windows can be found in the ``examples/winux`` directory.
 
 .. note::
 
@@ -43,7 +43,8 @@ which must be specified at build time using a special CMake parameter (see below
 You can download them from their respective websites, then build the libraries 
 (*libtokyocabinet* and/or *libcouchbase*) and install the binaries and headers in 
 your system (the headers should be put into a ``tcabinet`` and ``libcouchbase``
-directory respectively).
+directory respectively). If you want to use other databases, you can use the
+provided drivers as blueprints to write your own.
 
 Audio I/O
 ^^^^^^^^^
