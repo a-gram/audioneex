@@ -16,14 +16,10 @@ The engine itself only needs the following dependencies to build
 
 * Boost 1.6
 * FFTSS 3.0
-
-however, for it to be usable it must be plugged into a databases, so you need
-one of the following supported by default 
-
 * Tokyo Cabinet 1.4 / Couchbase 5.1
 
-and to build the full package, including the examples, you need to add the
-following optional dependencies
+To build the full package, including the examples, you need to add the following 
+optional dependencies
 
 * TagLib
 * FFMpeg

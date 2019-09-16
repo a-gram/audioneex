@@ -36,7 +36,7 @@ needs the following dependencies
 - FFMpeg  (optional)
 
 After compiling and installing the dependencies, on Linux simply run the 
-following command to build the engine
+following commands to build the engine
 
     $ cd <root_directory>
     $ mkdir build && cd build
@@ -50,7 +50,8 @@ On Windows, replace the last two commands above with the following
 
 The final libraries will be put into a `/lib` folder in the root directory.
 
-Please refer to the [documentation](https://audioneex.readthedocs.io) for more details.
+Please refer to the [documentation](https://audioneex.readthedocs.io) for more 
+details.
 
 
 ## Demo app
