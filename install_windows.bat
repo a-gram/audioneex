@@ -2,9 +2,9 @@
 
 ::  This script will build the final distribution libraries (Augh!)
 ::
-::  Usage:  build_dist_libs plat arch comp bmode btype
+::  Usage:  build_dist_libs <plat> <arch> <comp> <bmode> <btype>
 ::
-::  where:  plat = win
+::  where:  plat = windows
 ::          arch = x32|x64
 ::          comp = vc11|vc12|vc141
 ::         bmode = debug|release

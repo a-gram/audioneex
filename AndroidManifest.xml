@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.audioneex.lib"
-          package:versionCode="1"
-          package:versionName="1.0">
-</manifest> 
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.audioneex.lib"
+          android:versionCode="10300"
+          android:versionName="1.3.0" >
+    <uses-sdk android:minSdkVersion="29" />
+</manifest>

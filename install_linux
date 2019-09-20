@@ -1,0 +1,267 @@
+#!/bin/bash
+#
+#  This script will install the final binaries into a specific
+#  directory (currently a 'lib' directory at the root) and applies
+#  some manipulation on the files. It's called by the build 
+#  process for Linux and Android builds and there is generally no 
+#  need to invoke it explicitly.
+#
+#  Usage:  install_linux <plat> <arch> <comp> <bmode> <btype>
+#
+#  where:  plat = linux|osx|android
+#          arch = x32|x64|armeabi-v7a|arm64-v8a|x86|x86_64
+#          comp = gcc|clang
+#         bmode = debug|release
+#         btype = static|dynamic
+#
+#  NOTE: External dependencies paths (such as fftss) may need to be
+#        set up properly according to the user's environment. Please
+#        see the 'User Config' section below.
+#
+#
+# Author  : Alberto Gramaglia
+# Date    : 19-09-2019
+# Version : 1.3.0
+#
+
+set -e
+
+
+##########################################################
+#                      User Config                       #
+##########################################################
+
+# NOTE: These settings are only required for static builds
+
+# Linux 64-bit libs
+EXT_LIB_LINUX="/usr/local/lib/7"
+# Linux 32-bit libs
+EXT_LIB_LINUX_32="/usr/local/lib32/7"
+# Android libs are expected to sit in separate folders named 
+# according to their architectures, as follows
+# /path/to/android/lib/<arch>
+EXT_LIB_ANDROID="/opt/android/lib"
+
+
+##########################################################
+#                       Functions                        #
+##########################################################
+
+
+function error()
+{
+  echo "ERROR: [$(basename $0)] ${AX_ERROR}"
+  echo $AX_ERROR > build_dist_libs_errors.log
+  exit 1
+}
+
+function clean_tmp_files()
+{
+  if [ -n "$LIBS_OBJ_TMP" ] && [ -e $LIBS_OBJ_TMP ]; then 
+     rm -rf $LIBS_OBJ_TMP
+  fi
+}
+
+function cleanup()
+{
+  clean_tmp_files
+  find ../lib -name "*.a" -type f -delete
+}
+
+function get_ndk_home()
+{
+    NDK_HOME=$ANDROID_NDK_HOME
+    
+    if [ ! $NDK_HOME ]; then
+        NDK_HOME=$ANDROID_NDK_ROOT
+        if [ ! $NDK_PATH ]; then
+            local MSG=(
+               "Could not find the NDK. Please set either the"
+               "ANDROID_NDK_HOME or ANDROID_NDK_ROOT environment"
+               "variable with the path to your NDK installation"
+               "directory."
+            )
+            AX_ERROR=${MSG[*]} && error
+        fi
+    fi
+}
+
+
+##########################################################
+#                       Env Config                       #
+##########################################################
+
+
+declare -A SUPPORTED_PLAT=(
+   ["linux"]=1 
+   ["android"]=1 
+   ["osx"]=1
+)
+declare -A SUPPORTED_ARCH=(
+   ["x32"]=1 
+   ["x64"]=1 
+   ["arm64-v8a"]=1 
+   ["armeabi-v7a"]=1 
+   ["x86"]=1 
+   ["x86_64"]=1
+)
+declare -A SUPPORTED_COMP=(
+   ["gcc"]=1 
+   ["clang"]=1
+)
+declare -A SUPPORTED_BMODE=(
+   ["debug"]=1 
+   ["release"]=1
+)
+declare -A SUPPORTED_BTYPE=(
+   ["static"]=1 
+   ["dynamic"]=1
+)
+
+# Maps Android ABIs to their NDK bin prefixes
+declare -A NDK_BIN_PREFIX=(
+    ["armeabi-v7a"]="arm-linux-androideabi" 
+    ["arm64-v8a"]="aarch64-linux-android" 
+    ["x86"]="i686-linux-android" 
+    ["x86_64"]="x86_64-linux-android" 
+)
+
+AX_ROOT_DIR=$(cd $(dirname "$0") && pwd)
+
+if [ $# -ne 5 ]; then AX_ERROR="Invalid command."; error; fi
+
+BUILD_PLAT=$1
+BUILD_ARCH=$2
+BUILD_COMP=$3
+BUILD_MODE=$4
+BUILD_BTYPE=$5
+
+if [[ ! ${SUPPORTED_PLAT["$BUILD_PLAT"]} ]] ; then
+   AX_ERROR="Invalid platform '$BUILD_PLAT'"
+   error
+fi
+
+if [[ ! ${SUPPORTED_ARCH["$BUILD_ARCH"]} ]] ; then
+   AX_ERROR="Invalid architecture '$BUILD_ARCH'"
+   error
+fi
+
+#if [[ ! ${SUPPORTED_COMP["$BUILD_COMP"]} ]] ; then
+#   AX_ERROR="Invalid compiler '$BUILD_COMP'"
+#   error
+#fi
+
+if [[ ! ${SUPPORTED_BMODE["$BUILD_MODE"]} ]] ; then
+   AX_ERROR="Invalid build mode '$BUILD_MODE'"
+   error
+fi
+
+if [[ ! ${SUPPORTED_BTYPE["$BUILD_BTYPE"]} ]] ; then
+   AX_ERROR="Invalid binary type '$BUILD_BTYPE'"
+   error
+fi
+
+get_ndk_home
+
+
+##########################################################
+#                    Library paths                       #
+##########################################################
+
+
+# Library directory name (triplet <plat>-<arch>-<comp>)
+LIB_DIR_NAME=$BUILD_PLAT-$BUILD_ARCH-$BUILD_COMP
+
+# Target installation directory
+INST_LIB_PATH=lib/$LIB_DIR_NAME/$BUILD_MODE
+
+
+if [ "$BUILD_PLAT" == "linux" ]; then 
+
+   if [ "$BUILD_ARCH" == "x32" ]; then
+      THIRD_LIB_PATH=$EXT_LIB_LINUX_32
+   else
+      THIRD_LIB_PATH=$EXT_LIB_LINUX
+   fi
+   # Directory with the built shared library
+   AUDIONEEX_LIB_DIR=build/$LIB_DIR_NAME/$BUILD_MODE
+   # Path to the static lib (only for static builds)
+   AUDIONEEX_LIB=$AUDIONEEX_LIB_DIR/libaudioneex.a
+   # Path to the FFTSS lib (only for static builds)
+   FFTSS_LIB=$THIRD_LIB_PATH/libfftss.a
+   # Binutils
+   AR_CMD=ar
+   STRIP_CMD=strip
+   
+elif [ "$BUILD_PLAT" == "android" ]; then 
+
+   THIRD_LIB_PATH=$EXT_LIB_ANDROID/$BUILD_ARCH
+
+   # Toolchain directory where the bin utils can be found.
+   TOOLCHAIN_PATH=$NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin
+
+   # Get the binutils prefix for the current architecture.
+   BIN_PREFIX=${NDK_BIN_PREFIX[$BUILD_ARCH]}
+
+   BUILD_LIB_BASEPATH=build/$LIB_DIR_NAME/$BUILD_MODE
+
+   # Directory with the built shared library
+   AUDIONEEX_LIB_DIR=$BUILD_LIB_BASEPATH/$BUILD_ARCH
+   # Path to the static lib (only for static builds)
+   AUDIONEEX_LIB=$BUILD_LIB_BASEPATH/obj/local/$BUILD_ARCH/libaudioneex.a
+   # Path to the FFTSS lib (only for static builds)
+   FFTSS_LIB=$THIRD_LIB_PATH/libfftss.a
+   # Bin utils
+   AR_CMD=$TOOLCHAIN_PATH/$BIN_PREFIX-ar
+   STRIP_CMD=$TOOLCHAIN_PATH/$BIN_PREFIX-strip
+
+elif [ "$BUILD_PLAT" == "osx" ]; then 
+   AX_ERROR="OSX not yet tested. Sorry."
+   error
+else
+   AX_ERROR="${BUILD_PLAT} not supported"
+   error
+fi
+
+
+##########################################################
+#                   Install Libraries                    #
+##########################################################
+
+
+if [ "$BUILD_BTYPE" == "static" ]; then
+
+  AUDIONEEX_INST_LIB=${INST_LIB_PATH}/libaudioneex.a
+
+  # Check all libraries
+  if [ ! -f $AUDIONEEX_LIB ]; then AX_ERROR="'${AUDIONEEX_LIB}' not found"; fi
+  if [ ! -f $FFTSS_LIB ]; then  AX_ERROR="'${FFTSS_LIB}' not found"; fi
+
+  [ "$AX_ERROR" == "" ] || error
+
+  # All libs are unpacked into different dirs to avoid object collisions.
+  # These temp folders are relative to the source's root directory.
+  LIBS_OBJ_TMP="lib/tmp"
+  LIB1_OBJ_DIR="${LIBS_OBJ_TMP}/lib1_o"
+  LIB2_OBJ_DIR="${LIBS_OBJ_TMP}/lib2_o"
+
+  # Remove any old temp files, just in case
+  clean_tmp_files
+
+  # Unpack all libs into the temp dirs and repack all into a single dist lib
+  mkdir -p $INST_LIB_PATH
+  mkdir -p $LIB1_OBJ_DIR;  cd $LIB1_OBJ_DIR;  $AR_CMD -x ../../../$AUDIONEEX_LIB ;  cd ../../..
+  mkdir -p $LIB2_OBJ_DIR;  cd $LIB2_OBJ_DIR;  $AR_CMD -x $FFTSS_LIB ;  cd ../../..
+  $AR_CMD -rc $AUDIONEEX_INST_LIB $LIB1_OBJ_DIR/*.o $LIB2_OBJ_DIR/*.o
+
+  clean_tmp_files
+
+else # dynamic lib
+
+  mkdir -p $INST_LIB_PATH
+  cp -rf $AUDIONEEX_LIB_DIR/lib* $INST_LIB_PATH
+  $STRIP_CMD --strip-unneeded $INST_LIB_PATH/libaudioneex.so
+  
+fi
+
+exit 0

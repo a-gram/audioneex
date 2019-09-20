@@ -27,7 +27,7 @@ environment and system.
    them yourself (you can use the android-configure script
    for that). Patched sources for Android can be found at
 
-   https://www.dropbox.com/s/kg9sn42d80lt0gt/audioneex_android_ext_libs.tar.gz?dl=0
+   https://www.dropbox.com/s/kg9sn42d80lt0gt/audioneex_android_ext_libs.tar.gz
 
 3. Locate the Android.mk file in the app/src/main/jni directory
    of the Studio project and set the /usr/... include paths in
@@ -43,7 +43,7 @@ The projects have been set to build for armeabi-v7a architectures
 only. If you need something different then modify the filter
 in the app's Gradle script.
 
-The apps have been tested with Android Studio 3.0.1, NDK r16b.
+The apps have been tested with Android Studio 3.0.1, NDK r19+.
 Boost library version 1.66.0, but anything above 1.55 should also
 work.
 

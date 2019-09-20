@@ -7,7 +7,7 @@
 #  where [options] is one or more of the following parameters
 #
 #  ARCH           = x32|x64
-#  TOOLCHAIN      = gcc64|vc14|...
+#  **TOOLCHAIN      = gcc64|vc14|...
 #  BINARY_TYPE    = dynamic|static
 #  BUILD_MODE     = debug|release
 #  DATASTORE_T    = TCDataStore|CBDataStore  (for the examples only)
@@ -89,8 +89,15 @@ set(Boost_USE_STATIC_RUNTIME    OFF)
 
 set(AX_SRC_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
+# Supported compilers
+# 
+# NOTE: These are the compilers that have been extensively
+# tested and guaranteed to work. Others may work as well.
+list(APPEND SUPPORTED_COMPILERS gnu clang msvc)
+
 
 # Default settings
+# ----------------
 
 if(NOT BINARY_TYPE)
   set(BINARY_TYPE dynamic)
@@ -110,6 +117,7 @@ endif()
 
 
 # Parameters check
+# ----------------
 
 if(BUILD_MODE STREQUAL "debug")
    set(CMAKE_BUILD_TYPE DEBUG)
@@ -157,18 +165,32 @@ endif()
 
 
 # Set project's include paths
+# ---------------------------
 
 foreach (dir ${MY_INCLUDE_DIRS})
     include_directories("${dir}")
 endforeach()
 
+
+# Verify that the compiler being used is supported
+# ------------------------------------------------
+
+string(TOLOWER "${CMAKE_CXX_COMPILER_ID}" COMPILER)
+string(REPLACE "." "" COMPILER_VERSION "${CMAKE_CXX_COMPILER_VERSION}")
+
+if(NOT COMPILER IN_LIST SUPPORTED_COMPILERS)
+    message(FATAL_ERROR 
+            "\nERROR: Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}")
+else()
+    set(TOOLCHAIN "${COMPILER}${COMPILER_VERSION}")
+endif()
+
+
 # Platform-specific global compilation settings (all modules)
+# -----------------------------------------------------------
 
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-
-   if(NOT TOOLCHAIN)
-      set(TOOLCHAIN gcc72)
-   endif()
+if(COMPILER STREQUAL "gnu" OR 
+   COMPILER STREQUAL "clang")
 
    set(COMP_FLAGS "-std=c++11 -fexceptions")
    
@@ -191,11 +213,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 
    set(PLATFORM linux)
    
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-
-   if(NOT TOOLCHAIN)
-     set(TOOLCHAIN vc141)
-   endif()
+elseif(COMPILER STREQUAL "msvc")
 
    add_definitions(-DWIN32)
    add_definitions(-DWIN32_LEAN_AND_MEAN) # Fix winsock.h clashes
@@ -209,11 +227,11 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
       set(COMP_FLAGS "${COMP_FLAGS} /W1 /MD")
    endif()
    
-   set(PLATFORM win)
+   set(PLATFORM windows)
    
 else()
    message(FATAL_ERROR 
-           "\nERROR: Unsupported compiler")
+           "\nERROR: This is a bug. Please report it (code 227).")
 endif()
 
 set(CMAKE_CXX_FLAGS ${COMP_FLAGS})
@@ -222,9 +240,11 @@ set(AX_VERSION ${PROJECT_VERSION})
 set(AX_OUTPUT_LIB_DIR "${AX_SRC_ROOT}/build/${PLATFORM}-${ARCH}-${TOOLCHAIN}/${BUILD_MODE}")
 set(AX_OUTPUT_EXE_DIR "${AX_SRC_ROOT}/build/${PLATFORM}-${ARCH}-${TOOLCHAIN}-bin")
 set(AX_POST_BUILD_SCRIPT_ARGS ${PLATFORM} ${ARCH} ${TOOLCHAIN} ${BUILD_MODE} ${BINARY_TYPE})
-set(AX_POST_BUILD_SCRIPT build_${PLATFORM})
+set(AX_POST_BUILD_SCRIPT install_${PLATFORM})
+
 
 # Find project's required libraries
+# ---------------------------------
 
 find_package(Boost 1.55 COMPONENTS filesystem system thread regex)
 
@@ -242,7 +262,9 @@ if(Boost_FOUND)
    include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
+
 # Build the project
+# -----------------
 
 message(STATUS 
    "Building for ${PLATFORM}-${ARCH}-${TOOLCHAIN} (${CMAKE_BUILD_TYPE})"
@@ -267,5 +289,4 @@ add_custom_target(
     WORKING_DIRECTORY ${AX_SRC_ROOT}
     DEPENDS audioneex
 )
-
 
