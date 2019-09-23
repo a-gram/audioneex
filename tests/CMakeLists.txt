@@ -69,7 +69,7 @@ foreach(TEST test_fingerprinting
              test_indexing 
              test_matching
              )
-    set_target_properties(${EXAMPLE} 
+    set_target_properties(${TEST} 
         PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${AX_OUTPUT_EXE_DIR}/tests"
         VERSION ${AX_VERSION}
     )
