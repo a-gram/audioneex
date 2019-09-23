@@ -71,6 +71,5 @@ foreach(TEST test_fingerprinting
              )
     set_target_properties(${TEST} 
         PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${AX_OUTPUT_EXE_DIR}/tests"
-        VERSION ${AX_VERSION}
     )
 endforeach()

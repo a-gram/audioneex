@@ -12,14 +12,14 @@ here. Generally, any POSIX-compliant platform with a modern C++ compiler
 Prerequisites
 -------------
 
-The engine itself only needs the following dependencies to build
+The engine itself only needs the following dependencies to build and run
 
 * Boost 1.6
 * FFTSS 3.0
 * Tokyo Cabinet 1.4 / Couchbase 5.1
 
 To build the full package, including the examples, you need to add the following 
-optional dependencies
+optional components
 
 * TagLib
 * FFMpeg
@@ -155,7 +155,7 @@ The paramaters are optional and if not specified they default to armeabi-v7a,
 21, release and dynamic respectively. If used, all of them must be given in 
 that exact order.
 
-.. hint::
+.. important::
 
    If the build fails because of include or libraries not found, set the
    proper paths in the *User Config* section of ``Android.mk``.
