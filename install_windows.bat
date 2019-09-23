@@ -1,131 +1,193 @@
 @ECHO OFF
+::
+::  This script will install the final binaries into a specific
+::  directory (currently a 'lib' directory at the root) and applies
+::  some manipulation on the files. It's called by the build 
+::  process for Windows builds and there is generally no need to 
+::  invoke it explicitly.
+::
+::  Usage:  install_windows <plat> <arch> <comp> <bmode> <btype>
+::
+::  where:  <plat> = windows
+::          <arch> = x32|x64
+::          <comp> = msvc
+::         <bmode> = debug|release
+::         <btype> = static|dynamic
+::
 
-::  This script will build the final distribution libraries (Augh!)
-::
-::  Usage:  build_dist_libs <plat> <arch> <comp> <bmode> <btype>
-::
-::  where:  plat = windows
-::          arch = x32|x64
-::          comp = vc11|vc12|vc141
-::         bmode = debug|release
-::         btype = static|dynamic
-::
-::  NOTE: External dependencies paths (such as fftss) may need to be
-::        set up properly according to the user's environment. Please
-::        see the 'Library paths' section below.
-::
+SETLOCAL
 
-SET ARGSNUM=0
+::#########################################################
+::#                     User Config                      ##
+::#########################################################
+
+:: NOTE: These settings are only required for static builds
+
+:: Locations for 32/64 bit release and debug libraries.
+set EXT_LIB_x64_release=C:\dev\cpp\lib\vc191\x64\release\static
+set EXT_LIB_x64_debug=C:\dev\cpp\lib\vc191\x64\debug\static
+set EXT_LIB_x32_release=C:\dev\cpp\lib\vc191\x32\release\static
+set EXT_LIB_x32_debug=C:\dev\cpp\lib\vc191\x32\debug\static
+
+:: If your debug libs have a specific suffix, specify it here.
+set EXT_LIB_DEBUG_SUFFIX=
+
+:: The default install folder for recent Visual Studio versions.
+:: If your VS is installed in a different folder, specify it here.
+set VC_INSTALL_DIR=C:\Program Files (x86)\Microsoft Visual Studio
+
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+
+set ARGSNUM=0
+
 for %%i in (%*) do set /A ARGSNUM+=1
 
 if %ARGSNUM% NEQ 5 (
-  SET AX_ERROR=Wrong number of arguments
+  set AX_ERROR=Wrong number of arguments
   goto error
 )
 
-SET BUILD_PLAT=
-SET BUILD_ARCH=
-SET BUILD_COMP=
-SET BUILD_MODE=
-SET BUILD_BTYPE=
+set BUILD_PLAT=
+set BUILD_ARCH=
+set BUILD_COMP=%3
+set BUILD_MODE=
+set BUILD_BTYPE=
 
-for %%a in (win)              do  if /i "%1"=="%%a" SET BUILD_PLAT=%1
-for %%a in (x32 x64)          do  if /i "%2"=="%%a" SET BUILD_ARCH=%2
-for %%a in (vc11 vc12 vc141)  do  if /i "%3"=="%%a" SET BUILD_COMP=%3
-for %%a in (debug release)    do  if /i "%4"=="%%a" SET BUILD_MODE=%4
-for %%a in (static dynamic)   do  if /i "%5"=="%%a" SET BUILD_BTYPE=%5
+for %%a in (windows)        do  if /i "%1"=="%%a" set BUILD_PLAT=%1
+for %%a in (x32 x64)        do  if /i "%2"=="%%a" set BUILD_ARCH=%2
+:: for %%a in (msvc)           do  if /i "%3"=="%%a" set BUILD_COMP=%3
+for %%a in (debug release)  do  if /i "%4"=="%%a" set BUILD_MODE=%4
+for %%a in (static dynamic) do  if /i "%5"=="%%a" set BUILD_BTYPE=%5
 
 
 if "%BUILD_PLAT%"=="" (
-  SET AX_ERROR=Invalid platform '%1'
+  set AX_ERROR=Invalid platform '%1'
   goto error
 )
 
 if "%BUILD_ARCH%"=="" (
-  SET AX_ERROR=Invalid architecture '%2'
+  set AX_ERROR=Invalid architecture '%2'
   goto error
 )
 
-if "%BUILD_COMP%"=="" (
-  SET AX_ERROR=Invalid compiler '%3'
-  goto error
-)
+:: if "%BUILD_COMP%"=="" (
+::   set AX_ERROR=Invalid compiler '%3'
+::   goto error
+:: )
 
 if "%BUILD_MODE%"=="" (
-  SET AX_ERROR=Invalid build mode '%4'
+  set AX_ERROR=Invalid build mode '%4'
   goto error
 )
 
 if "%BUILD_BTYPE%"=="" (
-  SET AX_ERROR=Invalid binary type '%5'
+  set AX_ERROR=Invalid binary type '%5'
   goto error
 )
+
 
 ::::::::::::::::::::::::::::::::::::::::::::::::
 ::::::::::::::: Build environment ::::::::::::::
 ::::::::::::::::::::::::::::::::::::::::::::::::
 
-if /i %BUILD_COMP% == vc11  SET VC_SETENV_DIR=C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC
-if /i %BUILD_COMP% == vc12  SET VC_SETENV_DIR=C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC
-if /i %BUILD_COMP% == vc141 SET VC_SETENV_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build
 
-:: Call the build environment setup script. VC uses 'x86' to identify 32-bit architectures
-:: and 'x64" for x86/amd 64-bit. We use x32 and x64 for x86 32/64 bit, so let's fix this.
+set VC_SETENV_SCRIPT=vcvarsall.bat
+set VC_SCRIPTS_FOUND=0
 
-SET VC_ARCH=%BUILD_ARCH%
-if "%BUILD_ARCH%" == "x32" SET VC_ARCH=x86
-SET VC_SETENV_SCRIPT=vcvarsall.bat
+echo Looking for the environment setup script. This may take a while ...
 
-CALL "%VC_SETENV_DIR%\%VC_SETENV_SCRIPT%" %VC_ARCH%
+:: For static builds we need some VC tools to create the final binary.
+:: Actually, we only need the 'lib' tool and could only look for it, but 
+:: we would have to determine which one to use based on the architecture, 
+:: so we look for vcvarsall.bat to setup the environment for the right tools.
+for /f "tokens=*" %%G in ('dir /b /s /a:d "%VC_INSTALL_DIR%"') do (
+   if exist %%G\%VC_SETENV_SCRIPT% (
+      set VC_SETENV_DIR=%%G
+      set /A VC_SCRIPTS_FOUND+=1
+   )
+)
 
-::::::::::::::::::::::::::::::::::::::::::::::::
-::::::::::::::: Library paths ::::::::::::::::::
-::::::::::::::::::::::::::::::::::::::::::::::::
+if %VC_SCRIPTS_FOUND% EQU 1 (
+   echo Found %VC_SETENV_SCRIPT% in "%VC_SETENV_DIR%"
+)
 
-SET BUILD_LIB_PATH=build\%BUILD_PLAT%-%BUILD_ARCH%-%BUILD_COMP%\%BUILD_MODE%
-SET DIST_LIB_PATH=lib\%BUILD_PLAT%-%BUILD_ARCH%-%BUILD_COMP%\%BUILD_MODE%
+if %VC_SCRIPTS_FOUND% EQU 0 (
+   echo.
+   echo   The "%VC_SETENV_SCRIPT%" script was not found under the directory
+   echo   "%VC_INSTALL_DIR%".
+   echo   If Visual Studio is not installed in that directory then you must 
+   echo   specify its location by setting the VC_INSTALL_DIR variable in the 
+   echo   User Config section of the install_windows.bat script.
+   echo.
+   goto error
+)
 
-:: External libraries
-:: NOTE: Set these paths according to your system based on build
-::       architecture, compiler and mode
-SET FFTSS_LIB=%LIBRARIES%\fftss\%BUILD_ARCH%\%BUILD_COMP%\%BUILD_MODE%\fftss.lib
+if %VC_SCRIPTS_FOUND% GTR 1 (
+   echo.
+   echo   Multiple "%VC_SETENV_SCRIPT%" scripts found under the directory
+   echo   "%VC_INSTALL_DIR%".
+   echo   If there are multiple versions of Visual Studio installed then
+   echo   you must specify which one to use by setting the VC_INSTALL_DIR
+   echo   variable in the User Config section of install_windows.bat .
+   echo.
+   goto error
+)
 
-:: Final distribution binaries
-SET AUDIONEEX_LIB=%BUILD_LIB_PATH%\audioneex.lib
-SET AUDIONEEX_DIST_LIB=%DIST_LIB_PATH%\audioneex.lib
+:: Call vcvarsall to setup the environment so we can call the right tools.
+:: NOTE: VC uses 'x86' for 32-bit architectures and 'x64' for 64-bit. 
+:: We use x32 and x64 for x86 32 and 64 bit, so let's fix this first.
+
+set VC_ARCH=%BUILD_ARCH%
+if "%BUILD_ARCH%" == "x32" set VC_ARCH=x86
+
+call "%VC_SETENV_DIR%\%VC_SETENV_SCRIPT%" %VC_ARCH%
+
+:: Some debug libraries use suffixes (e.g. _d. d) to distinguish
+if /i "%BUILD_MODE%"=="debug" (
+   set LIB_SFX=%EXT_LIB_DEBUG_SUFFIX%
+) else (
+   set LIB_SFX=
+)
+
+call set FFTSS_LIB=%%EXT_LIB_%BUILD_ARCH%_%BUILD_MODE%%%\fftss%LIB_SFX%.lib
+
+set LIB_DIR_NAME=%BUILD_PLAT%-%BUILD_ARCH%-%BUILD_COMP%
+set BUILD_LIB_DIR=build\%LIB_DIR_NAME%\%BUILD_MODE%
+set INSTALL_LIB_DIR=lib\%LIB_DIR_NAME%\%BUILD_MODE%
+set AUDIONEEX_LIB=%BUILD_LIB_DIR%\audioneex.lib
+set AUDIONEEX_INST_LIB=%INSTALL_LIB_DIR%\audioneex.lib
 
 :: Check that the required libraries do exist
 if not exist %AUDIONEEX_LIB% (
-   SET AX_ERROR=%AUDIONEEX_LIB% does not exist
+   set AX_ERROR=%AUDIONEEX_LIB% does not exist
    goto error
 )
 
-if not exist %FFTSS_LIB% (
-   SET AX_ERROR=%FFTSS_LIB% does not exist
-   goto error
-)
-
-if not exist %DIST_LIB_PATH% mkdir %DIST_LIB_PATH%
+if not exist %INSTALL_LIB_DIR% mkdir %INSTALL_LIB_DIR%
 
 ::::::::::::::::::::::::::::::::::::::::::::::::
-::::::::: Distribution libraries build :::::::::
+:::::::::::::: Install libraries :::::::::::::::
 ::::::::::::::::::::::::::::::::::::::::::::::::
 
-:: Build distro static libraries if static build, else just copy the build output
+:: For static builds, assemble the library, else just copy the build output
 if "%BUILD_BTYPE%" == "static" (
-   lib /OUT:%AUDIONEEX_DIST_LIB% %AUDIONEEX_LIB% %FFTSS_LIB%
+   :: Check whether FFTSS is available
+   if not exist %FFTSS_LIB% (
+      set AX_ERROR=%FFTSS_LIB% does not exist
+      goto error
+   )
+   lib /OUT:%AUDIONEEX_INST_LIB% %AUDIONEEX_LIB% %FFTSS_LIB%
 ) else (
-   copy %BUILD_LIB_PATH%\audioneex.* %DIST_LIB_PATH%
+   copy %BUILD_LIB_DIR%\audioneex.* %INSTALL_LIB_DIR%
 )
-goto eof
+
+goto :eof
 
 :::
 
 :error
-echo ERROR [build_dist_libs.bat]: %AX_ERROR%
+echo ERROR [%~nx0]: %AX_ERROR%
 echo %AX_ERROR% > %0_errors.log
-exit 1
-
-:eof
-exit 0
+exit /B 1
 

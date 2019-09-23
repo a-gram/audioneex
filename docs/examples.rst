@@ -16,8 +16,8 @@ Example programs for Linux and Windows can be found in the ``examples/winux`` di
 .. note::
 
    In order for the examples to build it is necessary to properly set the 
-   include and lib directories in the "User Config" section of the main CMake script 
-   (CMakeLists.txt) in the root directory.
+   include and lib directories in the *User Config* section of the main CMake 
+   script (CMakeLists.txt) in the root directory.
 
 Database
 ^^^^^^^^
@@ -102,8 +102,8 @@ apps to successfully build there are some things to configure according to your
 environment.
 
 1. Get the header files for the Tokyo Cabinet drivers and 
-   extract the tc*.h files from the root directory into a ``tcabinet``
-   folder somewhere in your system.
+   extract the tc*.h files into a ``tcabinet`` folder somewhere 
+   in your system.
 
 2. If you don't have it already, get the Boost library
    and install it into a directory somewhere in your system.
@@ -117,11 +117,12 @@ environment.
    Running the ``build_android`` script will do just that for
    the Audioneex libraries. External ones, you need to build
    them yourself (you can use the ``android-configure`` script
-   for that). Patched sources for Android can be found `here 
+   for that) and then copy them into the above directory. Patched 
+   sources for Android can be found `here  
    <https://www.dropbox.com/s/kg9sn42d80lt0gt/audioneex_android_ext_libs.tar.gz?dl=0>`_
 
 4. Locate the Android.mk file in the ``app/src/main/jni`` directory
-   of the Studio projects and set the include paths in the "User Config" 
+   of the Studio projects and set the include paths in the *User Config* 
    section to the folders where you installed the headers at step 1 
    and 2. If other include paths are required just put them there.
 
@@ -132,8 +133,6 @@ to be needed for Gradle to download some dependencies.
 The projects have been set to build for armeabi-v7a architectures
 only. If you need something different then modify the filter
 in the app's Gradle script.
-
-The apps have been tested with Android Studio 3.0.1, NDK r16b.
 
 About the Android demo apps
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

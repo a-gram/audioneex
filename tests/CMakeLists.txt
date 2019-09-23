@@ -65,3 +65,12 @@ target_compile_options(test_matching PRIVATE "${TEST_CXX_FLAGS}")
 target_link_libraries(test_matching audioneex
                       ${Boost_LIBRARIES} ${THREAD_LIB} ${DATASTORE_LIB})
 
+foreach(TEST test_fingerprinting 
+             test_indexing 
+             test_matching
+             )
+    set_target_properties(${EXAMPLE} 
+        PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${AX_OUTPUT_EXE_DIR}/tests"
+        VERSION ${AX_VERSION}
+    )
+endforeach()

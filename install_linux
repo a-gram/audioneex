@@ -8,20 +8,12 @@
 #
 #  Usage:  install_linux <plat> <arch> <comp> <bmode> <btype>
 #
-#  where:  plat = linux|osx|android
-#          arch = x32|x64|armeabi-v7a|arm64-v8a|x86|x86_64
-#          comp = gcc|clang
-#         bmode = debug|release
-#         btype = static|dynamic
+#  where:  <plat> = linux|osx|android
+#          <arch> = x32|x64|armeabi-v7a|arm64-v8a|x86|x86_64
+#          <comp> = gcc|clang
+#         <bmode> = debug|release
+#         <btype> = static|dynamic
 #
-#  NOTE: External dependencies paths (such as fftss) may need to be
-#        set up properly according to the user's environment. Please
-#        see the 'User Config' section below.
-#
-#
-# Author  : Alberto Gramaglia
-# Date    : 19-09-2019
-# Version : 1.3.0
 #
 
 set -e
@@ -42,10 +34,9 @@ EXT_LIB_LINUX_32="/usr/local/lib32/7"
 # /path/to/android/lib/<arch>
 EXT_LIB_ANDROID="/opt/android/lib"
 
-
-##########################################################
-#                       Functions                        #
-##########################################################
+#---------------------------------------------------------
+#                       Functions                        
+#---------------------------------------------------------
 
 
 function error()
@@ -87,9 +78,9 @@ function get_ndk_home()
 }
 
 
-##########################################################
-#                       Env Config                       #
-##########################################################
+#---------------------------------------------------------
+#                       Env Config                        
+#---------------------------------------------------------
 
 
 declare -A SUPPORTED_PLAT=(
@@ -161,19 +152,17 @@ if [[ ! ${SUPPORTED_BTYPE["$BUILD_BTYPE"]} ]] ; then
    error
 fi
 
-get_ndk_home
 
-
-##########################################################
-#                    Library paths                       #
-##########################################################
+#---------------------------------------------------------
+#                    Library paths                        
+#---------------------------------------------------------
 
 
 # Library directory name (triplet <plat>-<arch>-<comp>)
 LIB_DIR_NAME=$BUILD_PLAT-$BUILD_ARCH-$BUILD_COMP
 
 # Target installation directory
-INST_LIB_PATH=lib/$LIB_DIR_NAME/$BUILD_MODE
+INST_LIB_DIR=lib/$LIB_DIR_NAME/$BUILD_MODE
 
 
 if [ "$BUILD_PLAT" == "linux" ]; then 
@@ -194,6 +183,8 @@ if [ "$BUILD_PLAT" == "linux" ]; then
    STRIP_CMD=strip
    
 elif [ "$BUILD_PLAT" == "android" ]; then 
+
+   get_ndk_home
 
    THIRD_LIB_PATH=$EXT_LIB_ANDROID/$BUILD_ARCH
 
@@ -224,14 +215,14 @@ else
 fi
 
 
-##########################################################
-#                   Install Libraries                    #
-##########################################################
+#---------------------------------------------------------
+#                   Install Libraries                     
+#---------------------------------------------------------
 
 
 if [ "$BUILD_BTYPE" == "static" ]; then
 
-  AUDIONEEX_INST_LIB=${INST_LIB_PATH}/libaudioneex.a
+  AUDIONEEX_INST_LIB=${INST_LIB_DIR}/libaudioneex.a
 
   # Check all libraries
   if [ ! -f $AUDIONEEX_LIB ]; then AX_ERROR="'${AUDIONEEX_LIB}' not found"; fi
@@ -249,7 +240,7 @@ if [ "$BUILD_BTYPE" == "static" ]; then
   clean_tmp_files
 
   # Unpack all libs into the temp dirs and repack all into a single dist lib
-  mkdir -p $INST_LIB_PATH
+  mkdir -p $INST_LIB_DIR
   mkdir -p $LIB1_OBJ_DIR;  cd $LIB1_OBJ_DIR;  $AR_CMD -x ../../../$AUDIONEEX_LIB ;  cd ../../..
   mkdir -p $LIB2_OBJ_DIR;  cd $LIB2_OBJ_DIR;  $AR_CMD -x $FFTSS_LIB ;  cd ../../..
   $AR_CMD -rc $AUDIONEEX_INST_LIB $LIB1_OBJ_DIR/*.o $LIB2_OBJ_DIR/*.o
@@ -258,9 +249,9 @@ if [ "$BUILD_BTYPE" == "static" ]; then
 
 else # dynamic lib
 
-  mkdir -p $INST_LIB_PATH
-  cp -rf $AUDIONEEX_LIB_DIR/lib* $INST_LIB_PATH
-  $STRIP_CMD --strip-unneeded $INST_LIB_PATH/libaudioneex.so
+  mkdir -p $INST_LIB_DIR
+  cp -rf $AUDIONEEX_LIB_DIR/lib* $INST_LIB_DIR
+  $STRIP_CMD --strip-unneeded $INST_LIB_DIR/libaudioneex.so
   
 fi
 

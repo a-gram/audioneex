@@ -34,13 +34,13 @@ Features
 --------
 
 * **Highly efficient fingerprinting** - The fingerprints generation is much faster 
-  than real-time even on low-end hardware and the resulting fingerprints have a 
-  low storage requirement. On average, one hour of audio will be encoded into 
-  less than 1 MB (in uncompressed form).
+  than real-time even on low-end hardware and the resulting fingerprints are very
+  small in size. On average, one hour of audio will be encoded in less than 1 MB 
+  (in uncompressed form).
   
-* **Fast response times** - Typical recognition times are in the order of a few 
-  seconds (3-4 seconds on average for moderately distorted audio) making it 
-  suitable for real-time applications.
+* **Fast recognitions** - It only requires a few seconds of audio to perform an
+  identification (3-4 seconds on average for moderately distorted audio) making
+  it suitable for real-time applications.
   
 * **Cross-platform API** - Implemented in standard C++ to guarantee native high 
   performances while providing a suitable level of abstraction, it builds and 
@@ -49,19 +49,20 @@ Features
 
 * **Content-agnostic recognition** - The core algorithms are independent of the 
   nature of the audio to be recognized, allowing the identification of basically 
-  any kind of content, from music, to TV/Radio shows, movies, commercials, 
-  news and even generic sounds.
+  any kind of content, from music, to TV and Radio shows, movies, commercials, 
+  news, and even generic sounds.
   
-* **Highly flexible recognition system** - By providing several parameters that can
+* **Flexible recognition system** - By providing several parameters that can
   be set through the API, the engine allows fine-tuning of performances based on 
   the kind of application at hand. 
 
-* **Mobile & IoT-ready** - Its efficient algorithms make it suitable for devices 
-  with limited resources, such as mobile and embedded platforms, for on-device ACR.
+* **Mobile & IoT-ready** - Its efficient algorithms (and a tiny binary of just a
+  few hundred kB) make it suitable for devices with limited resources, such as 
+  mobile and embedded platforms, for on-device ACR.
 
 * **Database-neutral** - Designed to be independent of specific storage solutions, 
-   it does not lock you into a pre-determined technology and can be used with many
-   databases by rewriting the drivers.
+  it does not lock you into a pre-determined technology and can be used with many
+  databases by rewriting the drivers.
 
 
 Architecture

@@ -7,7 +7,6 @@
 #  where [options] is one or more of the following parameters
 #
 #  ARCH           = x32|x64
-#  **TOOLCHAIN      = gcc64|vc14|...
 #  BINARY_TYPE    = dynamic|static
 #  BUILD_MODE     = debug|release
 #  DATASTORE_T    = TCDataStore|CBDataStore  (for the examples only)
@@ -18,11 +17,11 @@
 
 cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
 
-project (audioneex VERSION 1.2.0 LANGUAGES CXX)
+project (audioneex VERSION 1.3.0 LANGUAGES CXX)
 
 
 # ---------------------------------------------------------
-#                   User Configuration
+#                      User Config
 # ---------------------------------------------------------
 
 
@@ -33,7 +32,7 @@ project (audioneex VERSION 1.2.0 LANGUAGES CXX)
 
 list(APPEND MY_INCLUDE_DIRS
     
-    "c:/dev/cpp/include"
+    "C:/dev/cpp/include"
     "/usr/local/include/tcabinet"
 
 )
@@ -43,12 +42,9 @@ list(APPEND MY_LIBRARY_x32_RELEASE_DIRS
 
 list(APPEND MY_LIBRARY_x64_RELEASE_DIRS
 
-    "c:/dev/cpp/lib/fftss/x64/vc141/release"
-    "c:/dev/cpp/lib/ejdb/x64/vc141/release"
-    "c:/dev/cpp/lib/libcouchbase/x64/vc141/release"
-    "c:/dev/cpp/lib/taglib/x64/vc141/release"
+    "C:/dev/cpp/lib/vc191/x64/release"
+    "C:/dev/cpp/lib/vc191/x64/release/static"
     "/usr/local/lib/7"
-
 )
 
 list(APPEND MY_LIBRARY_x32_DEBUG_DIRS
@@ -56,12 +52,9 @@ list(APPEND MY_LIBRARY_x32_DEBUG_DIRS
 
 list(APPEND MY_LIBRARY_x64_DEBUG_DIRS
 
-    "c:/dev/cpp/lib/fftss/x64/vc141/debug"
-    "c:/dev/cpp/lib/ejdb/x64/vc141/debug"
-	"c:/dev/cpp/lib/libcouchbase/x64/vc141/debug"
-    "c:/dev/cpp/lib/taglib/x64/vc141/debug"
+    "C:/dev/cpp/lib/vc191/x64/debug"
+    "C:/dev/cpp/lib/vc191/x64/debug/static"
     "/usr/local/lib/7"
-
 )
 
 set(MY_BOOST_INCLUDE_DIR
@@ -177,6 +170,7 @@ endforeach()
 
 string(TOLOWER "${CMAKE_CXX_COMPILER_ID}" COMPILER)
 string(REPLACE "." "" COMPILER_VERSION "${CMAKE_CXX_COMPILER_VERSION}")
+string(SUBSTRING "${COMPILER_VERSION}" 0 4 COMPILER_VERSION)
 
 if(NOT COMPILER IN_LIST SUPPORTED_COMPILERS)
     message(FATAL_ERROR 
@@ -238,7 +232,8 @@ set(CMAKE_CXX_FLAGS ${COMP_FLAGS})
 
 set(AX_VERSION ${PROJECT_VERSION})
 set(AX_OUTPUT_LIB_DIR "${AX_SRC_ROOT}/build/${PLATFORM}-${ARCH}-${TOOLCHAIN}/${BUILD_MODE}")
-set(AX_OUTPUT_EXE_DIR "${AX_SRC_ROOT}/build/${PLATFORM}-${ARCH}-${TOOLCHAIN}-bin")
+#set(AX_OUTPUT_EXE_DIR "${AX_SRC_ROOT}/build/${PLATFORM}-${ARCH}-${TOOLCHAIN}-bin")
+set(AX_OUTPUT_EXE_DIR "${AX_OUTPUT_LIB_DIR}")
 set(AX_POST_BUILD_SCRIPT_ARGS ${PLATFORM} ${ARCH} ${TOOLCHAIN} ${BUILD_MODE} ${BINARY_TYPE})
 set(AX_POST_BUILD_SCRIPT install_${PLATFORM})
 
@@ -281,10 +276,9 @@ if(WITH_TESTS)
 endif()
 
 
-# Post-build script (note that this is executed after the audioneex target has
-# been built, not after the whole project build)
+# Post-build script
 add_custom_target(
-    buildlib ALL
+    install_lib ALL
     COMMAND ${AX_SRC_ROOT}/${AX_POST_BUILD_SCRIPT} ${AX_POST_BUILD_SCRIPT_ARGS}
     WORKING_DIRECTORY ${AX_SRC_ROOT}
     DEPENDS audioneex

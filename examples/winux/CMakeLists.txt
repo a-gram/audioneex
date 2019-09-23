@@ -82,3 +82,9 @@ target_link_libraries(example4 audioneex
                       ${Boost_LIBRARIES} ${THREAD_LIB}
                       ${DATASTORE_LIB} ${ID3TAG_LIB})
 
+foreach(EXAMPLE example1 example2 example3 example4)
+    set_target_properties(${EXAMPLE} 
+        PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${AX_OUTPUT_EXE_DIR}/examples"
+        VERSION ${AX_VERSION}
+    )
+endforeach()

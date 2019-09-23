@@ -28,9 +28,9 @@ The code has been developed mostly using the below mentioned tools, but anything
 more recent should also work fine, so these are considered the minimum
 requirements
 
-* GCC 6/7, CLang 5, MSVC++ 14
+* GCC 6/7, CLang 5, MSC 19.1
 * CMake 3.11
-* Android NDK r16b
+* Android NDK r19+
 
 While the specified versions for the above dependencies are guaranteed to work 
 and are thus recommended, it may also work with others. TagLib and FFMpeg are 
@@ -74,8 +74,15 @@ for few specific tweaks that may occur.
 **2.  Set include and library paths**
 
 This step is not mandatory but it will most likely be necessary since these paths
-are system-dependent. You can set them in the "User Configuration" section
-of the CMake build script located in the root directory.
+are system-dependent. You can set them in the *User Config* section of the CMake 
+build script located in the root directory.
+
+.. important::
+
+   Other scripts used in the project have default library and include paths
+   set in the *User Config* section that may not match your environment. If 
+   the build fails because of some file not being found you can locate that
+   section in the offending script and set those paths accordingly.
 
 **3.  Build**
 
@@ -94,7 +101,6 @@ the form ``-D<var=value>``
 .. code-block:: none
 
    ARCH          = x32|x64
-   TOOLCHAIN     = gcc64|gcc72|vc14|...
    BINARY_TYPE   = dynamic|static
    BUILD_MODE    = debug|release
    DATASTORE_T   = TCDataStore|CBDataStore
@@ -124,42 +130,50 @@ that the NDK must be properly installed prior to make any attempt to build.
 
 .. note::
 
-   The script has been tested with the NDK r16b. Please refer to the script 
-   itself for more information (especially for how to fix some bugs present in r16b).
+   The script has been updated to work with the NDK r19+. Older versions are
+   not guaranteed to work. Most likely they will not. Please refer to the script 
+   itself for more information (especially for how to fix some issues that may
+   occur).
 
 Usage:
 
 .. code-block:: bash
 
-   $ build_android <arch> <comp> <api> <bmode> <btype>
+   $ build_android [<arch> <api> <bmode> <btype>]
 
 where
 
 .. code-block:: none
 
-   <arch>   is one of the supported architectures (armeabi-v7a, x86, etc.)
-   <comp>   the compiler (clang, gcc)
+   <arch>   one of the supported architectures
    <api>    the target Android API version
    <bmode>  the build mode (debug, release)
-   <btype>  the library type (static, dynamic)
+   <btype>  the binary type (static, dynamic)
 
-The final libraries will be put in the ``/lib`` folder of the root directory.
+The final binaries will be put in the ``/lib`` folder of the root directory.
+The paramaters are optional and if not specified they default to armeabi-v7a, 
+21, release and dynamic respectively. If used, all of them must be given in 
+that exact order.
+
+.. hint::
+
+   If the build fails because of include or libraries not found, set the
+   proper paths in the *User Config* section of ``Android.mk``.
 
 Naturally, first you will have to build the required external libraries mentioned 
 in the prerequisites for the specific Android platforms you're targeting. A build 
 script in the root directory called ``android-configure`` will help you with the
-cross-compilation of these libraries without the need for exporting toolchains
-for each target architecture. For more info, have a look at the script itself.
-Patched source code for the libraries that compile on Android can be downloaded
-from `here <https://www.dropbox.com/s/kg9sn42d80lt0gt/audioneex_android_ext_libs.tar.gz>`_.
+cross-compilation of these libraries. For more info, refer to the script itself.
+Patched source code for the libraries that compile on Android straight away can 
+be downloaded from `here <https://www.dropbox.com/s/kg9sn42d80lt0gt/audioneex_android_ext_libs.tar.gz>`_.
 Just unpack them somewhere and run
 
 .. code-block:: bash
 
-   $ ./android-configure <arch> <comp> <api> [config_params]
+   $ ./android-configure <arch> <api> [config_params]
    $ make
     
-from within the respective directories, where ``<arch> <comp> <api>`` are the same 
+from within the respective directories, where ``<arch> <api>`` are the same 
 as in the ``build_android`` script and ``[config_params]`` are library-specific
-configuration parameters. Please have a look at the script itself for more details.
+configuration parameters. Please have a look at the script for more details.
 
