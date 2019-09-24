@@ -15,7 +15,9 @@
 ::         <btype> = static|dynamic
 ::
 
+
 SETLOCAL
+
 
 ::#########################################################
 ::#                     User Config                      ##
@@ -36,7 +38,7 @@ set EXT_LIB_DEBUG_SUFFIX=
 :: If your VS is installed in a different folder, specify it here.
 set VC_INSTALL_DIR=C:\Program Files (x86)\Microsoft Visual Studio
 
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+::#########################################################
 
 
 set ARGSNUM=0
@@ -87,10 +89,14 @@ if "%BUILD_BTYPE%"=="" (
 )
 
 
-::::::::::::::::::::::::::::::::::::::::::::::::
-::::::::::::::: Build environment ::::::::::::::
-::::::::::::::::::::::::::::::::::::::::::::::::
+if "%BUILD_BTYPE%" == "static" call :static_build
+call :install_lib
+goto :eof
 
+
+::===========
+:static_build
+::===========
 
 set VC_SETENV_SCRIPT=vcvarsall.bat
 set VC_SCRIPTS_FOUND=0
@@ -152,11 +158,20 @@ if /i "%BUILD_MODE%"=="debug" (
 
 call set FFTSS_LIB=%%EXT_LIB_%BUILD_ARCH%_%BUILD_MODE%%%\fftss%LIB_SFX%.lib
 
+exit /B 0
+
+
+::==========
+:install_lib
+::==========
+
 set LIB_DIR_NAME=%BUILD_PLAT%-%BUILD_ARCH%-%BUILD_COMP%
 set BUILD_LIB_DIR=build\%LIB_DIR_NAME%\%BUILD_MODE%
 set INSTALL_LIB_DIR=lib\%LIB_DIR_NAME%\%BUILD_MODE%
 set AUDIONEEX_LIB=%BUILD_LIB_DIR%\audioneex.lib
 set AUDIONEEX_INST_LIB=%INSTALL_LIB_DIR%\audioneex.lib
+:: Needs to be defined anyways else will fail
+if not defined FFTSS_LIB set FFTSS_LIB=""
 
 :: Check that the required libraries do exist
 if not exist %AUDIONEEX_LIB% (
@@ -165,10 +180,6 @@ if not exist %AUDIONEEX_LIB% (
 )
 
 if not exist %INSTALL_LIB_DIR% mkdir %INSTALL_LIB_DIR%
-
-::::::::::::::::::::::::::::::::::::::::::::::::
-:::::::::::::: Install libraries :::::::::::::::
-::::::::::::::::::::::::::::::::::::::::::::::::
 
 :: For static builds, assemble the library, else just copy the build output
 if "%BUILD_BTYPE%" == "static" (
@@ -182,12 +193,16 @@ if "%BUILD_BTYPE%" == "static" (
    copy %BUILD_LIB_DIR%\audioneex.* %INSTALL_LIB_DIR%
 )
 
-goto :eof
+exit /B 0
 
-:::
 
+::====
 :error
+::====
+
+echo.
 echo ERROR [%~nx0]: %AX_ERROR%
+echo.
 echo %AX_ERROR% > %0_errors.log
 exit /B 1
 
