@@ -1,9 +1,15 @@
 apply plugin: 'com.android.application'
-
 android {
+    signingConfigs {
+        release {
+            storeFile file("audioneex.keystore")
+            storePassword '12345678'
+            keyAlias 'ax-key'
+            keyPassword '12345678'
+        }
+    }
     compileSdkVersion 26
     buildToolsVersion "27.0.3"
-
     defaultConfig {
         applicationId "com.audioneex.otaexample"
         minSdkVersion 15
@@ -14,20 +20,30 @@ android {
             abiFilters "armeabi-v7a"
         }
     }
-
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.release
+        }
+    }
+    variantFilter { variant ->
+        if (variant.buildType.name == "debug") {
+            variant.setIgnore(true)
         }
     }
     externalNativeBuild {
-        ndkBuild {
-            path 'src/main/jni/Android.mk'
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs "src/main/JniLibs/armeabi-v7a/"
         }
     }
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:26.0.0'
+    compile "com.android.support:appcompat-v7:26.0.0"
 }

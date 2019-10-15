@@ -379,7 +379,7 @@ public:
                                           uint32_t bo = 0) = 0;
 
 
-    virtual ~DataStore(){}
+    virtual ~DataStore() = default;
 
 };
 
@@ -395,7 +395,6 @@ public:
 class AUDIONEEX_API AudioProvider
 {
 public:
-    virtual ~AudioProvider(){}
 
     /// Called by the Indexer whenever audio data for fingerprinting is needed.
     ///
@@ -409,6 +408,8 @@ public:
     virtual int OnAudioData(uint32_t FID, 
                             float* buffer, 
                             size_t nsamples) = 0;
+    
+    virtual ~AudioProvider() = default;
 };
 
 // ----------------------------------------------------------------------------
@@ -592,7 +593,7 @@ public:
     virtual DataStore* GetDataStore() const = 0;
 
 
-    virtual ~Recognizer(){}
+    virtual ~Recognizer() = default;
 
 };
 
@@ -712,7 +713,7 @@ public:
     virtual AudioProvider* GetAudioProvider() const = 0;
 
 
-    virtual ~Indexer(){}
+    virtual ~Indexer() = default;
 
 };
 

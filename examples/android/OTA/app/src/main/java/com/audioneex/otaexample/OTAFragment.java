@@ -13,7 +13,10 @@ package com.audioneex.otaexample;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -69,8 +72,8 @@ public class OTAFragment extends Fragment implements AudioIdentificationListener
 
             /*
              *   This is the directory where the reference database files will
-             *   be stored. You can use the command line examples to create the
-             *   audio database and then put the produced files data.* in the
+             *   be stored. You can use the command line tools to create the
+             *   audio database and then put the produced data.* files in the
              *   'assets' directory. The app will extract these files in IdDBDir.
              */
             File IdDBDir = new File(IdDBDirBase , "id_data" );
@@ -82,8 +85,12 @@ public class OTAFragment extends Fragment implements AudioIdentificationListener
             mRecognitionService.SetAutodiscovery(true);
             mRecognitionService.Start();
 
-        }catch(Exception e){
-            Log.e("","EXCEPTION []: "+e.getMessage());
+        }
+        catch (IOException e){
+            Log.e("TestApp", "EXCEPTION: [Setup()]: "+e.toString());
+        }
+        catch(Exception e){
+            Log.e("TestApp","EXCEPTION [Setup()]: "+e.toString());
         }
 
         mBtnListen = (ImageView) view.findViewById(R.id.btnListen);
@@ -110,6 +117,7 @@ public class OTAFragment extends Fragment implements AudioIdentificationListener
     }
 
     private void ExtractIdDatastore(File dbdir)
+        throws IOException
     {
         InputStream is = null;
         FileOutputStream os = null;
@@ -127,18 +135,27 @@ public class OTAFragment extends Fragment implements AudioIdentificationListener
             dbfiles[1] = new File(dbdir, "data.met");
             dbfiles[2] = new File(dbdir, "data.qfp");
 
+            List<String> assets = Arrays.asList(
+                getActivity().getAssets().list("")
+            );
+
             // Extract datastore files from assets
-            for(File db: dbfiles) {
+            for(File db: dbfiles)
+            {
                 String dbfile = db.getName();
+                
+                if(!assets.contains(dbfile))
+                    throw new FileNotFoundException
+                    ("Couldn't find the database file '"+dbfile+"'. Make sure "+
+                     "that all the data.* files are copied in the 'asset' folder.");
+
                 is = getActivity().getAssets().open(dbfile);
                 os = new FileOutputStream(db);
+
                 Log.i("TestApp", "writing db file: " + dbfile);
                 while ((bytes_read = is.read(buffer)) != -1)
                     os.write(buffer, 0, bytes_read);
             }
-        }
-        catch (IOException e) {
-            Log.e("TestApp", "EXCEPTION: [ExtractIdDatastore()]: "+e.toString());
         }
         finally {
             if(is != null) try { is.close(); }

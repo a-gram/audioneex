@@ -1,3 +1,7 @@
-/build
-/lib
+# Temp directories
+_build/
+lib/
+bin/
+
+# Logs and other junk files
 *.log

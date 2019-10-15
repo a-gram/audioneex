@@ -23,7 +23,7 @@ Database
 ^^^^^^^^
 
 All of the examples use an implementation of the :class:`DataStore` interface based on
-key-value databases. These implementations can be found in the ``DAO`` directory. 
+key-value databases. These implementations can be found in the ``src/dbdrivers`` directory. 
 The following drivers are provided:
 
 * ``TCDataStore`` - This driver provides access to `Tokyo Cabinet 
@@ -38,7 +38,7 @@ The following drivers are provided:
   for large scale applications (e.g. web services). The examples have been tested 
   on the Community Edition.
 
-The examples need only one of those databases (it is also possible to use both),
+The examples only need one of those databases (it is also possible to use both),
 which must be specified at build time using a special CMake parameter (see below).
 You can download them from their respective websites, then build the libraries 
 (*libtokyocabinet* and/or *libcouchbase*) and install the binaries and headers in 
@@ -71,11 +71,11 @@ Building
 ^^^^^^^^
 
 The Linux and Windows examples can be built as part of the main library build
-process by indicating so in the CMake command line, as follows
+process by indicating so in the build script's command line, as follows
 
 .. code-block:: bash
 
-   $ cmake -DWITH_EXAMPLES=ON ..
+   $ ./build WITH_EXAMPLES=ON
 
 By default, the programs will use the Tokyo Cabinet database through the 
 ``TCDataStore`` driver. It is possible to change this option and use the Couchbase
@@ -83,14 +83,14 @@ database by specifying the ``DATASTORE_T`` parameter as follows
 
 .. code-block:: bash
 
-   $ cmake -DWITH_EXAMPLES=ON -DDATASTORE_T=CBDataStore ..
+   $ ./build WITH_EXAMPLES=ON DATASTORE_T=CBDataStore
 
 If you want to build with ID3 tag support to handle the metadata then include
 the ``WITH_ID3`` paramater
 
 .. code-block:: bash
 
-   $ cmake -DWITH_EXAMPLES=ON -DWITH_ID3=ON ..
+   $ ./build WITH_EXAMPLES=ON WITH_ID3=ON
 
 
 Android examples
@@ -114,22 +114,26 @@ environment.
 
    ``<sources_root>/lib/android-<arch>-<compiler>``
 
-   Running the ``build_android`` script will do just that for
+   Running the ``build`` script will do just that for
    the Audioneex libraries. External ones, you need to build
    them yourself (you can use the ``android-configure`` script
    for that) and then copy them into the above directory. Patched 
    sources for Android can be found `here  
    <https://www.dropbox.com/s/kg9sn42d80lt0gt/audioneex_android_ext_libs.tar.gz?dl=0>`_
 
-4. Locate the Android.mk file in the ``app/src/main/jni`` directory
+4. Locate the CMake script file in the ``app/src/main/cpp`` directory
    of the Studio projects and set the include paths in the *User Config* 
    section to the folders where you installed the headers at step 1 
    and 2. If other include paths are required just put them there.
 
-You will also have to set the Android Studio SDK and NDK paths
-according to your system in *File->Project Structure*. After that
-everything should be set to go. An internet connection is likely
-to be needed for Gradle to download some dependencies.
+The examples use CMake to build, so you need to have it installed and
+configured properly. The easiest way is to get the one shipped with Android
+Studio through the SDK Manager (version 3.6 is recommended at the time of
+this writing as the more recent version doesn't work). You will also have to 
+set the Android Studio SDK and NDK paths according to your system in 
+*File->Project Structure*. After that everything should be set to go. 
+An internet connection is likely to be needed for Gradle to download some 
+dependencies.
 The projects have been set to build for armeabi-v7a architectures
 only. If you need something different then modify the filter
 in the app's Gradle script.

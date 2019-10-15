@@ -5,8 +5,8 @@ How to build it
 The code has been extensively tested on Linux, Windows and Android platforms,
 so here we're outlining the steps needed to build the binaries on such
 platforms. However, it may as well build on others not officially mentioned 
-here. Generally, any POSIX-compliant platform with a modern C++ compiler
-(version 11 or higher) should be fine.
+here. Generally, any platform with a decent POSIX compatibility and a modern C++ 
+compiler (version 11 or higher) should be fine.
 
 
 Prerequisites
@@ -28,9 +28,9 @@ The code has been developed mostly using the below mentioned tools, but anything
 more recent should also work fine, so these are considered the minimum
 requirements
 
-* GCC 6/7, CLang 5, MSC 19.1
+* GCC 6, CLang 5, MSC 19.1
 * CMake 3.11
-* Android NDK r19+
+* Android NDK r19
 
 While the specified versions for the above dependencies are guaranteed to work 
 and are thus recommended, it may also work with others. TagLib and FFMpeg are 
@@ -41,18 +41,19 @@ but doing so will require changes to the code.
 About the database
 ------------------
 
-Audioneex is database-neutral, so technically it can be used with any database. 
+Audioneex needs a database to store the fingerprints and is designed to be 
+database-neutral, so technically it can be used with any database. 
 However, using databases other than the ones supported out of the box requires 
 writing the drivers. The default databases are *Tokyo Cabinet* and *Couchbase*. 
 The former is an embedded/in-process database (suitable for mobile/embedded apps), 
 while the latter is a client/server type.
 
 
-How to build for Linux and Windows
-----------------------------------
+Building steps
+--------------
 
-The project uses the CMake build system on both Linux and Windows.
-The steps to follow are pretty much the same on both platforms, aside
+The project uses the CMake build system on all supported platforms.
+The steps to follow are pretty much the same for all platforms, aside
 for few specific tweaks that may occur.
 
 **1.  Set up the build environment**
@@ -74,91 +75,51 @@ for few specific tweaks that may occur.
 **2.  Set include and library paths**
 
 This step is not mandatory but it will most likely be necessary since these paths
-are system-dependent. You can set them in the *User Config* section of the CMake 
-build script located in the root directory.
-
-.. important::
-
-   Other scripts used in the project have default library and include paths
-   set in the *User Config* section that may not match your environment. If 
-   the build fails because of some file not being found you can locate that
-   section in the offending script and set those paths accordingly.
+are system-dependent. You can set them in the *User Config* section of the main 
+CMake build script (CMakeLists.txt) located in the root directory.
 
 **3.  Build**
 
-On Linux, open a shell and issue the following commands
+After cloning (or downloading) the code, open a shell and execute the following 
+commands
 
 .. code-block:: bash
 
    $ cd <source_root_directory>
-   $ mkdir build && cd build
-   $ cmake [options] ..
-   $ make
+   $ ./build [options]
 
 where ``[options]`` is one or more of the following command line parameters in
-the form ``-D<var=value>``
+the form ``variable=value``
 
 .. code-block:: none
 
-   ARCH          = x32|x64
-   BINARY_TYPE   = dynamic|static
-   BUILD_MODE    = debug|release
-   DATASTORE_T   = TCDataStore|CBDataStore
-   WITH_EXAMPLES = ON|OFF
-   WITH_ID3      = ON|OFF  (for the examples only, includes metadata)
-   WITH_TESTS    = ON|OFF  (for project developers only)
+   TARGET        = linux | windows | android
+   ARCH          = x32 | x64  (Linux/Windows)
+                   armeabi-v7a | arm64-v8a | x86 | x86_64 (Android)
+   API           = API version number (Android only)
+   BINARY_TYPE   = dynamic | static
+   BUILD_MODE    = debug | release
+   DATASTORE_T   = TCDataStore | CBDataStore
+   WITH_EXAMPLES = ON | OFF
+   WITH_ID3      = ON | OFF  (for the examples only)
+   WITH_TESTS    = ON | OFF  (for project developers only)
 
-On Windows, replace the last two commands above with the following
+By default, if no options are passed on, the build targets Linux (or Windows) 
+x64 and produces the dynamic library only, in release mode. The final libraries 
+will be put in a ``/lib`` folder in the root directory.
 
-.. code-block:: shell
-
-   > cmake -G "NMake Makefiles" [options] ..
-   > nmake
-
-By default, if no options are passed on, the script builds dynamic libraries
-targeting 64-bit architectures in release mode. The final libraries will be put 
-in a ``/lib`` folder in the root directory.
-
-
-How to build for Android
-------------------------
-
-There is a build script in the root directory called ``build_android`` that will 
-facilitate the compilation of the library for Android platforms. This script
-uses the Android NDK build system (ndk-build et al.), so it goes without saying
-that the NDK must be properly installed prior to make any attempt to build.
-
-.. note::
-
-   The script has been updated to work with the NDK r19+. Older versions are
-   not guaranteed to work. Most likely they will not. Please refer to the script 
-   itself for more information (especially for how to fix some issues that may
-   occur).
-
-Usage:
+To build for Android, specify the target as follows
 
 .. code-block:: bash
 
-   $ build_android [<arch> <api> <bmode> <btype>]
+   $ ./build TARGET=android [options]
 
-where
+If no other paramaters are given, then the build defaults to the armeabi-v7a
+architecture and the latest API level. 
 
-.. code-block:: none
+.. note::
 
-   <arch>   one of the supported architectures
-   <api>    the target Android API version
-   <bmode>  the build mode (debug, release)
-   <btype>  the binary type (static, dynamic)
-
-The final binaries will be put in the ``/lib`` folder of the root directory.
-The paramaters are optional and if not specified they default to armeabi-v7a, 
-21, release and dynamic respectively. If used, all of them must be given in 
-that exact order.
-
-.. important::
-
-   If the build fails because of include or libraries not found, set the
-   proper paths in the *User Config* section of ``Android.mk``.
+   The parameters for the build script are case-sensitive.
 
 Naturally, first you will have to build the required external libraries mentioned 
 in the prerequisites for the specific Android platforms you're targeting. A build 
@@ -174,6 +135,10 @@ Just unpack them somewhere and run
    $ make
     
 from within the respective directories, where ``<arch> <api>`` are the same 
-as in the ``build_android`` script and ``[config_params]`` are library-specific
+as in the ``build`` script and ``[config_params]`` are library-specific
 configuration parameters. Please have a look at the script for more details.
+
+
+
+
 

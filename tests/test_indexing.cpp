@@ -115,7 +115,7 @@ TEST_CASE("Indexer indexing") {
 
     REQUIRE_NOTHROW( itest.SetDatastore( &dstore ) );
     REQUIRE_NOTHROW( itest.SetIndexer( indexer.get() ) );
-    REQUIRE_NOTHROW( itest.SetFingerprintsNum( 1000 ) );
+    REQUIRE_NOTHROW( itest.SetFingerprintsNum( 100 ) );
     REQUIRE_NOTHROW( itest.Run() );
 
 }

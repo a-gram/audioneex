@@ -3,17 +3,18 @@
 #                      Library Module
 # ---------------------------------------------------------
 
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-add_definitions(-DNDEBUG -DAUDIONEEX_API_EXPORT)
-
-include_directories(${AX_SRC_ROOT}/src
-                    ${AX_SRC_ROOT}/src/ident
-                    ${AX_SRC_ROOT}/src/index
-                    ${AX_SRC_ROOT}/src/quant
-                    ${AX_SRC_ROOT}/src/audiocodes
-                    ${AX_SRC_ROOT}/audio
-                    ${AX_SRC_ROOT}/tools)
+set(AX_LIB_INC
+    ${AX_PLAT_INCLUDES}
+    ${AX_SRC_ROOT}/src
+    ${AX_SRC_ROOT}/src/ident
+    ${AX_SRC_ROOT}/src/index
+    ${AX_SRC_ROOT}/src/quant
+    ${AX_SRC_ROOT}/src/audiocodes
+    ${AX_SRC_ROOT}/src/audio
+    ${AX_SRC_ROOT}/src/tools)
 
 set(AX_LIB_SRC
     ident/Fingerprint.cpp
@@ -26,74 +27,59 @@ set(AX_LIB_SRC
     audiocodes/AudioCodes.cpp)
 
 
-if(WITH_TESTS)
-   add_definitions(-DTESTING)
+if(AX_WITH_TESTS)
+   set(AX_LIB_DEFS ${AX_LIB_DEFS} -DTESTING)
    string(CONCAT EMESSAGE
-          "\n"
-          "WARNING: The library is being built in TEST MODE, which "
+          "\nWARNING: The library is being built in TEST MODE, which "
           "is not meant for production. If you're not a project "
-          "developer, rebuild without the WITH_TESTS definition.")         
+          "developer, rebuild without the AX_WITH_TESTS definition.")
    message(WARNING ${EMESSAGE})
 endif()
 
+
 # --- Check module-specific parameters ---
 
-if(BINARY_TYPE STREQUAL "dynamic")
-   set(BUILD_SHARED_LIBS ON)
-   add_definitions(-DAUDIONEEX_DLL)
-   message(STATUS "Building dynamic library")
-elseif(BINARY_TYPE STREQUAL "static")
-   set(BUILD_SHARED_LIBS OFF)
-   message(STATUS "Building static library")
+if(AX_BINARY_TYPE STREQUAL dynamic)
+   set(AX_LIB_TYPE SHARED)
+   set(AX_LIB_DEFS ${AX_LIB_DEFS} -DAUDIONEEX_DLL)
+elseif(AX_BINARY_TYPE STREQUAL static)
+   set(AX_LIB_TYPE STATIC)
 else()
    message(FATAL_ERROR 
-       "\nERROR: Invalid build type: ${BINARY_TYPE}. Use static|dynamic."
+       "\nERROR: Invalid build type: ${AX_BINARY_TYPE}. Use static|dynamic."
    )
 endif()
 
-# --- Platform-specific module compilation settings ---
-
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-
-   set(LIB_CXX_FLAGS -fvisibility=hidden -fno-rtti)
-
-   if(BUILD_MODE STREQUAL "debug")
-      set(LIB_CXX_FLAGS ${LIB_CXX_FLAGS})
-   elseif(BUILD_MODE STREQUAL "release")
-      set(LIB_CXX_FLAGS ${LIB_CXX_FLAGS} -O2)
-   endif()
-	
-elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-
-   set(LIB_CXX_FLAGS "")
-   
-   if(BUILD_MODE STREQUAL "debug")
-      set(LIB_CXX_FLAGS ${LIB_CXX_FLAGS} /GR- /Od)
-   elseif(BUILD_MODE STREQUAL "release")
-      set(LIB_CXX_FLAGS ${LIB_CXX_FLAGS} /GS- /GR- /O2)
-   endif()
-	
+if(AX_LIB_VERSIONED)
+   set(AX_LIB_VERSION VERSION ${AX_VERSION})
+   set(AX_LIB_SOVERSION SOVERSION ${PROJECT_VERSION_MAJOR})
+else()
+   set(AX_LIB_VERSION "")
+   set(AX_LIB_SOVERSION "")
 endif()
 
-# --- Check for required libraries ---
 
-find_library(FFTSS_LIB
+# --- Find targets libraries ---
+
+find_library(AX_LIB_FFTSS
              NAMES fftss
-             PATHS ${MY_LIBRARY_${ARCH}_${CMAKE_BUILD_TYPE}_DIRS})
+             PATHS ${AX_LIB_LIB_PATHS})
 
-# --- Build the modules ---
 
-add_library(audioneex ${AX_LIB_SRC})
-target_compile_options(audioneex PRIVATE ${LIB_CXX_FLAGS})
-target_link_libraries(audioneex ${FFTSS_LIB})
+# --- Setup the targets ---
+
+add_library(audioneex ${AX_LIB_TYPE} ${AX_LIB_SRC})
+target_include_directories(audioneex PRIVATE ${AX_LIB_INC})
+target_compile_options(audioneex PRIVATE ${AX_LIB_CXX_FLAGS})
+target_compile_definitions(audioneex PRIVATE ${AX_LIB_DEFS})
+target_link_libraries(audioneex ${AX_LIB_FFTSS})
 
 set_target_properties(audioneex
     PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${AX_OUTPUT_LIB_DIR}"
-    LIBRARY_OUTPUT_DIRECTORY "${AX_OUTPUT_LIB_DIR}"
-    RUNTIME_OUTPUT_DIRECTORY "${AX_OUTPUT_LIB_DIR}"
-    VERSION ${AX_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR}
+    ARCHIVE_OUTPUT_DIRECTORY "${AX_BUILD_LIB_DIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${AX_BUILD_LIB_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY "${AX_BUILD_LIB_DIR}"
+    ${AX_LIB_VERSION}
+    ${AX_LIB_SOVERSION}
 )
-
 

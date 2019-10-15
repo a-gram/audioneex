@@ -1,18 +1,26 @@
 #
-#  Audioneex build script for Linux and Windows.
+#  Audioneex cross-platform build script
+#  -------------------------------------
 #
-#  Usage (Linux)  : cmake [options] ..
+#  Usage (Linux)  : cmake [-G "Unix Makefiles"][options] ..
 #        (Windows): cmake -G "NMake Makefiles" [options] ..
+#        (Android): cmake -DCMAKE_TOOLCHAIN_FILE=<path_to_toolchain_file>
+#                         -DANDROID_NDK=<path_to_NDK_root_dir>
+#                         -DANDROID_ABI=<architecture_name>
+#                         -DANDROID_PLATFORM=<platform_version_number>
+#                         -DANDROID_TOOLCHAIN=clang 
+#                         [options] ..
 #
-#  where [options] is one or more of the following parameters
+#  where [options] is one or more of the following
 #
-#  ARCH           = x32|x64
-#  BINARY_TYPE    = dynamic|static
-#  BUILD_MODE     = debug|release
-#  DATASTORE_T    = TCDataStore|CBDataStore  (for the examples only)
-#  WITH_EXAMPLES  = ON|OFF
-#  WITH_ID3       = ON|OFF  (for the examples only)
-#  WITH_TESTS     = ON|OFF  (for project developers only)
+#  AX_ARCH           = x32 | x64 | armeabi-v7a | arm64-v8a | x86 | x86_64
+#  AX_API            = API version number (for Android only)
+#  AX_BINARY_TYPE    = dynamic | static
+#  AX_BUILD_MODE     = debug | release
+#  AX_DATASTORE_T    = TCDataStore | CBDataStore
+#  AX_WITH_EXAMPLES  = ON | OFF
+#  AX_WITH_ID3       = ON | OFF  (for the examples only)
+#  AX_WITH_TESTS     = ON | OFF  (for project developers only)
 #
 
 cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
@@ -20,41 +28,52 @@ cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
 project (audioneex VERSION 1.3.0 LANGUAGES CXX)
 
 
-# ---------------------------------------------------------
+# =========================================================
 #                      User Config
-# ---------------------------------------------------------
+# =========================================================
 
 
-# Most include and library paths are automatically found by
-# cmake. Should it fail to find something, in this section it
-# is possible to set useful paths according to the current 
-# environment, which will be passed on to cmake as hints.
-
-list(APPEND MY_INCLUDE_DIRS
+set(MY_INCLUDE_DIRS
+    
+    "/usr/local/include"
+    "/usr/local/include/tcabinet"
     
     "C:/dev/cpp/include"
-    "/usr/local/include/tcabinet"
-
 )
 
-list(APPEND MY_LIBRARY_x32_RELEASE_DIRS
+set(MY_LIBRARY_x32_RELEASE_DIRS
 )
 
-list(APPEND MY_LIBRARY_x64_RELEASE_DIRS
+set(MY_LIBRARY_x64_RELEASE_DIRS
 
+    "/usr/local/lib/7"
+    
     "C:/dev/cpp/lib/vc191/x64/release"
     "C:/dev/cpp/lib/vc191/x64/release/static"
+)
+
+set(MY_LIBRARY_x32_DEBUG_DIRS
+)
+
+set(MY_LIBRARY_x64_DEBUG_DIRS
+
     "/usr/local/lib/7"
-)
-
-list(APPEND MY_LIBRARY_x32_DEBUG_DIRS
-)
-
-list(APPEND MY_LIBRARY_x64_DEBUG_DIRS
-
+    
     "C:/dev/cpp/lib/vc191/x64/debug"
     "C:/dev/cpp/lib/vc191/x64/debug/static"
-    "/usr/local/lib/7"
+)
+
+set(MY_LIBRARY_ANDROID_RELEASE_DIRS
+
+    "/opt/android/lib/armeabi-v7a"
+    "/opt/android/lib/arm64-v8a"
+    "/opt/android/lib/x86"
+    "/opt/android/lib/x86_64"
+    
+    "C:/dev/android/lib/x86_64"
+)
+
+set(MY_LIBRARY_ANDROID_DEBUG_DIRS
 )
 
 set(MY_BOOST_INCLUDE_DIR
@@ -68,6 +87,11 @@ set(MY_BOOST_LIBRARY_x32_DIR
 set(MY_BOOST_LIBRARY_x64_DIR
 
     "/usr/local/share/boost_1_66_0/stage/lib/7"
+)
+
+set(MY_VC_INSTALL_DIR 
+
+    "C:/Program Files (x86)/Microsoft Visual Studio"
 )
 
 set(Boost_USE_STATIC_LIBS        ON)
@@ -86,83 +110,178 @@ set(AX_SRC_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 # 
 # NOTE: These are the compilers that have been extensively
 # tested and guaranteed to work. Others may work as well.
-list(APPEND SUPPORTED_COMPILERS gnu clang msvc)
+list(APPEND AX_SUPPORTED_COMPILERS 
+     gnu clang msvc
+)
+
+list(APPEND AX_SUPPORTED_TARGETS
+     linux windows android
+)
+
+list(APPEND AX_SUPPORTED_ARCHS
+     x32 x64 armeabi-v7a arm64-v8a x86 x86_64
+)
+
+list(APPEND AX_SUPPORTED_DATABASE
+     TCDataStore CBDataStore
+)
+
+list(APPEND AX_SUPPORTED_BINARYTYPE
+     static dynamic
+)
+
+list(APPEND AX_SUPPORTED_BUILDMODES
+     debug release
+)
+
+
+# ---------------------------------------------------------
+#                   Functions and macros
+# ---------------------------------------------------------
+
+
+function(detect_target)
+   string(TOLOWER "${CMAKE_SYSTEM_NAME}" _TARGET)
+   if(_TARGET)
+      set(AX_TARGET ${_TARGET} PARENT_SCOPE)
+   else()
+      message(FATAL_ERROR "\nERROR: No target platform detected.\n")
+   endif()
+endfunction()
+
+
+function(detect_arch)
+   if(AX_TARGET STREQUAL linux)
+      if(AX_ARCH)
+         set(_ARCH ${AX_ARCH})
+      else()
+         set(_ARCH x64)
+      endif()
+      set(AX_DETECTED_ARCH ${_ARCH} PARENT_SCOPE)
+   elseif(AX_TARGET STREQUAL windows)
+      execute_process (
+          COMMAND cl
+          ERROR_VARIABLE CL_CMD_ERROR
+          OUTPUT_QUIET
+      )
+      string(REGEX MATCH "[23468xamdr_]+\n" _ARCH "${CL_CMD_ERROR}")
+      if(NOT _ARCH)
+         message(FATAL_ERROR "\nERROR: No architecture detected.\n")
+      endif()
+      string(REPLACE "\n" "" _ARCH "${_ARCH}")
+      set(AX_DETECTED_ARCH ${_ARCH} PARENT_SCOPE)
+   elseif(AX_TARGET STREQUAL android)
+      set(AX_DETECTED_ARCH ${ANDROID_ABI} PARENT_SCOPE)
+   endif()
+endfunction()
+
+
+function(detect_api)
+   if(AX_TARGET STREQUAL linux)
+      set(AX_DETECTED_API "N/A" PARENT_SCOPE)
+   elseif(AX_TARGET STREQUAL windows)
+      set(AX_DETECTED_API "N/A" PARENT_SCOPE)
+   elseif(AX_TARGET STREQUAL android)
+      if(ANDROID_PLATFORM)
+         set(AX_DETECTED_API ${ANDROID_PLATFORM} PARENT_SCOPE)
+      else()
+         message(FATAL_ERROR "\nERROR: No Android API detected.\n")
+      endif()
+   endif()
+endfunction()
+
+
+function(show_param_usage PARAM_NAME PARAM_VAL PARAM_EXP)
+   string(REPLACE ";" " | " _PARAM_FORMATTED_LIST "${PARAM_EXP}")
+   message(FATAL_ERROR 
+       "\nERROR: Invalid ${PARAM_NAME} parameter '${PARAM_VAL}'.\n"
+       "Expected ${PARAM_NAME}=${_PARAM_FORMATTED_LIST}\n"
+   )
+endfunction()
 
 
 # Default settings
 # ----------------
 
-if(NOT BINARY_TYPE)
-  set(BINARY_TYPE dynamic)
+detect_target()
+detect_arch()
+detect_api()
+
+if(NOT AX_ARCH)
+   set(AX_ARCH ${AX_DETECTED_ARCH})
 endif()
 
-if(NOT BUILD_MODE)
-  set(BUILD_MODE release)
+if(NOT AX_API)
+   set(AX_API ${AX_DETECTED_API})
 endif()
 
-if(NOT ARCH)
-   set(ARCH x64)
+if(NOT AX_BINARY_TYPE)
+  set(AX_BINARY_TYPE dynamic)
+endif()
+
+if(NOT AX_BUILD_MODE)
+  set(AX_BUILD_MODE release)
 endif()
 
 if(NOT DATASTORE_T)
-   set(DATASTORE_T "TCDataStore")
+   set(DATASTORE_T TCDataStore)
 endif()
 
 
 # Parameters check
 # ----------------
 
-if(BUILD_MODE STREQUAL "debug")
+if(NOT AX_TARGET IN_LIST AX_SUPPORTED_TARGETS)
+   show_param_usage("AX_TARGET" "${AX_TARGET}" 
+                    "${AX_SUPPORTED_TARGETS}")
+endif()
+
+if(NOT AX_ARCH IN_LIST AX_SUPPORTED_ARCHS)
+   show_param_usage("AX_ARCH" "${AX_ARCH}" 
+                    "${AX_SUPPORTED_ARCHS}")
+endif()
+
+if(NOT DATASTORE_T IN_LIST AX_SUPPORTED_DATABASE)
+   show_param_usage("DATASTORE_T" "${DATASTORE_T}" 
+                    "${AX_SUPPORTED_DATABASE}")
+endif()
+
+if(NOT AX_BINARY_TYPE IN_LIST AX_SUPPORTED_BINARYTYPE)
+   show_param_usage("AX_BINARY_TYPE" "${AX_BINARY_TYPE}" 
+                    "${AX_SUPPORTED_BINARYTYPE}")
+
+endif()
+
+# Parameters must be consistent with the current configuration
+
+if(NOT ${AX_ARCH} MATCHES ${AX_DETECTED_ARCH})
+   message(FATAL_ERROR 
+      "\nERROR: The given architecture '${AX_ARCH}' for target "
+      "'${AX_TARGET}' does not match the one currently set in the toolchain "
+      "(${AX_DETECTED_ARCH}). Either omit the AX_ARCH parameter or "
+      "set the toolchain to the given architecture."
+   )
+endif()
+
+if(NOT ${AX_API} MATCHES ${AX_DETECTED_API})
+   message(FATAL_ERROR 
+      "\nERROR: The given API '${AX_API}' for target '${AX_TARGET}' "
+      "does not match the one currently set in the toolchain "
+      "(${AX_DETECTED_API}). Either omit the AX_API parameter or "
+      "set the toolchain to the given API."
+   )
+endif()
+
+# ---
+
+if(AX_BUILD_MODE STREQUAL "debug")
    set(CMAKE_BUILD_TYPE DEBUG)
-elseif(BUILD_MODE STREQUAL "release")
+elseif(AX_BUILD_MODE STREQUAL "release")
    set(CMAKE_BUILD_TYPE RELEASE)
 else()
-   message(FATAL_ERROR 
-       "\nERROR: Invalid build mode: ${BUILD_MODE}. Use BUILD_MODE=debug|release"
-   )
+   show_param_usage("AX_BUILD_MODE" "${AX_BUILD_MODE}" 
+                    "${AX_SUPPORTED_BUILDMODES}")
 endif()
-
-if(NOT ARCH STREQUAL "x32" AND NOT ARCH STREQUAL "x64")
-   message(FATAL_ERROR 
-       "\nERROR: Invalid architecture: ${ARCH}. Use ARCH=x32|x64"
-   )
-endif()
-
-if(DATASTORE_T STREQUAL "TCDataStore")
-   # On Windows some libraries have different namings.
-   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-      set(DATASTORE_LIB_NAME libejdb)
-   else()
-      set(DATASTORE_LIB_NAME tokyocabinet)
-   endif()
-   add_definitions(-DDATASTORE_T_ID=1)
-   add_definitions(-DDATASTORE_T=${DATASTORE_T})
-elseif(DATASTORE_T STREQUAL "CBDataStore")
-   # On Windows some libraries have different namings.
-   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-      set(DATASTORE_LIB_NAME libcouchbase)
-   else()
-      set(DATASTORE_LIB_NAME couchbase)
-   endif()
-   add_definitions(-DDATASTORE_T_ID=2)
-   add_definitions(-DDATASTORE_T=${DATASTORE_T})   
-else()
-   message(FATAL_ERROR 
-           "\nERROR: Unsupported data store: ${DATASTORE_T}.")
-endif()
-
-if(WITH_ID3)
-   set(ID3TAG_LIB_NAME tag)
-   add_definitions(-DWITH_ID3)
-endif()
-
-
-# Set project's include paths
-# ---------------------------
-
-foreach (dir ${MY_INCLUDE_DIRS})
-    include_directories("${dir}")
-endforeach()
 
 
 # Verify that the compiler being used is supported
@@ -172,115 +291,65 @@ string(TOLOWER "${CMAKE_CXX_COMPILER_ID}" COMPILER)
 string(REPLACE "." "" COMPILER_VERSION "${CMAKE_CXX_COMPILER_VERSION}")
 string(SUBSTRING "${COMPILER_VERSION}" 0 4 COMPILER_VERSION)
 
-if(NOT COMPILER IN_LIST SUPPORTED_COMPILERS)
+if(NOT COMPILER IN_LIST AX_SUPPORTED_COMPILERS)
     message(FATAL_ERROR 
             "\nERROR: Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}")
 else()
-    set(TOOLCHAIN "${COMPILER}${COMPILER_VERSION}")
+    set(AX_TOOLCHAIN "${COMPILER}${COMPILER_VERSION}")
 endif()
 
 
-# Platform-specific global compilation settings (all modules)
-# -----------------------------------------------------------
+# Global settings inherited by all targets for all platforms
+# ----------------------------------------------------------
 
-if(COMPILER STREQUAL "gnu" OR 
-   COMPILER STREQUAL "clang")
-
-   set(COMP_FLAGS "-std=c++11 -fexceptions")
-   
-   if(ARCH STREQUAL "x64")
-      set(COMP_FLAGS "${COMP_FLAGS} -m64")
-   else()      
-      set(COMP_FLAGS "${COMP_FLAGS} -m32")
-   endif()
-   
-   if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 6.2)
-      set(COMP_FLAGS "${COMP_FLAGS} -no-pie")
-   endif()
-   
-   # Build-specific flags
-   if(BUILD_MODE STREQUAL "debug")
-      set(COMP_FLAGS "${COMP_FLAGS} -Wall -g -Og")
-   elseif(BUILD_MODE STREQUAL "release")
-      set(COMP_FLAGS "${COMP_FLAGS} -Wno-deprecated-declarations")
-   endif()
-
-   set(PLATFORM linux)
-   
-elseif(COMPILER STREQUAL "msvc")
-
-   add_definitions(-DWIN32)
-   add_definitions(-DWIN32_LEAN_AND_MEAN) # Fix winsock.h clashes
-   
-   set(COMP_FLAGS "/WX- /EHsc /Gd")
-   
-   # Build-specific flags
-   if(BUILD_MODE STREQUAL "debug")
-      set(COMP_FLAGS "${COMP_FLAGS} /W3 /RTC1 /Zi /MDd")
-   elseif(BUILD_MODE STREQUAL "release")
-      set(COMP_FLAGS "${COMP_FLAGS} /W1 /MD")
-   endif()
-   
-   set(PLATFORM windows)
-   
-else()
-   message(FATAL_ERROR 
-           "\nERROR: This is a bug. Please report it (code 227).")
-endif()
-
-set(CMAKE_CXX_FLAGS ${COMP_FLAGS})
-
+set(AX_DIR_NAME ${AX_TARGET}-${AX_ARCH}-${AX_TOOLCHAIN})
 set(AX_VERSION ${PROJECT_VERSION})
-set(AX_OUTPUT_LIB_DIR "${AX_SRC_ROOT}/build/${PLATFORM}-${ARCH}-${TOOLCHAIN}/${BUILD_MODE}")
-#set(AX_OUTPUT_EXE_DIR "${AX_SRC_ROOT}/build/${PLATFORM}-${ARCH}-${TOOLCHAIN}-bin")
-set(AX_OUTPUT_EXE_DIR "${AX_OUTPUT_LIB_DIR}")
-set(AX_POST_BUILD_SCRIPT_ARGS ${PLATFORM} ${ARCH} ${TOOLCHAIN} ${BUILD_MODE} ${BINARY_TYPE})
-set(AX_POST_BUILD_SCRIPT install_${PLATFORM})
+set(AX_BUILD_LIB_DIR "${AX_SRC_ROOT}/_build/${AX_DIR_NAME}/${AX_BUILD_MODE}")
+set(AX_BUILD_EXE_DIR "${AX_BUILD_LIB_DIR}")
+set(AX_INSTALL_LIB_DIR "${AX_SRC_ROOT}/lib/${AX_DIR_NAME}/${AX_BUILD_MODE}")
 
 
-# Find project's required libraries
-# ---------------------------------
+# Target-specific setup
+# -----------------------
 
-find_package(Boost 1.55 COMPONENTS filesystem system thread regex)
+include("cmake/make_${AX_TARGET}.cmake")
 
-# Try the user settings if Boost is not found in BOOST_ROOT.
-if(NOT Boost_FOUND)
-   message(STATUS 
-       "[!] Boost not found in BOOST_ROOT. Trying user's paths ..."
-   )
-   set(BOOST_INCLUDEDIR ${MY_BOOST_INCLUDE_DIR})
-   set(BOOST_LIBRARYDIR ${MY_BOOST_LIBRARY_${ARCH}_DIR})
-   find_package(Boost 1.55 REQUIRED COMPONENTS filesystem system thread regex)
+message(STATUS "--------------------------")
+message(STATUS "Target       : ${AX_TARGET}")
+message(STATUS "Architecture : ${AX_ARCH}")
+message(STATUS "Toolchain    : ${AX_TOOLCHAIN}")
+message(STATUS "API          : ${AX_API}")
+message(STATUS "Binary type  : ${AX_BINARY_TYPE}")
+message(STATUS "Build mode   : ${AX_BUILD_MODE}")
+message(STATUS "--------------------------")
+message(STATUS "Binaries dir: ${AX_DIR_NAME}")
+
+
+# Post-build install script
+# -------------------------
+
+if(ANDROID)
+   set(AX_BIN_PREFIX ${ANDROID_TOOLCHAIN_PREFIX})
+   set(AX_ANDROID_LIBC 
+      "${ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/${AX_ARCH}/libc++_shared.so")
+else()
+   set(AX_BIN_PREFIX "")
 endif()
 
-if(Boost_FOUND)
-   include_directories(${Boost_INCLUDE_DIRS})
-endif()
-
-
-# Build the project
-# -----------------
-
-message(STATUS 
-   "Building for ${PLATFORM}-${ARCH}-${TOOLCHAIN} (${CMAKE_BUILD_TYPE})"
+# Export the current environment for installation.
+# This code will be included by the install script
+# when 'make install' is invoked.
+file(WRITE _build/ax_install_env.cmake
+   "set(AX_TARGET ${AX_TARGET})\n"
+   "set(AX_ARCH ${AX_ARCH})\n"
+   "set(AX_BUILD_LIB_DIR \"${AX_BUILD_LIB_DIR}\")\n"
+   "set(AX_INSTALL_LIB_DIR \"${AX_INSTALL_LIB_DIR}\")\n"
+   "set(AX_BIN_PREFIX \"${AX_BIN_PREFIX}\")\n"
+   "set(AX_BINARY_TYPE ${AX_BINARY_TYPE})\n"
+   "set(AX_LIB_FFTSS \"${AX_LIB_FFTSS}\")\n"
+   "set(AX_ANDROID_LIBC \"${AX_ANDROID_LIBC}\")\n"
+   "set(MY_VC_INSTALL_DIR \"${MY_VC_INSTALL_DIR}\")\n"
 )
 
-add_subdirectory(src)
-
-if(WITH_EXAMPLES)
-   add_subdirectory(examples/winux)
-endif()
-
-if(WITH_TESTS)
-   add_subdirectory(tests)
-endif()
-
-
-# Post-build script
-add_custom_target(
-    install_lib ALL
-    COMMAND ${AX_SRC_ROOT}/${AX_POST_BUILD_SCRIPT} ${AX_POST_BUILD_SCRIPT_ARGS}
-    WORKING_DIRECTORY ${AX_SRC_ROOT}
-    DEPENDS audioneex
-)
+install(SCRIPT "cmake/install.cmake")
 
