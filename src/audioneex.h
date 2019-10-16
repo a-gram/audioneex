@@ -227,30 +227,6 @@ class AUDIONEEX_API DataStore
 {
 public:
 
-    /// This method is called by the engine during the identification stage. It shall
-    /// return the list's block for the specified list id from the fingerprints index.
-    /// Although clients are free to implement their storage solutions and layouts, index
-    /// blocks, along with their headers, must be returned as they have been emitted
-    /// during the indexing stage, so if the datastore implementation applies some sort
-    /// of transformation to the blocks data, the inverse transformation must be applied 
-    /// prior to returning the block's data to the engine.
-    ///
-    /// @param[in]  lid        The identifier of the list from which to retrieve the block.
-    /// @param[in]  bid        The identifier of the block to be retrieved.
-    /// @param[out] data_size  The size in bytes of the block's data.
-    /// @param[in]  headers    Flag specifying whether to include the block's header
-    ///                        in the returned data. If true the block's header must be
-    ///                        returned prepended to the block's body.
-    /// @return                A pointer to the memory location containing the block's data.
-    ///                        Clients must ensure that the returned pointer remains valid
-    ///                        after the method returns, for example by storing the data
-    ///                        into a session-bound buffer. See [link] for more details.
-    ///                        @note A null pointer and zero size shall be returned if the
-    ///                        block is not found.
-    virtual const uint8_t* GetPListBlock(int lid, int bid,
-                                         size_t& data_size, 
-                                         bool headers=false) = 0;
-
     /// This method is called by the indexer to signal the data store about the start
     /// of an indexing session. It can be used to perform specific tasks in the data
     /// store before the indexer starts emitting index chunks.
@@ -352,6 +328,30 @@ public:
                                       uint8_t* data, 
                                       size_t data_size) = 0;
 
+    /// This method is called by the engine during the identification stage. It shall
+    /// return the list's block for the specified list id from the fingerprints index.
+    /// Although clients are free to implement their storage solutions and layouts, index
+    /// blocks, along with their headers, must be returned as they have been emitted
+    /// during the indexing stage. So, if the datastore implementation applies some sort
+    /// of transformation to the blocks data, the inverse transformation must be applied 
+    /// prior to returning the block's data to the engine.
+    ///
+    /// @param[in]  lid        The identifier of the list from which to retrieve the block.
+    /// @param[in]  bid        The identifier of the block to be retrieved.
+    /// @param[out] data_size  The size in bytes of the block's data.
+    /// @param[in]  headers    Flag specifying whether to include the block's header
+    ///                        in the returned data. If true the block's header must be
+    ///                        returned prepended to the block's body.
+    /// @return                A pointer to the memory location containing the block's data.
+    ///                        Clients must ensure that the returned pointer remains valid
+    ///                        after the method returns, for example by storing the data
+    ///                        into a session-bound buffer. See [link] for more details.
+    ///                        @note A null pointer and zero size shall be returned if the
+    ///                        block is not found.
+    virtual const uint8_t* GetPListBlock(int lid, int bid,
+                                         size_t& data_size, 
+                                         bool headers=false) = 0;
+
     /// Get the size of the specified fingerprint.
     ///
     /// @param[in] FID   The fingerprint's unique identifier.
@@ -438,7 +438,7 @@ public:
     virtual void SetMatchType(eMatchType type) = 0;
 
     /// The engine uses a multi-level matching system (MMS) in order to find the 
-    //  best candidate fingerprints. This approach allows adaptation of the accuracy 
+    /// best candidate fingerprints. This approach allows adaptation of the accuracy 
 	/// by adjusting the magnitude of the collected evidence. Clients can control 
     /// such adaptive behaviour by setting a parameter according to the specific 
     /// application being used.
