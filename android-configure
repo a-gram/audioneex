@@ -6,28 +6,35 @@
 # with all the necessary settings to compile native binaries for Android
 # on different architectures and platforms (API).
 # 
-# Usage: android-configure <arch> <api> [config_params]
+# Usage: android-configure <arch> <api> [with-supplib] [<config_params>]
 #
-# where <arch> is one of arm|arm64|x86(x32)|x86_64(x64), <api> the 
-# Android Platform API Level and [config_params] optional parameters 
-# to pass to ./configure, specific for the code being built.
+# where <arch> is one of arm | arm64 | x86 | x86_64, <api> the 
+# Android Platform API Level, [with-supplib] an option to fix
+# API compatibility issues (see note below) and [<config_params>] 
+# optional code-specific parameters to pass to ./configure.
 #
-# NOTES: The minimum supported NDK version is 19, and minimum API 21.
-#        This means that using binaries compiled with this script on
-#        devices with API < 21 may give rise to "symbols not found"
-#        errors at runtime. This is because on newer platforms the
-#        binaries no longer support older functionalities. One option
-#        to fix this problem is to statically link the libraries with
-#        libandroid_support (which also requires libc++). So you can,
-#        for example, export linker flags before running this script,
-#        like so
+# NOTES: The minimum supported NDK version is 19, so the minimum API
+#        is 16. Using binaries with an API version greater than the
+#        one used by the target device may give rise to linking errors
+#        at runtime. This is because on newer platforms the API no 
+#        longer support older functionalities. Often times this issue
+#        can be fixed by passing the 'with-supplib' parameter in order
+#        to link with the "support library" (note that 64-bit ABIs do
+#        not have this library).
 #
-#        export LDFLAGS="-L<support_lib_dir> -lc++ -landroid_support"
-#        
-#        where <support_lib_dir> in NDK r19+ is a directory located at
-#        <ndk_root>/sources/cxx-stl/llvm-libc++/libs/<arch>
-#        More info on this issue at https://github.com/android-ndk/ndk/issues/544
+# HINTS: Make sure that the specified API supports the specified
+#        architecture (for example 64-bit archs are not supported
+#        by all APIs and will produce errors).
+#        Some libraries may come with outdated configure scripts
+#        that do not recognize specific Android architectures and
+#        will produce errors. In such cases the problem may be solved
+#        by replacing the shipped config.sub and config.guess with
+#        updated ones.
+#
 # 
+# Author  : Alberto Gramaglia
+# Date    : 20-09-2019
+# Version : 1.3.0
 #
 
 set -e
@@ -61,7 +68,6 @@ function error()
   echo ""
   echo "ERROR: ${AX_ERROR}"
   echo ""
-  echo "ERROR: ${AX_ERROR}" > build_dist_libs_errors.log
   exit 1
 }
 
@@ -70,9 +76,10 @@ function usage()
   echo ""
   echo "Usage: android-configure <arch> <api> [config_params]"
   echo ""
-  echo "       Where: <arch> - one of arm|arm64|x86(x32)|x86_64(x64)"
-  echo "              <api>  - the Android Platform API Level (version number)"
-  echo "              [config_params] optional parameters for ./configure"
+  echo "       Where: <arch> is one of arm | arm64 | x86 | x86_64"
+  echo "              <api> the Android Platform API Level (version number)"
+  echo "              [with-supplib] optional parameter to fix API compatibility"
+  echo "              [<config_params>] optional parameters for ./configure"
   echo ""
   exit 1
 }
@@ -151,28 +158,30 @@ if [ $# -lt 2 ]; then usage; fi
 
 BUILD_ARCH=$1
 BUILD_API=$2
+BUILD_SUPPLIB=$3
 BUILD_COMP="clang"
 
-# x86/x86_64 archs are also referred to as x32/x64
-if [ "$BUILD_ARCH" == "x32" ]; then BUILD_ARCH="x86"; fi
-if [ "$BUILD_ARCH" == "x64" ]; then BUILD_ARCH="x86_64"; fi
-
-# Get the parameters that should be passed to ./configure, if any.
-CONFIG_PARAMS=${*: 4:$#-3}
+check_ndk
 
 if [[ ! ${NDK_ARCH["$BUILD_ARCH"]} ]] ; then
    AX_ERROR="Invalid architecture '$BUILD_ARCH'"
    error
 fi
 
-if [[ ! $BUILD_API =~ ^[2-9][0-9]$ ]]; then
+if [[ ! $BUILD_API =~ ^[1-9][0-9]$ ]]; then
    AX_ERROR="Invalid API version '$BUILD_API'"
    error
 fi
 
+if [ "$BUILD_SUPPLIB" == "with-supplib" ]; then 
+   SUPPLIB_DIR=$NDK_HOME/sources/cxx-stl/llvm-libc++/libs/${NDK_ABI[$BUILD_ARCH]}
+   NPMS=2
+else
+   NPMS=3
+fi
 
-check_ndk
-
+# Get the parameters that should be passed to ./configure, if any.
+CONFIG_PARAMS=${*: 4:$#-$NPMS}
 
 # The script assumes that the build system is a 64-bit Linux x86 machine.
 # If that's not the case, set this variable according to your machine.
@@ -222,6 +231,11 @@ if [ "$BUILD_ARCH" == "arm" ]; then
    NDK_LDFLAGS="$NDK_LDFLAGS -march=armv7-a -Wl,--fix-cortex-a8"
 fi
 
+# Add support library if specified
+if [ ! -z ${SUPPLIB_DIR+x} ]; then
+   LDSUPPLIB="-L$SUPPLIB_DIR -lc++ -landroid_support"
+fi
+
 # Build the user's include flags
 for I in ${MY_INCLUDE_DIRS[*]}; do 
    USR_I_DIRS="$USR_I_DIRS -I$I"
@@ -234,15 +248,9 @@ done
 
 # Setup the build environment
 
-export CFLAGS="$CFLAGS \
-   $NDK_CFLAGS \
-   $USR_I_DIRS"
-
+export CFLAGS="$CFLAGS $NDK_CFLAGS $USR_I_DIRS"
 export CXXFLAGS="$CFLAGS $NDK_CXXFLAGS $USR_I_DIRS"
-
-export LDFLAGS="$LDFLAGS \
-   $NDK_LDFLAGS \
-   $USR_L_DIRS"
+export LDFLAGS="$LDFLAGS $NDK_LDFLAGS $USR_L_DIRS $LDSUPPLIB"
 
 
 # If there is a configure script in the current directory then run it,
