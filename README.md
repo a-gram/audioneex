@@ -65,4 +65,13 @@ In a nutshell:
 ## References
 
 For the more curious, it is an implementation of the methods described
-in [this paper](https://www.dropbox.com/s/0qvfq2o53uudaqx/agramaglia_acr_paper_2014.pdf)
+in [this paper](https://www.dropbox.com/s/0qvfq2o53uudaqx/agramaglia_acr_paper_2014.pdf).
+If you are using this work in your research, please use the following citation
+
+    @misc{agramaglia2014-acr,
+       author =       "Alberto Gramaglia",
+       title =        "A Binary Auditory Words Model for Audio Content Identification",
+       howpublished = "\url{https://github.com/a-gram/audioneex}",
+       year =         "2014"
+    }
+
