@@ -96,47 +96,43 @@ the ``WITH_ID3`` paramater
 Android examples
 ----------------
 
-The ``examples/android`` folder contains demo apps for Android Studio to test the 
-engine and show how to integrate it into Android applications. In order for the 
-apps to successfully build there are some things to configure according to your
-environment.
+The Android examples can be found in the ``examples/android`` folder. 
+In order for the apps to successfully build there are some things to 
+configure beforehand according to your environment.
 
-1. Get the header files for the Tokyo Cabinet drivers and 
-   extract the tc*.h files into a ``tcabinet`` folder somewhere 
-   in your system.
+1. The Tokyo Cabinet headers (tc*.h) must be installed into a ``tcabinet`` 
+   folder, along with the Boost headers, somewhere in your system.
 
-2. If you don't have it already, get the Boost library
-   and install it into a directory somewhere in your system.
-
-3. You need to build the required native libraries and put
-   them into a ``/lib`` folder in the source root directory using
-   the following scheme
+2. Build all the required native libraries and put them into a ``/lib`` 
+   folder in the root directory using a path with the following scheme
 
    ``<sources_root>/lib/android-<arch>-<compiler>``
 
-   Running the ``build`` script will do just that for
-   the Audioneex libraries. External ones, you need to build
-   them yourself (you can use the ``android-configure`` script
-   for that) and then copy them into the above directory. Patched 
-   sources for Android can be found `here  
+   Running the ``build`` script will do just that for the Audioneex 
+   libraries. External ones, you need to build them yourself and then 
+   copy them into the above mentioned directory. Patched sources for 
+   the default libs for Android can be found `here 
    <https://www.dropbox.com/s/kg9sn42d80lt0gt/audioneex_android_ext_libs.tar.gz?dl=0>`_
+   Just run the ``./android-configure`` script located in the root directory 
+   of these packages instead of the standard ./configure.
 
 4. Locate the CMake script file in the ``app/src/main/cpp`` directory
    of the Studio projects and set the include paths in the *User Config* 
-   section to the folders where you installed the headers at step 1 
-   and 2. If other include paths are required just put them there.
+   section to the folders where you installed the headers at step 1. 
+   If other include paths are required just put them there.
 
-The examples use CMake to build, so you need to have it installed and
-configured properly. The easiest way is to get the one shipped with Android
-Studio through the SDK Manager (version 3.6 is recommended at the time of
-this writing as the more recent version doesn't work). You will also have to 
-set the Android Studio SDK and NDK paths according to your system in 
-*File->Project Structure*. After that everything should be set to go. 
+The examples use the CMake build system, so you need to have it installed and
+configured properly. However, using the CMake installed system-wide requires some
+extra steps (like installing additional dependencies). The easiest way is to get 
+the one embedded in Android Studio through the SDK Manager, which already includes
+the required components (version 3.6 is recommended at the time of this writing 
+as the more recent version doesn't work). You will also have to set the Android 
+Studio SDK and NDK paths to the directories where they're installed in 
+*File->Project Structure*. After that, everything should be set to go. 
 An internet connection is likely to be needed for Gradle to download some 
 dependencies.
-The projects have been set to build for armeabi-v7a architectures
-only. If you need something different then modify the filter
-in the app's Gradle script.
+The projects have been set to build for armeabi-v7a architectures by default.
+If you need something different then modify the filter in the app's Gradle script.
 
 About the Android demo apps
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
