@@ -1,6 +1,6 @@
 
-API Reference
-=============
+API
+===
 
 .. toctree::
    :maxdepth: 2
@@ -11,3 +11,4 @@ API Reference
    audioprovider
    constants
    exceptions
+
