@@ -14,8 +14,8 @@
 #include <cstdlib>
 #include <stdexcept>
 
-#define ENGINE_VERSION      010300L
-#define ENGINE_VERSION_STR  "1.3.0"
+#define ENGINE_VERSION      010301L
+#define ENGINE_VERSION_STR  "1.3.1"
 
 /// API linkage management code.
 /// Clients should define AUDIONEEX_DLL if they are using the DLL version

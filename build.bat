@@ -54,7 +54,7 @@ goto :do_build
 echo.
 echo -- Building for Windows
 echo.
-set CMAKE_CMD=-G "NMake Makefiles" %DPARAMS% ..
+set "MAKE_CMD=cmake -G "NMake Makefiles" %DPARAMS% .."
 set "BUILD_CMD=cmake --build ."
 set "INSTA_CMD=cmake --build . --target install"
 
@@ -77,13 +77,13 @@ if not defined __API set __API=latest
 set __TOOLCHAIN_FILE=%NDK_HOME%/build/cmake/android.toolchain.cmake
 set __CMAKE_PROGRAM=%NDK_HOME%/prebuilt/windows-x86_64/bin/make.exe
 
-set CMAKE_CMD=-G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="%__TOOLCHAIN_FILE%"
-set CMAKE_CMD=%CMAKE_CMD% -DCMAKE_MAKE_PROGRAM="%__CMAKE_PROGRAM%"
-set CMAKE_CMD=%CMAKE_CMD% -DANDROID_NDK="%NDK_HOME%"
-set CMAKE_CMD=%CMAKE_CMD% -DANDROID_ABI=%__ARCH%
-set CMAKE_CMD=%CMAKE_CMD% -DANDROID_PLATFORM=%__API%
-set CMAKE_CMD=%CMAKE_CMD% -DANDROID_TOOLCHAIN=clang
-set CMAKE_CMD=%CMAKE_CMD% %DPARAMS% ..
+set MAKE_CMD=cmake -G "Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE="%__TOOLCHAIN_FILE%"
+set MAKE_CMD=%MAKE_CMD% -DCMAKE_MAKE_PROGRAM="%__CMAKE_PROGRAM%"
+set MAKE_CMD=%MAKE_CMD% -DANDROID_NDK="%NDK_HOME%"
+set MAKE_CMD=%MAKE_CMD% -DANDROID_ABI=%__ARCH%
+set MAKE_CMD=%MAKE_CMD% -DANDROID_PLATFORM=%__API%
+set MAKE_CMD=%MAKE_CMD% -DANDROID_TOOLCHAIN=clang
+set MAKE_CMD=%MAKE_CMD% %DPARAMS% ..
 set BUILD_CMD=cmake --build .
 set INSTA_CMD=cmake --build . --target install
 
@@ -132,8 +132,8 @@ exit /B 0
 :do_build
 ::========
 
-if defined CMAKE_CMD (
+if defined MAKE_CMD (
    if exist _build rmdir /s /q _build
    mkdir _build && cd _build
-   cmake %CMAKE_CMD% && %BUILD_CMD% && %INSTA_CMD% && cd ..
+   %MAKE_CMD% && %BUILD_CMD% && %INSTA_CMD% && cd ..
 )

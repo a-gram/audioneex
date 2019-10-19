@@ -80,7 +80,7 @@ function bootstrap_linux()
    echo ""
    echo "-- Building for Linux"
    echo ""
-   CMAKE_CMD="${DPARAMS[@]} .."
+   MAKE_CMD="cmake ${DPARAMS[@]} .."
    BUILD_CMD="cmake --build ."
    INSTA_CMD="cmake --build . --target install"
 }
@@ -95,12 +95,12 @@ function bootstrap_android()
    __ARCH=$(get_param_value "ARCH")
    __API=$(get_param_value "API")
    if [ ! $__API ]; then __API=latest; fi
-   CMAKE_CMD="$CMAKE_CMD -DCMAKE_TOOLCHAIN_FILE=${__TOOLCHAIN_FILE}"
-   CMAKE_CMD="$CMAKE_CMD -DANDROID_NDK=${NDK_HOME}"
-   CMAKE_CMD="$CMAKE_CMD -DANDROID_ABI=${__ARCH}"
-   CMAKE_CMD="$CMAKE_CMD -DANDROID_PLATFORM=${__API}"
-   CMAKE_CMD="$CMAKE_CMD -DANDROID_TOOLCHAIN=clang"
-   CMAKE_CMD="$CMAKE_CMD ${DPARAMS[@]} .."
+   MAKE_CMD="cmake -DCMAKE_TOOLCHAIN_FILE=${__TOOLCHAIN_FILE}"
+   MAKE_CMD="$MAKE_CMD -DANDROID_NDK=${NDK_HOME}"
+   MAKE_CMD="$MAKE_CMD -DANDROID_ABI=${__ARCH}"
+   MAKE_CMD="$MAKE_CMD -DANDROID_PLATFORM=${__API}"
+   MAKE_CMD="$MAKE_CMD -DANDROID_TOOLCHAIN=clang"
+   MAKE_CMD="$MAKE_CMD ${DPARAMS[@]} .."
    BUILD_CMD="cmake --build ."
    INSTA_CMD="cmake --build . --target install"
 }
@@ -118,5 +118,5 @@ bootstrap_$TARGET_PLATFORM
 
 if [ -d "_build" ]; then rm -rf _build; fi
 mkdir -p _build && cd _build
-cmake $CMAKE_CMD && $BUILD_CMD && $INSTA_CMD && cd ..
+$MAKE_CMD && $BUILD_CMD && $INSTA_CMD && cd ..
 

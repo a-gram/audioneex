@@ -23,7 +23,7 @@
 #  AX_WITH_TESTS     = ON | OFF  (for project developers only)
 #
 
-cmake_minimum_required(VERSION 3.5.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 
 project (audioneex VERSION 1.3.0 LANGUAGES CXX)
 
@@ -274,9 +274,9 @@ endif()
 
 # ---
 
-if(AX_BUILD_MODE STREQUAL "debug")
+if(AX_BUILD_MODE STREQUAL debug)
    set(CMAKE_BUILD_TYPE DEBUG)
-elseif(AX_BUILD_MODE STREQUAL "release")
+elseif(AX_BUILD_MODE STREQUAL release)
    set(CMAKE_BUILD_TYPE RELEASE)
 else()
    show_param_usage("AX_BUILD_MODE" "${AX_BUILD_MODE}" 

@@ -22,7 +22,7 @@ To build the full package, including the examples, you need to add the following
 optional components
 
 * TagLib
-* FFMpeg
+* FFmpeg
 
 The code has been developed mostly using the below mentioned tools, but anything
 more recent should also work fine, so these are considered the minimum
