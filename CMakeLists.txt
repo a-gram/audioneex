@@ -27,6 +27,7 @@ cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 
 project (audioneex VERSION 1.3.0 LANGUAGES CXX)
 
+enable_testing()
 
 # =========================================================
 #                      User Config
@@ -336,13 +337,16 @@ else()
    set(AX_BIN_PREFIX "")
 endif()
 
-# Export the current environment for installation.
+# Export the current environment.
 # This code will be included by the install script
-# when 'make install' is invoked.
-file(WRITE _build/ax_install_env.cmake
+# when 'make install' is invoked, and by the test
+# runner script when tests are executed.
+file(WRITE _build/ax_export_env.cmake
+   "set(AX_SRC_ROOT \"${AX_SRC_ROOT}\")\n"
    "set(AX_TARGET ${AX_TARGET})\n"
    "set(AX_ARCH ${AX_ARCH})\n"
    "set(AX_BUILD_LIB_DIR \"${AX_BUILD_LIB_DIR}\")\n"
+   "set(AX_BUILD_EXE_DIR \"${AX_BUILD_EXE_DIR}\")\n"
    "set(AX_INSTALL_LIB_DIR \"${AX_INSTALL_LIB_DIR}\")\n"
    "set(AX_BIN_PREFIX \"${AX_BIN_PREFIX}\")\n"
    "set(AX_BINARY_TYPE ${AX_BINARY_TYPE})\n"

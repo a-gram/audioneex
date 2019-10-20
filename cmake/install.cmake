@@ -10,7 +10,7 @@
 # the installation.
 #
 
-include(ax_install_env.cmake)
+include(ax_export_env.cmake)
 include(../cmake/install_${AX_TARGET}.cmake)
 
 function(check_cmd cmd_name)

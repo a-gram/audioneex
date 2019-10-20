@@ -1,2 +1,0 @@
-
-message(STATUS "RUNNING TESTS IN ${AX_BUILD_EXE_DIR} ...")

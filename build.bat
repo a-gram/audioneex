@@ -32,6 +32,9 @@ SETLOCAL
 set "PARAMS=%*"
 set LPARAMS=%PARAMS%
 set DPARAMS=
+set BUILD_CMD=cmake --build .
+set INSTA_CMD=cmake --build . --target install
+set TEST_CMD=cmake --build . --target test
 
 :nextp
 for /F "tokens=1,* delims= " %%a in ("%LPARAMS%") do (
@@ -55,8 +58,6 @@ echo.
 echo -- Building for Windows
 echo.
 set "MAKE_CMD=cmake -G "NMake Makefiles" %DPARAMS% .."
-set "BUILD_CMD=cmake --build ."
-set "INSTA_CMD=cmake --build . --target install"
 
 exit /B 0
 
@@ -84,8 +85,6 @@ set MAKE_CMD=%MAKE_CMD% -DANDROID_ABI=%__ARCH%
 set MAKE_CMD=%MAKE_CMD% -DANDROID_PLATFORM=%__API%
 set MAKE_CMD=%MAKE_CMD% -DANDROID_TOOLCHAIN=clang
 set MAKE_CMD=%MAKE_CMD% %DPARAMS% ..
-set BUILD_CMD=cmake --build .
-set INSTA_CMD=cmake --build . --target install
 
 exit /B 0
 
@@ -132,8 +131,11 @@ exit /B 0
 :do_build
 ::========
 
-if defined MAKE_CMD (
-   if exist _build rmdir /s /q _build
-   mkdir _build && cd _build
-   %MAKE_CMD% && %BUILD_CMD% && %INSTA_CMD% && cd ..
-)
+if not defined MAKE_CMD exit /B 1
+call :get_param_value "WITH_TESTS" __WITH_TESTS
+if not defined __WITH_TESTS set TEST_CMD=rem
+
+if exist _build rmdir /s /q _build
+mkdir _build && cd _build
+%MAKE_CMD% && %BUILD_CMD% && %INSTA_CMD% && %TEST_CMD% && cd ..
+

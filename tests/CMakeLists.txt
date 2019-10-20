@@ -3,7 +3,6 @@
 #                       Tests Module
 # ---------------------------------------------------------
 
-
 message(STATUS "Building tests")
 
 set(AX_TEST_INC
@@ -69,12 +68,27 @@ target_link_libraries(test_matching audioneex
                       ${AX_PLAT_THREAD_LIB} 
                       ${DATASTORE_LIB})
 
+# Set common properties and create test targets
 foreach(TEST test_fingerprinting 
              test_indexing 
              test_matching)
 
-    set_target_properties(${TEST} 
-        PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${AX_BUILD_EXE_DIR}"
-    )
+   set_target_properties(${TEST} 
+       PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${AX_BUILD_EXE_DIR}"
+   )
+   string(REPLACE "test_" "" TEST_NAME "${TEST}")
+   add_test(
+      NAME ${TEST_NAME}
+      COMMAND ${TEST}
+      WORKING_DIRECTORY "${AX_BUILD_EXE_DIR}"
+   )
 endforeach()
+
+# Create a target to initialize the tests prior to execution. 
+# See 'setup_tests.cmake' for details about what the setup process does.
+add_custom_target(
+   setup_tests
+   ALL
+   COMMAND ${CMAKE_COMMAND} -P ${AX_SRC_ROOT}/cmake/setup_tests.cmake
+)
 

@@ -2,6 +2,7 @@
 _build/
 lib/
 bin/
+Testing/
 
 # Logs and other junk files
 *.log
