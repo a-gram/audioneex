@@ -1,0 +1,19 @@
+language: cpp
+sudo: required
+dist: bionic
+compiler:
+- gcc
+os:
+- linux
+before_install:
+- gcc --version
+script:
+- if [ $TRAVIS_OS_NAME == linux ]; then ./build; fi
+branches:
+   only:
+   - master
+   - "/^v\\d+\\./"
+env:
+   global:
+   - AX_VERSION="1.3.1"
+
