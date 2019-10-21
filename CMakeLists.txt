@@ -36,10 +36,10 @@ enable_testing()
 
 set(MY_INCLUDE_DIRS
     
-    "/usr/local/include"
-    "/usr/local/include/tcabinet"
+    /usr/local/include
+    /usr/local/include/tcabinet
     
-    "C:/dev/cpp/include"
+    C:/dev/cpp/include
 )
 
 set(MY_LIBRARY_x32_RELEASE_DIRS
@@ -47,10 +47,10 @@ set(MY_LIBRARY_x32_RELEASE_DIRS
 
 set(MY_LIBRARY_x64_RELEASE_DIRS
 
-    "/usr/local/lib/7"
+    /usr/local/lib/7
     
-    "C:/dev/cpp/lib/vc191/x64/release"
-    "C:/dev/cpp/lib/vc191/x64/release/static"
+    C:/dev/cpp/lib/vc191/x64/release
+    C:/dev/cpp/lib/vc191/x64/release/static
 )
 
 set(MY_LIBRARY_x32_DEBUG_DIRS
@@ -58,20 +58,20 @@ set(MY_LIBRARY_x32_DEBUG_DIRS
 
 set(MY_LIBRARY_x64_DEBUG_DIRS
 
-    "/usr/local/lib/7"
+    /usr/local/lib/7
     
-    "C:/dev/cpp/lib/vc191/x64/debug"
-    "C:/dev/cpp/lib/vc191/x64/debug/static"
+    C:/dev/cpp/lib/vc191/x64/debug
+    C:/dev/cpp/lib/vc191/x64/debug/static
 )
 
 set(MY_LIBRARY_ANDROID_RELEASE_DIRS
 
-    "/opt/android/lib/armeabi-v7a"
-    "/opt/android/lib/arm64-v8a"
-    "/opt/android/lib/x86"
-    "/opt/android/lib/x86_64"
+    /opt/android/lib/armeabi-v7a
+    /opt/android/lib/arm64-v8a
+    /opt/android/lib/x86
+    /opt/android/lib/x86_64
     
-    "C:/dev/android/lib/x86_64"
+    C:/dev/android/lib/x86_64
 )
 
 set(MY_LIBRARY_ANDROID_DEBUG_DIRS
@@ -79,7 +79,7 @@ set(MY_LIBRARY_ANDROID_DEBUG_DIRS
 
 set(MY_BOOST_INCLUDE_DIR
 
-    "/use/local/share/boost_1_66_0"
+    /use/local/share/boost_1_66_0
 )
 
 set(MY_BOOST_LIBRARY_x32_DIR
@@ -87,7 +87,7 @@ set(MY_BOOST_LIBRARY_x32_DIR
 
 set(MY_BOOST_LIBRARY_x64_DIR
 
-    "/usr/local/share/boost_1_66_0/stage/lib/7"
+    /usr/local/share/boost_1_66_0/stage/lib/7
 )
 
 set(MY_VC_INSTALL_DIR 
@@ -356,4 +356,5 @@ file(WRITE _build/ax_export_env.cmake
 )
 
 install(SCRIPT "cmake/install.cmake")
+
 

@@ -1,5 +1,7 @@
-# Temp directories
+# Temp and output directories
 _build/
+_deps/
+_tmp/
 lib/
 bin/
 Testing/
