@@ -13,11 +13,11 @@ embedded devices.
 Features
 
 - **Compact fingerprints** - 1 hr of audio encoded in less than a MB
+- **Fast identification** - only a few seconds to perform a recognition
 - **Content-agnostic** - recognition of audio of different nature
-- **Fast identification** - can be used for real-time recognitions
 - **Cross-platform** - runs anywhere there is a modern C++ compiler (v11+)
 - **IoT & Mobile-ready** - runs well on small devices for on-device ACR
-- **Database-agnostic** - can use different databases by rewriting the drivers
+- **Database-neutral** - can be used with any database (requires drivers)
 
 
 ## Documentation
@@ -70,7 +70,7 @@ In a nutshell:
 
 For the more curious, it is an implementation of the methods described
 in [this paper](https://www.dropbox.com/s/0qvfq2o53uudaqx/agramaglia_acr_paper_2014.pdf).
-If you are using this work in your research, please use the following citation
+If you are including this work in your research, please use the following BibTex citation
 
     @misc{agramaglia2014-acr,
        author =       "Alberto Gramaglia",
@@ -79,3 +79,6 @@ If you are using this work in your research, please use the following citation
        year =         "2014"
     }
 
+or in plain text
+
+_A.Gramaglia (2014). "A Binary Auditory Words Model for Audio Content Identification". Audioneex.com._
