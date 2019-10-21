@@ -18,8 +18,7 @@ if [ -d "_deps" ]; then rm -rf _deps; fi
 
 mkdir _deps && cd _deps
 wget -O ax_deps.tar.gz $DEPS_URL
-tar xf ax_deps.tar.gz
-
+tar -xzvf xf ax_deps.tar.gz
 
 sed -i "s/$SLINE1/$SLINE1\n$ILINE1/" $IFILE
 sed -i "s/$SLINE2/$SLINE2\n$ILINE2/" $IFILE

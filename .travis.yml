@@ -21,7 +21,7 @@ install:
 - if [ $TRAVIS_OS_NAME == linux ]; then ./scripts/dependencies.sh; fi
 
 script:
-- if [ $TRAVIS_OS_NAME == linux ]; then ./build; fi
+- if [ $TRAVIS_OS_NAME == linux ]; then ./build WITH_TESTS=ON; fi
 
 branches:
    only:
