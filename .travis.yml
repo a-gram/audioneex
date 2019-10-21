@@ -16,6 +16,7 @@ addons:
     - libboost-system-dev
     - libboost-thread-dev
     - libboost-regex-dev
+    - ffmpeg
 
 install:
 - if [ $TRAVIS_OS_NAME == linux ]; then ./scripts/dependencies.sh; fi
