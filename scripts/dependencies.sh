@@ -3,23 +3,73 @@
 #  Audioneex dependency installer
 #  ------------------------------
 #
-#  This script downlods and installs dependencies that are not available
-#  in public repositories (or that i wasn't able to find).
+#  This script downloads, builds and installs the dependencies from
+#  the sources (TokyoCabinet is actually available as a PPA but we'll
+#  include it here anyways).
+#
+#  NOTE: The script MUST be executed from the source root directory
 #
 
+# Installation directories
+INSTALLDIR="$(pwd)/_deps"
+IPREFIX="--prefix=${INSTALLDIR}"
+INST_H_DIR="--includedir=${INSTALLDIR}/include"
+INST_LIB_DIR="--libdir=${INSTALLDIR}/lib/x64"
+
+# Configuration lines to be added to the CMake script for the
+# dependencies' include and library paths.
 SLINE1="set(MY_INCLUDE_DIRS"
-ILINE1="    \${CMAKE_SOURCE_DIR}\/_deps\/include"
+ILINE1="    \${CMAKE_SOURCE_DIR}\/_deps\/include\n"
+ILINE1+="    \${CMAKE_SOURCE_DIR}\/_deps\/include\/tcabinet\n"
+ILINE1+="    \${CMAKE_SOURCE_DIR}\/_deps\/include\/fftss"
 SLINE2="set(MY_LIBRARY_x64_RELEASE_DIRS"
 ILINE2="    \${CMAKE_SOURCE_DIR}\/_deps\/lib\/x64"
 IFILE="../CMakeLists.txt"
-DEPS_URL="https://www.dropbox.com/s/factka0h6x5tj7r/audioneex_deps.tar.gz?dl=0"
+
+# Configuration parameters for each dependency
+FFTSS_CONFIG_PARAMS="\
+  CFLAGS=-fPIC \
+  ${IPREFIX} \
+  ${INST_H_DIR}/fftss \
+  ${INST_LIB_DIR}"
+
+TOKYO_CONFIG_PARAMS="\
+  --disable-zlib \
+  --disable-bzip \
+  ${IPREFIX} \
+  ${INST_H_DIR}/tcabinet \
+  ${INST_LIB_DIR}"
+
+# The dependencies URLs
+DEPS=(
+   "https://www.ssisc.org/fftss/dl/fftss-3.0-20071031.tar.gz"
+   "https://fallabs.com/tokyocabinet/tokyocabinet-1.4.48.tar.gz"
+)
+
+# Configuration parameters map
+declare -A DEPS_CONFIG_PARAMS=(
+   ["fftss-3.0-20071031"]="$FFTSS_CONFIG_PARAMS"
+   ["tokyocabinet-1.4.48"]="$TOKYO_CONFIG_PARAMS"
+)
+
 
 if [ -d "_deps" ]; then rm -rf _deps; fi
-
 mkdir _deps && cd _deps
-wget -O ax_deps.tar.gz $DEPS_URL
-tar -xzvf xf ax_deps.tar.gz
 
+# Download, make and install the dependencies
+for DEP in "${DEPS[@]}"; do
+    DEPDIR=$(basename $DEP .tar.gz)
+    wget $DEP
+    tar -xzvf ${DEPDIR}.tar.gz
+    cd ${DEPDIR}
+    ./configure ${DEPS_CONFIG_PARAMS[$DEPDIR]}
+    make && make install
+    cd ..
+    rm -rf ${DEPDIR}
+    rm -f ${DEPDIR}.tar.gz
+done
+
+# Edit the CMake file
 sed -i "s/$SLINE1/$SLINE1\n$ILINE1/" $IFILE
 sed -i "s/$SLINE2/$SLINE2\n$ILINE2/" $IFILE
 

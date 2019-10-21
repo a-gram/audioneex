@@ -33,7 +33,7 @@ set(AX_TEST_MATCHER_SRC test_matching.cpp
 
 # --- Find targets libraries ---
 
-find_library(DATASTORE_LIB
+find_library(AX_DATASTORE_LIB
              NAMES ${AX_DATASTORE_LIB_NAME} 
              PATHS ${AX_TEST_LIB_PATHS})
 
@@ -56,7 +56,7 @@ target_compile_definitions(test_indexing PRIVATE ${AX_TEST_DEFS})
 target_link_libraries(test_indexing audioneex
                       ${Boost_LIBRARIES} 
                       ${AX_PLAT_THREAD_LIB} 
-                      ${DATASTORE_LIB})
+                      ${AX_DATASTORE_LIB})
 
 add_executable(test_matching ${AX_TEST_MATCHER_SRC})
 
@@ -66,7 +66,7 @@ target_compile_definitions(test_matching PRIVATE ${AX_TEST_DEFS})
 target_link_libraries(test_matching audioneex
                       ${Boost_LIBRARIES} 
                       ${AX_PLAT_THREAD_LIB} 
-                      ${DATASTORE_LIB})
+                      ${AX_DATASTORE_LIB})
 
 # Set common properties and create test targets
 foreach(TEST test_fingerprinting 
