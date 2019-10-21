@@ -105,7 +105,7 @@ function bootstrap_android()
 
 BUILD_CMD="cmake --build ."
 INSTA_CMD="cmake --build . --target install"
-TEST_CMD="cmake --build . --target test"
+TEST_CMD="cmake --build . --target test -- CTEST_OUTPUT_ON_FAILURE=1"
 
 DPARAMS=()
 read -ra PARAMS <<< "${*}"
