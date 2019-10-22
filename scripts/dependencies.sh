@@ -1,13 +1,19 @@
 #!/bin/bash
 #
-#  Audioneex dependency installer
-#  ------------------------------
+#  Audioneex dependencies installer
+#  --------------------------------
 #
-#  This script downloads, builds and installs the dependencies from
-#  the sources (TokyoCabinet is actually available as a PPA but we'll
-#  include it here anyways).
+#  This script downloads, builds and installs the required dependencies 
+#  from the sources (TokyoCabinet is actually available as a PPA and can
+#  be installed by apt but we'll include it here anyways). It also edits
+#  the main CMake script to add the dependencies include and lib paths to
+#  the build.
 #
-#  NOTE: The script MUST be executed from the source root directory
+#  NOTE: This script MUST be executed from the source root directory.
+#        It is currently only used on Continuous Integration platforms
+#        (actually Travis CI) to install the required dependencies, but
+#        it may as well be integrated in the project's build process to 
+#        make it fully automated.
 #
 
 # Installation directories
@@ -40,7 +46,7 @@ TOKYO_CONFIG_PARAMS="\
   ${INST_H_DIR}/tcabinet \
   ${INST_LIB_DIR}"
 
-# The dependencies URLs
+# The packages' URLs
 DEPS=(
    "https://www.ssisc.org/fftss/dl/fftss-3.0-20071031.tar.gz"
    "https://fallabs.com/tokyocabinet/tokyocabinet-1.4.48.tar.gz"
@@ -53,7 +59,15 @@ declare -A DEPS_CONFIG_PARAMS=(
 )
 
 
-if [ -d "_deps" ]; then rm -rf _deps; fi
+if [ -d "_deps" ]; then
+   echo ""
+   echo "Looks like the dependencies are already installed."
+   echo "If you want to re-install them, remove the '_deps'"
+   echo "directory from the root."
+   echo""
+   exit 0
+fi
+
 mkdir _deps && cd _deps
 
 # Download, make and install the dependencies
@@ -69,7 +83,7 @@ for DEP in "${DEPS[@]}"; do
     rm -f ${DEPDIR}.tar.gz
 done
 
-# Edit the CMake file
+# Edit the CMake main script
 sed -i "s/$SLINE1/$SLINE1\n$ILINE1/" $IFILE
 sed -i "s/$SLINE2/$SLINE2\n$ILINE2/" $IFILE
 
