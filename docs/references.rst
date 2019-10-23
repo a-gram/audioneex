@@ -4,7 +4,8 @@ References
 
 For a theorethical background with more details about the methods and algorithms
 used by Audioneex, refer to `this paper <_static/agramaglia_acr_paper_2014.pdf>`_. 
-If you are using this work in your research, please use the following citation
+If you are including this work in your research, please use the following BibTex 
+citation
 
 .. code::
 
@@ -15,3 +16,7 @@ If you are using this work in your research, please use the following citation
      year =         "2014"
    }
 
+Alternatively, you can also use the following plain text citation
+
+*A.Gramaglia (2014). "A Binary Auditory Words Model for Audio Content Identification". 
+Audioneex.com.*

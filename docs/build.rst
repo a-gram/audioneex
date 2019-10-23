@@ -5,8 +5,8 @@ How to build it
 The code has been extensively tested on Linux, Windows and Android platforms,
 so here we're outlining the steps needed to build the binaries on such
 platforms. However, it may as well build on others not officially mentioned 
-here. Generally, any platform with a decent POSIX compatibility and a modern C++ 
-compiler (version 11 or higher) should be fine.
+here. Generally, any platform with a modern C++ compiler (version 11 or higher) 
+and a decent POSIX compatibility should be fine.
 
 
 Prerequisites
@@ -32,10 +32,8 @@ requirements
 * CMake 3.11
 * Android NDK r19
 
-While the specified versions for the above dependencies are guaranteed to work 
-and are thus recommended, it may also work with others. TagLib and FFMpeg are 
-only needed for the example programs and can be replaced with something similar, 
-but doing so will require changes to the code.
+TagLib and FFmpeg are only needed for the example programs and can be replaced 
+with something similar, but doing so will require changes to the code.
 
 
 About the database
@@ -81,11 +79,10 @@ CMake build script (CMakeLists.txt) located in the root directory.
 **3.  Build**
 
 After cloning (or downloading) the code, open a shell and execute the following 
-commands
+command from the root directory
 
 .. code-block:: bash
 
-   $ cd <source_root_directory>
    $ ./build [options]
 
 where ``[options]`` is one or more of the following command line parameters in
@@ -122,9 +119,7 @@ architecture and the latest API level.
    The parameters for the build script are case-sensitive.
 
 Naturally, first you will have to build the required external libraries mentioned 
-in the prerequisites for the specific Android platforms you're targeting. A build 
-script in the root directory called ``android-configure`` will help you with the
-cross-compilation of these libraries. For more info, refer to the script itself.
+in the prerequisites for the specific Android platforms you're targeting. 
 Patched source code for the libraries that compile on Android straight away can 
 be downloaded from `here <https://www.dropbox.com/s/kg9sn42d80lt0gt/audioneex_android_ext_libs.tar.gz>`_.
 Just unpack them somewhere and run
@@ -137,7 +132,6 @@ Just unpack them somewhere and run
 from within the respective directories, where ``<arch> <api>`` are the same 
 as in the ``build`` script and ``[config_params]`` are library-specific
 configuration parameters. Please have a look at the script for more details.
-
 
 
 

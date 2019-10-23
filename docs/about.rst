@@ -69,20 +69,20 @@ Architecture
 ------------
 
 The architecture is extremely modular, with three main interfaces that abstract 
-access to most of the functionality of the engine: ``Recognizer``, ``Indexer`` and 
-``DataStore``.
+access to most of the functionality of the engine: ``Recognizer``, ``Indexer``, 
+``DataStore`` and ``AudioProvider``.
 
 .. figure:: _static/arch.png
 
 The ``Recognizer`` can be considered as the front-end to all of the identification 
-functionality. It deals with the collection of audio supplied by the clients, 
+functionality. It deals with the collection of audio data from the clients, 
 dispatching of the audio to the ``Fingerprinter`` for fingerprint extraction, 
 dispatching of the extracted fingerprints to the ``Matcher`` to initiate the search 
 of the best candidates, analysis of the results returned by the matching process 
 and production of the final results.
 
 The ``Indexer`` provides access to functionality concerning the generation 
-of the reference fingerprints. It deals with the collection of audio from 
+of the reference fingerprints. It deals with the collection of audio data from 
 client applications, initiating the fingerprinting process, processing the 
 resulting fingerprints into a format suitable for quick searches and storing the 
 data into the appropriate structures. In the context of the Audioneex engine, 
@@ -90,11 +90,9 @@ all these processes collectively are referred to as “indexing”, and the outc
 is the generation of the “reference database”, which is the first step to take 
 before using the engine for any recognition operation.
 
-The ``Datastore`` interface is probably the most important entity of the whole 
-architecture from the developer's point of view. It provides the specifications 
-that clients can follow in order to interface the engine with a specific data 
-store. It's an abstraction layer that can be used to write "drivers" for 
-different kinds of database. 
+The ``Datastore`` interface provides an abstraction layer over the data storage
+functionality by exposing a specification that clients can follow in order to 
+interface the engine with different data stores.
 This approach allows decoupling from vendor-specific solutions, with the 
 consequence of providing a lot of flexibility in the choice of this crucial
 component depending on the application. 
@@ -102,4 +100,9 @@ For example, a web service may need to use a database based on a client-server
 architecture, whereas an embedded system may require an in-process database for 
 on-device recognitions. Data access drivers for two popular high-performance 
 databases are provided out-of-the-box and can be used straight away.
+
+The ``AudioProvider`` interface is used to connect the engine to a source of audio
+data by means of a callback mechanism. It is simply a way to create "listener"
+objects to be registered with the engine so that it can get the audio to be 
+processed.
 

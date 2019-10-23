@@ -112,7 +112,7 @@ configure beforehand according to your environment.
    libraries. External ones, you need to build them yourself and then 
    copy them into the above mentioned directory. Patched sources for 
    the default libs for Android can be found `here 
-   <https://www.dropbox.com/s/kg9sn42d80lt0gt/audioneex_android_ext_libs.tar.gz?dl=0>`_
+   <https://www.dropbox.com/s/kg9sn42d80lt0gt/audioneex_android_ext_libs.tar.gz?dl=0>`_. 
    Just run the ``./android-configure`` script located in the root directory 
    of these packages instead of the standard ./configure.
 
@@ -124,7 +124,7 @@ configure beforehand according to your environment.
 The examples use the CMake build system, so you need to have it installed and
 configured properly. However, using the CMake installed system-wide requires some
 extra steps (like installing additional dependencies). The easiest way is to get 
-the one embedded in Android Studio through the SDK Manager, which already includes
+the one shipped with Android Studio through the SDK Manager, which already includes
 the required components (version 3.6 is recommended at the time of this writing 
 as the more recent version doesn't work). You will also have to set the Android 
 Studio SDK and NDK paths to the directories where they're installed in 

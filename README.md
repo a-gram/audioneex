@@ -3,6 +3,7 @@
 
 [![Build Status](https://travis-ci.org/a-gram/audioneex.svg?branch=master)](https://travis-ci.org/a-gram/audioneex)
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
+[![Documentation Status](https://readthedocs.org/projects/audioneex/badge/?version=latest)](https://audioneex.readthedocs.io/en/latest/?badge=latest)
 
 
 Audioneex is an audio content recognition engine specifically designed
