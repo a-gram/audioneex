@@ -41,10 +41,9 @@ following commands to start the build process
 
     $ git clone https://github.com/a-gram/audioneex.git
     $ cd audioneex
-    $ ./build
+    $ ./build WITH_EXAMPLES=ON
 
-The final libraries will be put into a `/lib` folder in the root directory.
-
+This will build the library along with the demo programs within the `_build` directory. 
 Please refer to the [documentation](https://audioneex.readthedocs.io) for more 
 details.
 
