@@ -42,10 +42,9 @@ Features
   identification (3-4 seconds on average for moderately distorted audio) making
   it suitable for real-time applications.
   
-* **Cross-platform API** - Implemented in standard C++ to guarantee native high 
-  performances while providing a suitable level of abstraction, it builds and 
-  runs anywhere there is a modern C++ compiler (version 11 and above), which means 
-  most software/hardware platforms out there.
+* **Cross-platform API** - Implemented in standard C++ to guarantee the high 
+  performances that only native code can achieve, while providing portability to
+  any platform with a modern C++ compiler (version 11 and above).
 
 * **Content-agnostic recognition** - The core algorithms are independent of the 
   nature of the audio to be recognized, allowing the identification of basically 
