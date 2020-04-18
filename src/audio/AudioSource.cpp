@@ -198,7 +198,7 @@ void AudioSourceDevice::Open(const std::string &source_name)
 #ifdef WIN32
     m_Pipe.AddCmdArg( "-i audio=\"" + source_name +"\"" );
 #else
-    m_Pipe.AddCmdArg( "-i hw:" + source_name );
+    m_Pipe.AddCmdArg( "-i " + source_name );
 #endif
     m_Pipe.AddCmdArg( m_SampleRate ? "-ar " + std::to_string(m_SampleRate) : "" );
     m_Pipe.AddCmdArg( m_Channels ? "-ac " + std::to_string(m_Channels) : "" );
