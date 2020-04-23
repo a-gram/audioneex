@@ -10,7 +10,7 @@
 #define CATCH_CONFIG_MAIN  // Tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
 
-#include "Fingerprint.h"
+#include "Fingerprinter.h"
 #include "AudioSource.h"
 #include "Tester.h"
 
@@ -32,16 +32,16 @@
 /// Usage:  test_fingerprinting
 ///
 
-TEST_CASE("Fingerprint accessors") {
+TEST_CASE("Fingerprinter accessors") {
 
-    Audioneex::Fingerprint fingerprint;
+    Audioneex::Fingerprinter fingerprint;
 
     fingerprint.SetBufferSize(11025);
     REQUIRE( fingerprint.GetBufferSize() == 11025 + Audioneex::Pms::OrigWindowSize );
 }
 
 
-TEST_CASE("Fingerprint processing") {
+TEST_CASE("Fingerprinter processing") {
 
     int Srate = Audioneex::Pms::Fs;
     int Nchan = Audioneex::Pms::Ca;
@@ -50,8 +50,8 @@ TEST_CASE("Fingerprint processing") {
     Audioneex::Tester TESTER;
 #endif
 
-    AudioBlock<int16_t> iblock(Srate*2, Srate, Nchan);
-    AudioBlock<float>   audio(Srate*2, Srate, Nchan);
+    AudioBuffer<int16_t> ibuffer(Srate*2, Srate, Nchan);
+    AudioBuffer<float>   audio(Srate*2, Srate, Nchan);
 
     AudioSourceFile     asource;
 
@@ -59,27 +59,27 @@ TEST_CASE("Fingerprint processing") {
     asource.SetChannelCount( Nchan );
     asource.SetSampleResolution( 16 );
 
-    iblock.Resize(Srate*0.2);
+    ibuffer.Resize(Srate*0.2);
     audio.Resize(Srate*0.2);
 
     REQUIRE_NOTHROW( asource.Open("./data/rec1.mp3") );
-    REQUIRE_NOTHROW( asource.GetAudioBlock(iblock) );
-    REQUIRE_NOTHROW( iblock.Normalize( audio ) );
+    REQUIRE_NOTHROW( asource.GetAudioBlock(ibuffer) );
+    REQUIRE_NOTHROW( ibuffer.Normalize( audio ) );
 
     Audioneex::Fingerprint_t fp;
-    Audioneex::Fingerprint fingerprint;
+    Audioneex::Fingerprinter fingerprint;
 
     // Try fingerprinting some invalid audio
     REQUIRE_NOTHROW ( fingerprint.Process( audio ) );
     REQUIRE( fingerprint.Get().empty() );  // Audio shorter than 0.5s
 
-    iblock.Resize(Srate*2);
+    ibuffer.Resize(Srate*2);
     audio.Resize(Srate*2);
 
     // Try fingerprinting some audio
     do{
-        REQUIRE_NOTHROW( asource.GetAudioBlock(iblock) );
-        iblock.Normalize( audio );
+        REQUIRE_NOTHROW( asource.GetAudioBlock(ibuffer) );
+        ibuffer.Normalize( audio );
         REQUIRE_NOTHROW( fingerprint.Process(audio) );
         const Audioneex::lf_vector &lfs = fingerprint.Get();
 
@@ -89,11 +89,13 @@ TEST_CASE("Fingerprint processing") {
         REQUIRE_NOTHROW( TESTER.AddToPlotSpectrum(fingerprint) );
 #endif
     }
-    while(iblock.Size() > 0);
+    while(ibuffer.Size() > 0);
 
     // Validate the fingerprint.
-    for(size_t i=0; i<fp.LFs.size(); i++){
-        if(i>0){
+    for(size_t i=0; i<fp.LFs.size(); i++)
+    {
+        if(i>0)
+        {
            REQUIRE( (fp.LFs[i].ID == fp.LFs[i-1].ID+1) );
            REQUIRE( fp.LFs[i].T >= fp.LFs[i-1].T );
         }

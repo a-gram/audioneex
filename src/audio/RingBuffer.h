@@ -18,11 +18,11 @@
 #include <algorithm>
 #include <memory>
 
-#include "AudioBlock.h"
+#include "AudioBuffer.h"
 
 
-/// A naive ring buffer used by one producer (the audio provider)
-/// and one consumer (the audio processor) with simple access control.
+/// A naive ring buffer used by one producer (the audio provider) and one 
+/// consumer (the audio processor) with simple lock-free access control.
 
 template<class T>
 class RingBuffer
@@ -31,71 +31,92 @@ class RingBuffer
 
     RingBuffer() = default;
 
-    // Copy c-tor
+    /// Copy c-tor
     RingBuffer(const RingBuffer<T>& rhs);
 
-    // Create a ring buffer with 'size' empty (null) blocks
+    /// Create a ring buffer with 'size' empty (null) blocks
     RingBuffer(size_t size);
 
-    /// Create a ring buffer with 'size' blocks with the given block's params
-    RingBuffer(size_t size, AudioBlock<T> &block);
+    /// Create a ring buffer with 'size' blocks with the given buffer's params
+    RingBuffer(size_t size, AudioBuffer<T> &buffer);
 
     ~RingBuffer() = default;
 
-    /// Set the ring with 'size' empty (null) blocks
-    void  Set(size_t size);
+    /// Set the ring with 'size' empty (null) buffers
+    void
+    Set(size_t size);
 
-    /// Set the ring with 'size' blocks with the given block's parameters
-    void  Set(size_t size, AudioBlock<T> &block);
+    /// Set the ring with 'size' buffers with the given buffer's parameters
+    void
+    Set(size_t size, AudioBuffer<T> &buffer);
 
     /// Return the size of the ring. This is the max number of items the ring
     /// can hold (capacity).
-    size_t Size();
+    size_t
+    Size();
 
     /// Return true if the ring is full, false otherwise.
-    bool  IsFull();
+    bool
+    IsFull();
 
     /// Return true if the ring is empty, false otherwise.
-    bool  IsEmpty();
+    bool
+    IsEmpty();
 
-    /// Check whether the ring contains blocks.
-    bool  IsNull();
+    /// Check whether the ring contains buffers.
+    bool
+    IsNull();
 
     /// Return the available items in the ring.
-    uint64_t Available();
+    uint64_t
+    Available();
 
-    /// Get the head block .
-    /// @return A pointer to the free (consumed) block that will be used by the
+    /// Get the head buffer .
+    /// @return A pointer to the free (consumed) buffer that will be used by the
     /// next push operation to the consumer, or null if the buffer is full.
-    AudioBlock<T>* GetHead();
+    AudioBuffer<T>*
+    GetHead();
 
     /// Push an element to the consumer. This method returns a pointer to the
     /// pushed element in case the buffer is not full or a null pointer in case
     /// the buffer is full (overflow).
-    AudioBlock<T>* Push();
+    AudioBuffer<T>*
+    Push();
 
     /// Get an element from the ring. This method returns a pointer to the
     /// available element in case the ring is not empty or a null pointer in
     /// case the ring is empty (starvation).
-    AudioBlock<T>* Pull();
+    AudioBuffer<T>*
+    Pull();
 
     /// Discard all elements currently in the ring
-    void Reset();
+    void
+    Reset();
 
     /// Assignment operator
-    RingBuffer<T>& operator=(RingBuffer<T> rhs);
+    RingBuffer<T>&
+    operator=(RingBuffer<T> rhs);
 
     /// The swapping function
-    void swap(RingBuffer<T>& b1, RingBuffer<T>& b2);
+    void
+    swap(RingBuffer<T>& b1, RingBuffer<T>& b2);
 
  private:
 
-    std::unique_ptr<AudioBlock<T>[]> mBuffer;
+    std::unique_ptr<AudioBuffer<T>[]>
+    mBuffer;
 	
-    size_t         mSize         {0};
-    uint64_t       mConsumed     {0};
-    uint64_t       mProduced     {0};
-    bool           mConsumeDone  {false};
+    size_t
+    mSize        {0};
+    
+    uint64_t
+    mConsumed    {0};
+    
+    uint64_t
+    mProduced    {0};
+    
+    bool
+    mConsumeDone {false};
 
 };
 
@@ -103,33 +124,35 @@ class RingBuffer
 // ----------------------------------------------------------------------------
 
 
-template <class T>
-inline RingBuffer<T>::RingBuffer(const RingBuffer<T>& rhs) :
+template <class T> inline 
+RingBuffer<T>::RingBuffer(const RingBuffer<T>& rhs) 
+:
     mSize        (rhs.mSize),
     mConsumed    (rhs.mConsumed),
     mProduced    (rhs.mProduced),
     mConsumeDone (rhs.mConsumeDone),
-    mBuffer      (mSize ? new AudioBlock<T>[mSize] : nullptr)
+    mBuffer      (mSize ? new AudioBuffer<T>[mSize] : nullptr)
 {
     std::copy(rhs.mBuffer.get(),
               rhs.mBuffer.get() + mSize, 
               mBuffer.get());
 }
 
-template <class T>
-inline RingBuffer<T>::RingBuffer(size_t size)
+template <class T> inline 
+RingBuffer<T>::RingBuffer(size_t size)
 {
     Set(size);
 }
 
-template <class T>
-inline RingBuffer<T>::RingBuffer(size_t size, AudioBlock<T> &block)
+template <class T> inline 
+RingBuffer<T>::RingBuffer(size_t size, AudioBuffer<T> &buffer)
 {
-    Set(size, block);
+    Set(size, buffer);
 }
 
 template <class T>
-void RingBuffer<T>::swap(RingBuffer<T>& b1, RingBuffer<T>& b2)
+void 
+RingBuffer<T>::swap(RingBuffer<T>& b1, RingBuffer<T>& b2)
 {
     std::swap(b1.mSize, b2.mSize);
     std::swap(b1.mBuffer, b2.mBuffer);
@@ -139,86 +162,97 @@ void RingBuffer<T>::swap(RingBuffer<T>& b1, RingBuffer<T>& b2)
 }
 
 template <class T>
-RingBuffer<T>& RingBuffer<T>::operator=(RingBuffer<T> rhs)
+RingBuffer<T>& 
+RingBuffer<T>::operator=(RingBuffer<T> rhs)
 {
     swap(*this, rhs);
 }
 
-template <class T>
-inline void RingBuffer<T>::Set(size_t size)
+template <class T> inline 
+void 
+RingBuffer<T>::Set(size_t size)
 {
     assert(size > 0);
     assert(mBuffer.get() == nullptr);
 
     mSize = size;
-    mBuffer.reset(new AudioBlock<T>[size]);
+    mBuffer.reset(new AudioBuffer<T>[size]);
 }
 
-template <class T>
-inline void RingBuffer<T>::Set(size_t size, AudioBlock<T> &block)
+template <class T> inline 
+void 
+RingBuffer<T>::Set(size_t size, AudioBuffer<T> &buffer)
 {
     assert(size > 0);
     assert(mBuffer.get() == nullptr);
 
     mSize = size;
-    mBuffer.reset(new AudioBlock<T>[size]);
+    mBuffer.reset(new AudioBuffer<T>[size]);
 
     for(size_t i=0; i<size; i++)
-        mBuffer[i] = block;
+        mBuffer[i] = buffer;
 }
 
-template <class T>
-inline size_t RingBuffer<T>::Size()
+template <class T> inline 
+size_t 
+RingBuffer<T>::Size()
 {
     return mSize;
 }
 
-template <class T>
-inline bool RingBuffer<T>::IsFull()
+template <class T> inline 
+bool 
+RingBuffer<T>::IsFull()
 {
     return (mProduced - mConsumed) == mSize;
 }
 
-template <class T>
-inline bool RingBuffer<T>::IsEmpty()
+template <class T> inline 
+bool 
+RingBuffer<T>::IsEmpty()
 {
     return (mProduced - mConsumed) == 0;
 }
 
-template <class T>
-inline uint64_t RingBuffer<T>::Available()
+template <class T> inline 
+uint64_t 
+RingBuffer<T>::Available()
 {
     return (mProduced - mConsumed);
 }
 
-template <class T>
-inline bool RingBuffer<T>::IsNull()
+template <class T> inline 
+bool 
+RingBuffer<T>::IsNull()
 {
     return mBuffer.get() == nullptr;
 }
 
-template <class T>
-inline AudioBlock<T>* RingBuffer<T>::GetHead()
+template <class T> inline 
+AudioBuffer<T>* 
+RingBuffer<T>::GetHead()
 {
     return (IsFull() ? nullptr : &mBuffer[mProduced % mSize]);
 }
 
-template <class T>
-inline AudioBlock<T>* RingBuffer<T>::Push()
+template <class T> inline 
+AudioBuffer<T>* 
+RingBuffer<T>::Push()
 {
     assert(mBuffer.get() != nullptr);
     if(IsFull()) return nullptr;
-    AudioBlock<T>* ret = &mBuffer[mProduced % mSize];
+    AudioBuffer<T>* ret = &mBuffer[mProduced % mSize];
     mProduced++;
     return ret;
 }
 
-template <class T>
-inline AudioBlock<T>* RingBuffer<T>::Pull()
+template <class T> inline 
+AudioBuffer<T>* 
+RingBuffer<T>::Pull()
 {
     assert(mBuffer.get() != nullptr);
 
-    AudioBlock<T> *b = nullptr;
+    AudioBuffer<T> *b = nullptr;
 
     // Consuming of the pulled elements is done after this
     // method returns, so we increase the counter the next
@@ -244,13 +278,13 @@ inline AudioBlock<T>* RingBuffer<T>::Pull()
     return b;
 }
 
-template <class T>
-inline void RingBuffer<T>::Reset()
+template <class T> inline 
+void 
+RingBuffer<T>::Reset()
 {
    mConsumed = 0;
    mProduced = 0;
    mConsumeDone = false;
 }
-
 
 #endif // RINGBUFFER_H

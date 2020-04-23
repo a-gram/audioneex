@@ -21,14 +21,24 @@
 TEST_HERE( namespace { Audioneex::Tester TEST; } )
 
 
+const int MAX_TOP_SCORE = std::numeric_limits<int>::max() - 10E6;
+
+
 /// Version string
-const char* Audioneex::GetVersion() { return ENGINE_VERSION_STR; }
+const char* 
+Audioneex::GetVersion() 
+{ 
+    return ENGINE_VERSION_STR;
+}
+
 
 //=============================================================================
 //                               Recognizer
 //=============================================================================
 
-Audioneex::Recognizer* Audioneex::Recognizer::Create() {
+Audioneex::Recognizer* 
+Audioneex::Recognizer::Create()
+{
     return new RecognizerImpl;
 }
 
@@ -36,7 +46,8 @@ Audioneex::Recognizer* Audioneex::Recognizer::Create() {
 //                              RecognizerImpl
 //=============================================================================
 
-Audioneex::RecognizerImpl::RecognizerImpl() :
+Audioneex::RecognizerImpl::RecognizerImpl()
+:
     m_AudioBuffer          (Pms::Fs * 2.5 * Pms::Ca, Pms::Fs, Pms::Ca, 0),
     m_Fingerprint          (Pms::Fs * 2.5 * Pms::Ca),
     m_IdType               (FUZZY_IDENTIFICATION),
@@ -49,81 +60,100 @@ Audioneex::RecognizerImpl::RecognizerImpl() :
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::SetMatchType(eMatchType type)
+void 
+Audioneex::RecognizerImpl::SetMatchType(eMatchType type)
 {
     if(type != MSCALE_MATCH && type != XSCALE_MATCH)
-       throw Audioneex::InvalidParameterException("Invalid match type set");
+       throw Audioneex::InvalidParameterException
+       ("Invalid match type");
 
     m_Matcher.SetMatchType(type);
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::SetMMS(float value)
+void 
+Audioneex::RecognizerImpl::SetMMS(float value)
 {
-    if(value<0 || value>1)
-       throw Audioneex::InvalidParameterException("Invalid MMS. Must be in [0,1]");
+    if(value < 0 || value > 1)
+       throw Audioneex::InvalidParameterException
+       ("Invalid MMS. Must be in [0,1]");
 
     m_Matcher.SetRerankThreshold(value);
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::SetIdentificationType(eIdentificationType type)
+void 
+Audioneex::RecognizerImpl::SetIdentificationType(eIdentificationType type)
 {
     if(type != BINARY_IDENTIFICATION && type != FUZZY_IDENTIFICATION)
-       throw Audioneex::InvalidParameterException("Invalid identification type set");
+       throw Audioneex::InvalidParameterException
+       ("Invalid identification type");
 
     m_IdType = type;
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::SetIdentificationMode(eIdentificationMode mode)
+void 
+Audioneex::RecognizerImpl::SetIdentificationMode(eIdentificationMode mode)
 {
     if(mode != STRICT_IDENTIFICATION && mode != EASY_IDENTIFICATION)
-       throw Audioneex::InvalidParameterException("Invalid identification mode set");
+       throw Audioneex::InvalidParameterException
+       ("Invalid identification mode");
 
     m_IdMode = mode;
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::SetBinaryIdThreshold(float value)
+void 
+Audioneex::RecognizerImpl::SetBinaryIdThreshold(float value)
 {
-    if(value<0.5 || value>1)
-       throw Audioneex::InvalidParameterException("Invalid binary id threshold. Must be in [0.5,1]");
+    if(value < 0.5 || value > 1)
+       throw Audioneex::InvalidParameterException
+       ("Invalid binary id threshold. Must be in [0.5,1]");
 
     m_BinaryIdThreshold = value;
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::SetBinaryIdMinTime(float value)
+void 
+Audioneex::RecognizerImpl::SetBinaryIdMinTime(float value)
 {
-	if(value<0 || value>Pms::MaxIdTime)
-       throw Audioneex::InvalidParameterException("Invalid binary id min time. Must be in [0,20]");
+	if(value < 0 || value > Pms::MaxIdTime)
+       throw Audioneex::InvalidParameterException
+       ("Invalid binary id min time. Must be in [0,20]");
 
 	m_BinaryIdMinTime = value;
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::SetMaxRecordingDuration(size_t duration)
+void 
+Audioneex::RecognizerImpl::SetMaxRecordingDuration(size_t duration)
 {
     m_Matcher.SetMaxRecordingDuration(duration);
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::Identify(const float *audio, size_t nsamples)
+const Audioneex::IdMatch* 
+Audioneex::RecognizerImpl::Identify(const float *audio, size_t nsamples)
 {
     if(audio == nullptr)
-       throw Audioneex::InvalidParameterException("Got null audio pointer");
+       throw Audioneex::InvalidParameterException
+       ("Got null audio pointer");
 
     // Nothing to identify
     if(nsamples == 0)
-       return;
+       return nullptr;
+   
+    // Reset if identification results have already been produced
+    if(!m_IdMatches.empty())
+       Reset();
 
     // Any audio exceeding the internal buffer capacity will be discarded.
     // This limits the length of the audio snippets that the recognizer
@@ -137,21 +167,20 @@ void Audioneex::RecognizerImpl::Identify(const float *audio, size_t nsamples)
     m_Fingerprint.Process(m_AudioBuffer);
     const lf_vector &lfs = m_Fingerprint.Get();
     int processed = m_Matcher.Process(lfs);
-
+    
     // Process match results, if any (see Match::Process())
     ProcessMatchResults( processed, m_AudioBuffer.Duration() );
-
+    
     m_AudioBuffer.Resize(0);
+    
+    return GetResults();
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::ProcessMatchResults(int processed, float dt_proc)
+void 
+Audioneex::RecognizerImpl::ProcessMatchResults(int processed, float dt_proc)
 {
-    // Return if identification results have already been produced
-    if(!m_IdMatches.empty())
-       return;
-
     const MatchResults_t &mresults = m_Matcher.GetResults();
 
     TEST_HERE( TEST.Dump(mresults); )
@@ -160,11 +189,11 @@ void Audioneex::RecognizerImpl::ProcessMatchResults(int processed, float dt_proc
     // enough we handle the case of a score overflow by stopping the identification
     // setting m_idTime to the maximum allowed.
     double curIdTime = m_IdTime;
-    bool scoreOverflow = mresults.GetTopScore(1) >= std::numeric_limits<int>::max()-10E6;
+    bool scoreOverflow = mresults.GetTopScore(1) >= MAX_TOP_SCORE;
     m_IdTime = scoreOverflow ? Pms::MaxIdTime : m_IdTime;
     
     // TODO:
-    // Restructure this code. It's quite ugly.
+    // Refactor the following code
 
     if(m_IdType == FUZZY_IDENTIFICATION)
     {
@@ -172,7 +201,7 @@ void Audioneex::RecognizerImpl::ProcessMatchResults(int processed, float dt_proc
        if(processed && mresults.Top_K.size() >= 1)
        {
            // Get the current top match(es)
-           const std::list<int> &BestQis = mresults.GetTop(1);
+           auto &BestQis = mresults.GetTop(1);
 
            // Get top 2 results
            float top1 = mresults.GetTopScore(1);
@@ -194,11 +223,13 @@ void Audioneex::RecognizerImpl::ProcessMatchResults(int processed, float dt_proc
            }
        }
        else
+       {
            // The classification must be performed at each step even if
            // there are no best matches as it is the classifier that will
            // stop the identification based on elapsed time. So, if no
            // candidates are found do classification based on time only.
            DoClassification(0, m_IdTime);
+       }
     }
     else if(m_IdType == BINARY_IDENTIFICATION)
     {
@@ -206,7 +237,7 @@ void Audioneex::RecognizerImpl::ProcessMatchResults(int processed, float dt_proc
        if(processed && mresults.Top_K.size() >= 1)
        {
           // Get the current top match(es)
-          const std::list<int> &BestQis = mresults.GetTop(1);
+          auto &BestQis = mresults.GetTop(1);
 
           // Get top 2 results
           float top1 = mresults.GetTopScore(1);
@@ -229,19 +260,25 @@ void Audioneex::RecognizerImpl::ProcessMatchResults(int processed, float dt_proc
        // If the max identification time has elapsed and no match has
        // been found, flush the buffers and check if there is a match
        // before returning no results.
-       if(processed && m_IdTime >= Pms::MaxIdTime && m_IdMatches.empty()){
+       if(m_IdTime >= Pms::MaxIdTime && m_IdMatches.empty())
+       {
           Flush();
-          if(m_IdMatches.empty()){
+          if(m_IdMatches.empty())
+          {
              IdMatch match = {};
              m_IdMatches.push_back(match);
           }
        }
     }
     else
-       throw Audioneex::InvalidParameterException("Invalid classification type");
+    {
+       throw Audioneex::InvalidParameterException
+       ("Invalid classification type");
+    }
 
     // Restore the identification time if a score overflow occurred
-    if(scoreOverflow){
+    if(scoreOverflow)
+    {
        m_IdTime = curIdTime;
        WARNING_MSG("Score overflow occurred. Stopped identification.")
     }
@@ -250,7 +287,8 @@ void Audioneex::RecognizerImpl::ProcessMatchResults(int processed, float dt_proc
 
 // ----------------------------------------------------------------------------
 
-int Audioneex::RecognizerImpl::DoClassification(float Hu, float dT)
+int 
+Audioneex::RecognizerImpl::DoClassification(float Hu, float dT)
 {
     m_Classifier.SetMode( m_IdMode );
 
@@ -295,16 +333,20 @@ int Audioneex::RecognizerImpl::DoClassification(float Hu, float dT)
         //DEBUG_MSG("- COULD NOT IDENTIFY THE AUDIO ")
     }
     else
-        throw std::logic_error("Invalid classification results");
+    {
+        throw std::logic_error
+        ("Invalid classification results");
+    }
 
     return cresult;
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::FillResults(int cresult)
+void 
+Audioneex::RecognizerImpl::FillResults(int cresult)
 {
-    const MatchResults_t &mresults = m_Matcher.GetResults();
+    auto &mresults = m_Matcher.GetResults();
 
     // Get the best match(es) (there may be ties)
 
@@ -312,7 +354,7 @@ void Audioneex::RecognizerImpl::FillResults(int cresult)
 
     m_IdMatches.clear();
 
-    const std::list<int> &best_matches = mresults.GetTop(1);
+    auto &best_matches = mresults.GetTop(1);
 
     int best_score = mresults.GetTopScore(1);
 
@@ -335,14 +377,16 @@ void Audioneex::RecognizerImpl::FillResults(int cresult)
 
 // ----------------------------------------------------------------------------
 
-Audioneex::IdMatch* Audioneex::RecognizerImpl::GetResults()
+const Audioneex::IdMatch* 
+Audioneex::RecognizerImpl::GetResults()
 {
-    return m_IdMatches.empty() ? NULL : m_IdMatches.data();
+    return m_IdMatches.empty() ? nullptr : m_IdMatches.data();
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::Flush()
+void 
+Audioneex::RecognizerImpl::Flush()
 {
     float To = m_Matcher.GetMatchTime();
 
@@ -356,7 +400,8 @@ void Audioneex::RecognizerImpl::Flush()
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::Reset()
+void 
+Audioneex::RecognizerImpl::Reset()
 {
     m_IdMatches.clear();
     m_MatchAcc.clear();
@@ -367,20 +412,22 @@ void Audioneex::RecognizerImpl::Reset()
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::SetDataStore(DataStore *dstore)
+void 
+Audioneex::RecognizerImpl::SetDataStore(DataStore *dstore)
 {
     m_Matcher.SetDataStore(dstore);
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::RecognizerImpl::SetAudioBufferSize(float seconds)
+void 
+Audioneex::RecognizerImpl::SetAudioBufferSize(float seconds)
 {
-    if(seconds < 1 )
-       throw Audioneex::InvalidParameterException("Invalid buffer size. Must be >= 1 s");
+    if(seconds < 1)
+       throw Audioneex::InvalidParameterException
+       ("Invalid buffer size. Must be >= 1 s");
 
     size_t bufferSize = Pms::Fs * seconds * Pms::Ca;
-    m_AudioBuffer = AudioBlock<float>(bufferSize, Pms::Fs, Pms::Ca, 0);
+    m_AudioBuffer = AudioBuffer<float>(bufferSize, Pms::Fs, Pms::Ca, 0);
 
 }
-

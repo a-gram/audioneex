@@ -36,17 +36,6 @@ TagLib and FFmpeg are only needed for the example programs and can be replaced
 with something similar, but doing so will require changes to the code.
 
 
-About the database
-------------------
-
-Audioneex needs a database to store the fingerprints and is designed to be 
-database-neutral, so technically it can be used with any database. 
-However, using databases other than the ones supported out of the box requires 
-writing the drivers. The default databases are *Tokyo Cabinet* and *Couchbase*. 
-The former is an embedded/in-process database (suitable for mobile/embedded apps), 
-while the latter is a client/server type.
-
-
 Building steps
 --------------
 
@@ -74,7 +63,7 @@ for few specific tweaks that may occur.
 
 This step is not mandatory but it will most likely be necessary since these paths
 are system-dependent. You can set them in the *User Config* section of the main 
-CMake build script (CMakeLists.txt) located in the root directory.
+CMake build script (the CMakeLists.txt located in the root directory).
 
 **3.  Build**
 
@@ -98,12 +87,11 @@ the form ``variable=value``
    BUILD_MODE    = debug | release
    DATASTORE_T   = TCDataStore | CBDataStore
    WITH_EXAMPLES = ON | OFF
-   WITH_ID3      = ON | OFF  (for the examples only)
    WITH_TESTS    = ON | OFF  (for project developers only)
 
-By default, if no options are passed on, the build targets Linux (or Windows) 
-x64 and produces the dynamic library only, in release mode. The final libraries 
-will be put in a ``/lib`` folder in the root directory.
+By default, if no options are passed on, the build produces only the 64 bit dynamic
+library in release mode. The final libraries will be put in a ``/lib`` folder in 
+the root directory.
 
 To build for Android, specify the target as follows
 
@@ -116,11 +104,11 @@ architecture and the latest API level.
 
 .. note::
 
-   The parameters for the build script are case-sensitive.
+   The parameters for the build script are case-sensitive!
 
 Naturally, first you will have to build the required external libraries mentioned 
 in the prerequisites for the specific Android platforms you're targeting. 
-Patched source code for the libraries that compile on Android straight away can 
+Patched source code for the libraries that compile for Android straight away can 
 be downloaded from `here <https://www.dropbox.com/s/kg9sn42d80lt0gt/audioneex_android_ext_libs.tar.gz>`_.
 Just unpack them somewhere and run
 
@@ -134,5 +122,15 @@ as in the ``build`` script and ``[config_params]`` are library-specific
 configuration parameters. Please have a look at the script for more details.
 
 
+About the database
+------------------
 
-
+Audioneex needs a database to store the fingerprints and is designed to be 
+database-neutral, so technically it can be used with any database. 
+However, using databases other than the ones supported out of the box requires 
+writing the drivers. There is currently no formal documentation for the drivers
+specifications but it should not be difficult to write new ones by following the
+code and comments of those provided by default.
+The default databases are *Tokyo Cabinet* and *Couchbase*. 
+The former is an embedded/in-process database (suitable for on-device ACR in 
+mobile/embedded apps), while the latter uses a client/server model.

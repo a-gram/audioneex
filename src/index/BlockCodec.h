@@ -47,7 +47,11 @@ public:
     /// byte stream. An estimate may be calculated considering that in the worst case
     /// each integer element would require Nb = ceil( sizeof(int_type) * 8 / 7 ) bytes.
     /// Returns the number of bytes used to encode the input array.
-    size_t encode(const uint32_t* v, size_t v_size, uint8_t* venc, size_t venc_size)
+    size_t 
+    encode(const uint32_t* v, 
+           size_t v_size, 
+           uint8_t* venc, 
+           size_t venc_size)
     {
         assert(v && venc);
 
@@ -106,7 +110,11 @@ public:
     ///       case each integer element has been compressed using 1 byte, so the max
     ///       number of decompressed elements will be v.size (thus worst_case = v.size)
     /// Returns the number of integer elements decoded from the input stream.
-    size_t decode(const uint8_t* v, size_t v_size, uint32_t* vdec, size_t vdec_size)
+    size_t 
+    decode(const uint8_t* v, 
+           size_t v_size, 
+           uint32_t* vdec, 
+           size_t vdec_size)
     {
         assert(v && vdec);
 
@@ -146,13 +154,17 @@ public:
 /// delta-encoded and compressed into a stream of bytes.
 class AUDIONEEX_API_TEST BlockEncoder
 {
-    VByteCODEC            m_Codec;
-    std::vector<uint32_t> m_ser_chunk;
+    VByteCODEC            
+    m_Codec;
+    
+    std::vector<uint32_t> 
+    m_ser_chunk;
 
 public:
 
     /// Delta-codec constants
-    enum{
+    enum
+    {
         DENCODE = -1,
         DDECODE = 1
     };
@@ -161,39 +173,44 @@ public:
     /// The 'FIDo' parameter indicates the base value from which
     /// the delta encoding of the FIDs will be computed.
     /// @return  Zero if no errors occurred.
-    int Encode(const uint32_t* const* plist_chunk,
-                size_t plist_chunk_size,
-                uint8_t* enc_chunk,
-                size_t enc_chunk_size,
-                size_t& enc_bytes,
-                uint32_t FIDo=0,
-                bool delta_encode=true);
+    int 
+    Encode(const uint32_t* const* plist_chunk,
+           size_t plist_chunk_size,
+           uint8_t* enc_chunk,
+           size_t enc_chunk_size,
+           size_t& enc_bytes,
+           uint32_t FIDo=0,
+           bool delta_encode=true);
 
     /// Decode the given byte stream into an array of integers.
     /// The 'FIDo' parameter indicates the base value from which
     /// the delta decoding of the FIDs will be computed.
     /// @return  Zero if no errors occurred.
-    int Decode(const uint8_t *enc_chunk,
-                size_t enc_chunk_size,
-                uint32_t *dec_chunk,
-                size_t dec_chunk_size,
-                size_t& dec_elem,
-                uint32_t base_FID=0,
-                bool delta_decode=true);
+    int 
+    Decode(const uint8_t *enc_chunk,
+           size_t enc_chunk_size,
+           uint32_t *dec_chunk,
+           size_t dec_chunk_size,
+           size_t& dec_elem,
+           uint32_t base_FID=0,
+           bool delta_decode=true);
 
-    void Serialize(const uint32_t* const* plist_chunk,
-                   size_t plist_chunk_size,
-                   uint32_t *ser_chunk,
-                   size_t ser_chunk_size,
-                   uint32_t prev_FID=0,
-                   bool delta_encode=true);
+    void 
+    Serialize(const uint32_t* const* plist_chunk,
+              size_t plist_chunk_size,
+              uint32_t *ser_chunk,
+              size_t ser_chunk_size,
+              uint32_t prev_FID=0,
+              bool delta_encode=true);
 
     /// Compute an estimate of the worst case when decoding an encoded
     /// integer array, that is the max size that the encoded array can
     /// take after decoding. This is useful to properly allocate the
     /// decoding buffer and avoid nasty surprises. The possibility of
     /// getting a precise estimate depends on the encoding algorithm.
-    static inline size_t GetDecodedSizeEstimate(size_t enc_size){
+    static inline size_t 
+    GetDecodedSizeEstimate(size_t enc_size)
+    {
         return enc_size;
     }
 
@@ -202,14 +219,19 @@ public:
     /// take after encoding. This is useful to properly allocate the
     /// encoding buffer and avoid nasty surprises. The possibility of
     /// getting a precise estimate depends on the encoding algorithm.
-    static inline size_t GetEncodedSizeEstimate(size_t dec_size){
+    static inline size_t 
+    GetEncodedSizeEstimate(size_t dec_size)
+    {
         return dec_size * (sizeof(uint32_t)+1);
     }
 
     /// Apply delta-encoding/decoding to the given int array.
     /// Return false if something wrong occurs, true otherwise.
     template<int T>
-    bool DeltaCodec(uint32_t* chunk, size_t csize, uint32_t base_FID=0)
+    bool 
+    DeltaCodec(uint32_t* chunk, 
+               size_t csize, 
+               uint32_t base_FID=0)
     {
         uint32_t* begin = csize==0 ? nullptr : chunk;
         uint32_t* end   = begin + csize;

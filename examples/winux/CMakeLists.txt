@@ -16,18 +16,18 @@ set(AX_EXE_INC
 
 # --- Modules definitions ---
 
-set(EXAMPLE1_SRCS example1.cpp 
+set(FPAUDIO_SRCS fpaudio.cpp 
   ${AX_SRC_ROOT}/src/dbdrivers/${DATASTORE_T}.cpp 
   ${AX_SRC_ROOT}/src/audio/AudioSource.cpp)
 
-set(EXAMPLE2_SRCS example2.cpp 
+set(FPIDX_SRCS fpidx.cpp 
   ${AX_SRC_ROOT}/src/dbdrivers/${DATASTORE_T}.cpp)
 
-set(EXAMPLE3_SRCS example3.cpp 
+set(FILEID_SRCS fileid.cpp 
   ${AX_SRC_ROOT}/src/dbdrivers/${DATASTORE_T}.cpp 
   ${AX_SRC_ROOT}/src/audio/AudioSource.cpp)
 
-set(EXAMPLE4_SRCS example4.cpp 
+set(OTAID_SRCS otaid.cpp 
   ${AX_SRC_ROOT}/src/dbdrivers/${DATASTORE_T}.cpp 
   ${AX_SRC_ROOT}/src/audio/AudioSource.cpp)
 
@@ -38,52 +38,50 @@ find_library(AX_DATASTORE_LIB
              NAMES ${AX_DATASTORE_LIB_NAME} 
              PATHS ${AX_EXE_LIB_PATHS})
 
-if(AX_WITH_ID3)
 find_library(AX_ID3TAG_LIB
              NAMES ${AX_ID3TAG_LIB_NAME} 
              PATHS ${AX_EXE_LIB_PATHS})
-endif()
 
 
 # --- Setup the targets ---
 
-add_executable(example1 ${EXAMPLE1_SRCS})
+add_executable(fpaudio ${FPAUDIO_SRCS})
 
-target_include_directories(example1 PRIVATE ${AX_EXE_INC})
-target_compile_options(example1 PRIVATE "${AX_EXE_CXX_FLAGS}")
-target_compile_definitions(example1 PRIVATE ${AX_EXE_DEFS})
-target_link_libraries(example1 audioneex
+target_include_directories(fpaudio PRIVATE ${AX_EXE_INC})
+target_compile_options(fpaudio PRIVATE "${AX_EXE_CXX_FLAGS}")
+target_compile_definitions(fpaudio PRIVATE ${AX_EXE_DEFS})
+target_link_libraries(fpaudio audioneex
                       ${Boost_LIBRARIES} ${AX_PLAT_THREAD_LIB}
                       ${AX_DATASTORE_LIB} ${AX_ID3TAG_LIB})
 
-add_executable(example2 ${EXAMPLE2_SRCS})
+add_executable(fpidx ${FPIDX_SRCS})
 
-target_include_directories(example2 PRIVATE ${AX_EXE_INC})
-target_compile_options(example2 PRIVATE "${AX_EXE_CXX_FLAGS}")
-target_compile_definitions(example2 PRIVATE ${AX_EXE_DEFS})
-target_link_libraries(example2 audioneex
+target_include_directories(fpidx PRIVATE ${AX_EXE_INC})
+target_compile_options(fpidx PRIVATE "${AX_EXE_CXX_FLAGS}")
+target_compile_definitions(fpidx PRIVATE ${AX_EXE_DEFS})
+target_link_libraries(fpidx audioneex
                       ${Boost_LIBRARIES}
                       ${AX_DATASTORE_LIB} ${AX_ID3TAG_LIB})
 
-add_executable(example3 ${EXAMPLE3_SRCS})
+add_executable(fileid ${FILEID_SRCS})
 
-target_include_directories(example3 PRIVATE ${AX_EXE_INC})
-target_compile_options(example3 PRIVATE "${AX_EXE_CXX_FLAGS}")
-target_compile_definitions(example3 PRIVATE ${AX_EXE_DEFS})
-target_link_libraries(example3 audioneex
+target_include_directories(fileid PRIVATE ${AX_EXE_INC})
+target_compile_options(fileid PRIVATE "${AX_EXE_CXX_FLAGS}")
+target_compile_definitions(fileid PRIVATE ${AX_EXE_DEFS})
+target_link_libraries(fileid audioneex
                       ${Boost_LIBRARIES} ${AX_PLAT_THREAD_LIB}
                       ${AX_DATASTORE_LIB} ${AX_ID3TAG_LIB})
 
-add_executable(example4 ${EXAMPLE4_SRCS})
+add_executable(otaid ${OTAID_SRCS})
 
-target_include_directories(example4 PRIVATE ${AX_EXE_INC})
-target_compile_options(example4 PRIVATE "${AX_EXE_CXX_FLAGS}")
-target_compile_definitions(example4 PRIVATE ${AX_EXE_DEFS})
-target_link_libraries(example4 audioneex
+target_include_directories(otaid PRIVATE ${AX_EXE_INC})
+target_compile_options(otaid PRIVATE "${AX_EXE_CXX_FLAGS}")
+target_compile_definitions(otaid PRIVATE ${AX_EXE_DEFS})
+target_link_libraries(otaid audioneex
                       ${Boost_LIBRARIES} ${AX_PLAT_THREAD_LIB}
                       ${AX_DATASTORE_LIB} ${AX_ID3TAG_LIB})
 
-foreach(EXAMPLE example1 example2 example3 example4)
+foreach(EXAMPLE fpaudio fpidx fileid otaid)
     set_target_properties(${EXAMPLE} 
         PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${AX_BUILD_EXE_DIR}"
     )

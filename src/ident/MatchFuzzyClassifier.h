@@ -19,20 +19,23 @@ namespace Audioneex
 class MatchFuzzyClassifier
 {
     /// Fuzzy variables
-	enum{
+	enum
+    {
         CONF,    // Confidence of match
         CDUR     // Listening duration
 	};
 
     /// Fuzzy values for CONF
-	enum{
+	enum
+    {
         CONF_LOW,
         CONF_MED,
         CONF_HIGH
 	};
 
     /// Fuzzy values for CDUR
-    enum{
+    enum
+    {
         CDUR_SHORT,
         CDUR_MED,
         CDUR_LONG
@@ -44,7 +47,8 @@ class MatchFuzzyClassifier
 	static const int Nr = 9;    /// Number of rules
 
     // Triangle-shaped membership functions (with saturation at the edges)
-    struct Triple{
+    struct Triple
+    {
         double x1, x2, x3;
     };
 
@@ -76,7 +80,8 @@ class MatchFuzzyClassifier
  public:
 
     /// Output Class labels
-	enum{
+	enum
+    {
         UNIDENTIFIED,  ///< There is no clear evidence of a match
         SOUNDS_LIKE,   ///< There is some evidence of a match
         IDENTIFIED,    ///< There is a clear evidence of a match
@@ -84,20 +89,26 @@ class MatchFuzzyClassifier
 	};
 
     MatchFuzzyClassifier();
+    ~MatchFuzzyClassifier() = default;
 
     /// Performs classification of given input
     /// Hu = mean confidence
     /// dT = confidence duration
-    int Process(double Hu, double dT);
+    int 
+    Process(double Hu, double dT);
 
 	/// Set cut points for variable 'var'.
-	void SetCutPoints(int var, std::vector<double> &points);
+	void 
+    SetCutPoints(int var, std::vector<double> &points);
 
     /// Set classification mode
-    void SetMode(Audioneex::eIdentificationMode mode);
+    void 
+    SetMode(Audioneex::eIdentificationMode mode);
 
 #ifdef PLOTTING_ENABLED
+
     void Plot(const std::string &path);
+    
 #endif
 
 };

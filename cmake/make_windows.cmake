@@ -24,6 +24,10 @@ elseif(AX_BUILD_MODE STREQUAL release)
    set(AX_PLAT_CXX_FLAGS ${AX_PLAT_CXX_FLAGS} /W1 /MD)
 endif()
 
+if(AX_NO_RTTI)
+   set(AX_PLAT_CXX_FLAGS ${AX_PLAT_CXX_FLAGS} /GR-)
+endif()
+
 if(DATASTORE_T STREQUAL TCDataStore)
    set(AX_DATASTORE_LIB_NAME libejdb)
    set(AX_PLAT_DEFS ${AX_PLAT_DEFS} 
@@ -43,9 +47,9 @@ endif()
 set(AX_LIB_DEFS ${AX_PLAT_DEFS} -DNDEBUG -DAUDIONEEX_API_EXPORT)
 
 if(AX_BUILD_MODE STREQUAL debug)
-   set(AX_LIB_CXX_FLAGS ${AX_PLAT_CXX_FLAGS} /GR- /Od)
+   set(AX_LIB_CXX_FLAGS ${AX_PLAT_CXX_FLAGS} /Od)
 elseif(AX_BUILD_MODE STREQUAL release)
-   set(AX_LIB_CXX_FLAGS ${AX_PLAT_CXX_FLAGS} /GS- /GR- /O2)
+   set(AX_LIB_CXX_FLAGS ${AX_PLAT_CXX_FLAGS} /GS- /O2)
 endif()
 
 set(AX_LIB_LIB_PATHS ${AX_PLAT_LIB_PATHS})
@@ -55,14 +59,12 @@ set(AX_LIB_VERSIONED TRUE)
 # Examples configuration
 # ----------------------
 
-set(AX_EXE_DEFS ${AX_PLAT_DEFS} -DWIN32 -DWIN32_LEAN_AND_MEAN) # Fix winsock clashes
+set(AX_EXE_DEFS ${AX_PLAT_DEFS} 
+    -DWIN32 -DWIN32_LEAN_AND_MEAN -DWITH_ID3
+) #         ^--Fix winsock clashes
 set(AX_EXE_CXX_FLAGS ${AX_PLAT_CXX_FLAGS})
 set(AX_EXE_LIB_PATHS ${AX_PLAT_LIB_PATHS})
-
-if(AX_WITH_ID3)
-   set(AX_ID3TAG_LIB_NAME tag)
-   set(AX_EXE_DEFS ${AX_EXE_DEFS} -DWITH_ID3)
-endif()
+set(AX_ID3TAG_LIB_NAME tag)
 
 
 # Tests configuration

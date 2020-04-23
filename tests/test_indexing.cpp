@@ -56,6 +56,8 @@ TEST_CASE("Indexer indexing") {
     
     std::vector<uint8_t> fake (1077);
     std::generate(fake.begin(), fake.end(), std::rand);
+    
+    size_t size_of_QLF = sizeof(Audioneex::QLocalFingerprint_t);
 	
     DATASTORE_T dstore ("./data");
 	
@@ -68,12 +70,13 @@ TEST_CASE("Indexer indexing") {
     REQUIRE_NOTHROW( dstore.Open( KVDataStore::BUILD, true ) );
 	
     // We need an empty database to perform the tests.
-    if(!dstore.Empty()) {
+    if(!dstore.IsEmpty())
+    {
         dstore.Clear();
         // Wait until the clearing is finished as it may be an asynchronous
         // operation, such as in Couchbase, in which case the execution
         // would continue and the tests will fail.
-        while(!dstore.Empty()) {
+        while(!dstore.IsEmpty()) {
               std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
     }
@@ -83,14 +86,14 @@ TEST_CASE("Indexer indexing") {
 
     // Try indexing without starting a session
     REQUIRE_THROWS( indexer->Index(1) );
-    REQUIRE_THROWS( indexer->Index(1,fake.data(),fake.size()) );
+    REQUIRE_THROWS( indexer->Index(1, fake.data(), fake.size()) );
 
-    // Try starting a session without a data provider
+    // Try starting a session without a datastore
     REQUIRE_THROWS( indexer->Start() );
 
     REQUIRE_NOTHROW( indexer->SetDataStore( &dstore ) );
 
-    // Try opening multiple sessions on a single instance
+    // Try opening multiple simultaneous sessions
     REQUIRE_NOTHROW( indexer->Start() );
     REQUIRE_THROWS( indexer->Start() );
     REQUIRE_NOTHROW( indexer->End() );
@@ -100,15 +103,16 @@ TEST_CASE("Indexer indexing") {
     REQUIRE_THROWS( indexer->Index(1) );  // No Audio provider set
     REQUIRE_NOTHROW( indexer->SetAudioProvider( &dummyAudioProvider ) );
     REQUIRE_THROWS( indexer->Index(1) );  // No fingerprint extracted
-    REQUIRE_THROWS( indexer->Index(1,nullptr,0) );   // Invalid fp (null)
-    REQUIRE_THROWS( indexer->Index(1,fake.data(),0) );  // Invalid fp size (0)
-    REQUIRE_THROWS( indexer->Index(1,fake.data(),fake.size()) ); // Invalid size
-    REQUIRE_THROWS( indexer->Index(0,fake.data(),sizeof(Audioneex::QLocalFingerprint_t)) ); // Invalid FID (0)
+    REQUIRE_THROWS( indexer->Index(1, nullptr, 0) );   // Invalid fp (null)
+    REQUIRE_THROWS( indexer->Index(1, fake.data(), 0) );  // Invalid fp size (0)
+    REQUIRE_THROWS( indexer->Index(1, fake.data(), fake.size()) ); // Invalid size
+    REQUIRE_THROWS( indexer->Index(0, fake.data(), size_of_QLF) ); // Invalid FID (0)
     REQUIRE_NOTHROW( indexer->End() );
 
     // Try indexing
 
-    REQUIRE_NOTHROW( indexer->SetMatchType( Audioneex::MSCALE_MATCH ) );REQUIRE_NOTHROW( indexer->SetAudioProvider( &itest ) );
+    REQUIRE_NOTHROW( indexer->SetMatchType( Audioneex::MSCALE_MATCH ) );
+    REQUIRE_NOTHROW( indexer->SetAudioProvider( &itest ) );
     //indexer->SetCacheLimit( 512 );
 
     REQUIRE( dstore.GetFingerprintsCount() == 0 );

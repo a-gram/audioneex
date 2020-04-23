@@ -17,8 +17,8 @@
 ::  BUILD_MODE     = debug | release
 ::  DATASTORE_T    = TCDataStore | CBDataStore
 ::  WITH_EXAMPLES  = ON | OFF
-::  WITH_ID3       = ON | OFF  (for the examples only)
 ::  WITH_TESTS     = ON | OFF  (for project developers only)
+::  NO_RTTI        = ON | OFF
 ::
 ::  The paramaters are all optional and if none is specified the target and 
 ::  architecture will be automatically detected from the environment, while

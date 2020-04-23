@@ -19,32 +19,43 @@
 
 // Error codes
 
-enum {
+enum 
+{
 	UNSPECIFIED_ERROR = -1
 };
 
-// A singleton class implementing the identification engine
+// A singleton class providing the identification services
 
 class ACIEngine
 {
-	static ACIEngine mInstance;
+	static ACIEngine 
+    mInstance;
 
-	std::unique_ptr<Audioneex::Recognizer> mRecognizer;
-	std::unique_ptr<KVDataStore>           mDataStore;
-	bool                                   mInitialized;
+	std::unique_ptr<Audioneex::Recognizer> 
+    mRecognizer;
+    
+	std::unique_ptr<KVDataStore>
+    mDataStore;
+    
+	bool
+    mInitialized;
 
-public:
+protected:
 
 	ACIEngine() :
 	   mInitialized(false)
 	{}
 
-	static ACIEngine& instance() { return mInstance; }
+public:
 
-	void init(std::string dataDir)
+	static ACIEngine& 
+    instance() { return mInstance; }
+
+	void 
+    init(std::string dataDir)
 	{
-	    mDataStore.reset( new TCDataStore (dataDir) );
-	    mDataStore->Open( KVDataStore::GET, true, true );
+        mDataStore.reset( new TCDataStore (dataDir) );
+        mDataStore->Open( KVDataStore::FETCH, true, true );
 	   
         mRecognizer.reset( Audioneex::Recognizer::Create() );
         mRecognizer->SetDataStore( mDataStore.get() );
@@ -52,17 +63,23 @@ public:
         mInitialized = true;
 	}
 
-	Audioneex::Recognizer* recognizer()
+	Audioneex::Recognizer* 
+    recognizer()
 	{
         if(!mInitialized)
-           throw std::runtime_error("ACI engine not initialized");
+           throw std::runtime_error
+           ("ACI engine not initialized");
+           
         return mRecognizer.get();
 	}
 
-	KVDataStore* datastore()
+	KVDataStore* 
+    datastore()
 	{
         if(!mInitialized)
-           throw std::runtime_error("ACI engine not initialized");
+           throw std::runtime_error
+           ("ACI engine not initialized");
+           
         return mDataStore.get();
 	}
 

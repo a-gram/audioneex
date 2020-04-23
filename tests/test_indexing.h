@@ -16,7 +16,7 @@
 #include <chrono>
 #include <thread>
 
-#include "Fingerprint.h"
+#include "Fingerprinter.h"
 #include "DataStore.h"
 #include "Indexer.h"
 #include "Utils.h"
@@ -26,8 +26,11 @@
 
 
 // Just a dummy for testing purposes
-class DummyAudioProvider : public Audioneex::AudioProvider{
-    public: int OnAudioData(uint32_t FID, float *buffer, size_t nsamples) { 
+class DummyAudioProvider : public Audioneex::AudioProvider
+{
+    public: int 
+    OnAudioData(uint32_t FID, float *buffer, size_t nsamples) 
+    { 
         return 0; 
     }
 };
@@ -44,31 +47,33 @@ class IndexingTest : public Audioneex::AudioProvider
     uint32_t              m_NQFs;
 
     AudioSourceFile       m_AudioSource;
-    AudioBlock<int16_t>   m_InputBlock;
-    AudioBlock<float>     m_AudioBlock;
+    AudioBuffer<int16_t>  m_InputBuffer;
+    AudioBuffer<float>    m_AudioBuffer;
 
     // AudioProvider implementation
-    int OnAudioData(uint32_t FID, float *buffer, size_t nsamples)
+    int 
+    OnAudioData(uint32_t FID, float *buffer, size_t nsamples)
     {
         REQUIRE(FID == m_FID);
 
-        m_InputBlock.Resize( nsamples );
-        m_AudioSource.GetAudioBlock( m_InputBlock );
+        m_InputBuffer.Resize( nsamples );
+        m_AudioSource.GetAudioBlock( m_InputBuffer );
 
-        if(m_InputBlock.Size() == 0)
+        if(m_InputBuffer.Size() == 0)
            return 0;
 
-        m_InputBlock.Normalize( m_AudioBlock );
+        m_InputBuffer.Normalize( m_AudioBuffer );
 
-        std::copy(m_AudioBlock.Data(),
-                  m_AudioBlock.Data() + m_AudioBlock.Size(),
+        std::copy(m_AudioBuffer.Data(),
+                  m_AudioBuffer.Data() + m_AudioBuffer.Size(),
                   buffer);
 
-        return m_AudioBlock.Size();
+        return m_AudioBuffer.Size();
     }
 
     // Audio indexing test
-    void DoIndexing()
+    void 
+    DoIndexing()
     {
         m_AudioSource.Open("./data/rec1.mp3");
         m_Indexer->Index(++m_FID);
@@ -79,7 +84,8 @@ class IndexingTest : public Audioneex::AudioProvider
     }
 
     // Fingerprint indexing test
-    void DoIndexing2()
+    void 
+    DoIndexing2()
     {
         int prog, mem=0;
 
@@ -92,7 +98,8 @@ class IndexingTest : public Audioneex::AudioProvider
             auto& fp = m_QFGenerator.Generate();
 
             if(fp.empty())
-               throw std::runtime_error("Invalid fingerprint (null)");
+               throw std::runtime_error
+               ("Invalid fingerprint (null)");
 
             const uint8_t* fp_ptr = reinterpret_cast<uint8_t*>(fp.data());
             size_t   fp_bytes = fp.size() * sizeof(Audioneex::QLocalFingerprint_t);
@@ -129,20 +136,22 @@ public:
 
     typedef std::unique_ptr <IndexingTest> Ptr;
 
-    IndexingTest() :
-        m_DataStore  (nullptr),
-        m_Indexer    (nullptr),
-        m_FID        (0),
-        m_NQFs       (1000),
-        m_InputBlock (Audioneex::Pms::Fs*10, Audioneex::Pms::Fs, Audioneex::Pms::Ca),
-        m_AudioBlock (Audioneex::Pms::Fs*10, Audioneex::Pms::Fs, Audioneex::Pms::Ca)
+    IndexingTest() 
+    :
+        m_DataStore   (nullptr),
+        m_Indexer     (nullptr),
+        m_FID         (0),
+        m_NQFs        (1000),
+        m_InputBuffer (Audioneex::Pms::Fs*10, Audioneex::Pms::Fs, Audioneex::Pms::Ca),
+        m_AudioBuffer (Audioneex::Pms::Fs*10, Audioneex::Pms::Fs, Audioneex::Pms::Ca)
     {
         m_AudioSource.SetSampleRate( Audioneex::Pms::Fs );
         m_AudioSource.SetChannelCount( Audioneex::Pms::Ca );
         m_AudioSource.SetSampleResolution( 16 );
     }
 
-    void Run()
+    void 
+    Run()
     {
         REQUIRE(m_DataStore);
         REQUIRE(m_Indexer);
@@ -164,7 +173,8 @@ public:
         // NOTE: write operations may be asynchronous (e.g. in Couchbase),
         // so we need to wait for all the fingerprints being indexed or
         // else the following tests will fail.
-        while(m_DataStore->GetFingerprintsCount() != m_NQFs) {
+        while(m_DataStore->GetFingerprintsCount() != m_NQFs) 
+        {
               std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
 
@@ -254,9 +264,23 @@ public:
         DEBUG_MSG("\n - OK")
     }
 
-    void SetFingerprintsNum(uint32_t num) { m_NQFs = num; }
-    void SetDatastore(KVDataStore* dstore) { m_DataStore = dstore; }
-    void SetIndexer(Audioneex::Indexer* indexer) { m_Indexer = indexer; }
+    void 
+    SetFingerprintsNum(uint32_t num) 
+    { 
+        m_NQFs = num; 
+    }
+    
+    void 
+    SetDatastore(KVDataStore* dstore) 
+    { 
+        m_DataStore = dstore; 
+    }
+    
+    void 
+    SetIndexer(Audioneex::Indexer* indexer) 
+    { 
+        m_Indexer = indexer; 
+    }
 };
 
 

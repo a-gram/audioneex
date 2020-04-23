@@ -28,7 +28,7 @@
 
 #ifdef AUDIONEEX_API_EXPORT
  #include "BinaryVector.h"
- #include "Fingerprint.h"
+ #include "Fingerprinter.h"
 #endif
 
 /// Typedefs
@@ -40,8 +40,9 @@ namespace Utils
 {
 
 /// Hamming distance
-inline uint32_t Dh(const uint8_t* str1, size_t str1_len,
-                   const uint8_t* str2, size_t str2_len)
+inline uint32_t 
+Dh(const uint8_t* str1, size_t str1_len,
+   const uint8_t* str2, size_t str2_len)
 {
     assert(str1_len == str2_len);
 
@@ -51,7 +52,8 @@ inline uint32_t Dh(const uint8_t* str1, size_t str1_len,
     uint32_t nb = str1_len / sizeof(uint32_t);
     uint32_t sb = str1_len % sizeof(uint32_t);
 
-    for(uint32_t i=0; i<nb; i++){
+    for(uint32_t i=0; i<nb; i++)
+    {
         xv = ((uint32_t*)str1)[i] ^ ((uint32_t*)str2)[i];
 #ifdef WIN32
         d += __popcnt(xv);
@@ -64,8 +66,10 @@ inline uint32_t Dh(const uint8_t* str1, size_t str1_len,
     // perform Hamming distance on remaining bytes.
     // NOTE: this block of code can be removed if the strings size are
     //       integer multiple of the bit block size.
-    if(sb){
-        for(uint32_t i=0, j=str1_len-sb; i<sb; i++, j++){
+    if(sb)
+    {
+        for(uint32_t i=0, j=str1_len-sb; i<sb; i++, j++)
+        {
            ((uint8_t*)&v1)[i] = str1[j];
            ((uint8_t*)&v2)[i] = str2[j];
         }
@@ -82,7 +86,8 @@ inline uint32_t Dh(const uint8_t* str1, size_t str1_len,
 
 #ifdef AUDIONEEX_API_EXPORT
 
-inline size_t Dh(BinaryVector &vec1, BinaryVector &vec2)
+inline size_t 
+Dh(BinaryVector &vec1, BinaryVector &vec2)
 {
     assert(vec1.size() == vec2.size());
     assert(vec1.bcount() == vec2.bcount());
@@ -90,7 +95,8 @@ inline size_t Dh(BinaryVector &vec1, BinaryVector &vec2)
               vec2.data(), vec2.bcount());
 }
 
-inline size_t Dh(BinaryVector *vec1, BinaryVector *vec2)
+inline size_t 
+Dh(BinaryVector *vec1, BinaryVector *vec2)
 {
     assert(vec1->size() == vec2->size());
     assert(vec1->bcount() == vec2->bcount());
@@ -98,14 +104,16 @@ inline size_t Dh(BinaryVector *vec1, BinaryVector *vec2)
               vec2->data(), vec2->bcount());
 }
 
-inline size_t Dh(LocalFingerprint_t &lf1, LocalFingerprint_t &lf2)
+inline size_t 
+Dh(LocalFingerprint_t &lf1, LocalFingerprint_t &lf2)
 {
     assert(lf1.D.size() == lf2.D.size());
     return Dh(lf1.D.data(), lf1.D.size(),
               lf2.D.data(), lf2.D.size());
 }
 
-inline size_t Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2)
+inline size_t 
+Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2)
 {
     assert(lf1->D.size() == lf2->D.size());
     return Dh(lf1->D.data(), lf1->D.size(),
@@ -116,7 +124,8 @@ inline size_t Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2)
 
     // Timing functions
 
-    inline double GetClockTime()
+    inline double 
+    GetClockTime()
     {
 #ifdef WIN32
         return static_cast<double>(GetTickCount64()) / 1000.0;
@@ -125,7 +134,8 @@ inline size_t Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2)
 #endif
     }
 
-    inline double GetProcessTime()
+    inline double 
+    GetProcessTime()
     {
         return static_cast<double>(clock()) / CLOCKS_PER_SEC;
     }
@@ -145,12 +155,14 @@ inline size_t Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2)
 		{
 			int res = QueryPerformanceFrequency(&m_freq);
 			if(res==0)
-				throw std::runtime_error("QueryPerformanceFrequency() failed");
+				throw std::runtime_error
+                ("QueryPerformanceFrequency() failed");
 		}
 
 		// Return time in specified unit
 		template <size_t T>
-		double now()
+		double 
+        now()
 		{
 			QueryPerformanceCounter(&m_ticks);
 			return m_ticks.QuadPart * T / m_freq.QuadPart;
@@ -161,7 +173,8 @@ inline size_t Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2)
     // Other useful stuffs
 
     template<class T>
-    inline std::string ToString(const T &val)
+    inline std::string 
+    ToString(const T &val)
     {
         std::stringstream out;
         out << val;
@@ -169,14 +182,16 @@ inline size_t Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2)
     }
 
     template <class T>
-    bool ToNumber(T& t, const std::string& s,
-                  std::ios_base& (*f)(std::ios_base&) = std::dec)
+    bool 
+    ToNumber(T& t, const std::string& s,
+             std::ios_base& (*f)(std::ios_base&) = std::dec)
     {
         std::istringstream iss(s);
         return !(iss >> f >> t).fail();
     }
 
-    inline std::string FormatTime(int sec)
+    inline std::string 
+    FormatTime(int sec)
     {
         char buf[32];
         ::sprintf(buf, "%02d:%02d:%02d", sec/3600, (sec%3600)/60, (sec%3600)%60);
@@ -191,49 +206,92 @@ inline size_t Dh(LocalFingerprint_t *lf1, LocalFingerprint_t *lf2)
         template <typename N>
         class natural
         {
-            std::mt19937                       m_RNG;
-            std::uniform_int_distribution<N>   m_RNG_int_udist;
+            std::mt19937
+            m_RNG;
+            
+            std::uniform_int_distribution<N>
+            m_RNG_int_udist;
+            
           public:
+          
             natural(N nmin = std::numeric_limits<N>::min(),
-                    N nmax = std::numeric_limits<N>::max()) :
+                    N nmax = std::numeric_limits<N>::max())
+            :
                 m_RNG(std::random_device()()),
                 m_RNG_int_udist(nmin, nmax)
             { }
 
-            N get(){ return m_RNG_int_udist(m_RNG); }
-            N operator()() { return get(); }
-            N get_in(N nmin, N nmax) {
-                m_RNG_int_udist.param(typename std::uniform_int_distribution<N>::param_type(nmin, nmax));
+            N get()
+            { 
+                return m_RNG_int_udist(m_RNG);
+            }
+            
+            N operator()() 
+            { 
+                return get(); 
+            }
+            
+            N get_in(N nmin, N nmax)
+            {
+                m_RNG_int_udist.param(
+                    typename std::uniform_int_distribution<N>::param_type(nmin, nmax)
+                );
                 return get();
             }
-            N operator()(N nmin, N nmax) { return get_in(nmin, nmax); }
+            
+            N operator()(N nmin, N nmax) 
+            { 
+                return get_in(nmin, nmax);
+            }
         };
 
         template <typename R>
         class real
         {
-            std::mt19937                       m_RNG;
-            std::uniform_real_distribution<R>  m_RNG_real_udist;
+            std::mt19937
+            m_RNG;
+            
+            std::uniform_real_distribution<R> 
+            m_RNG_real_udist;
+            
           public:
+          
             real(R rmin = std::numeric_limits<R>::min(),
-                 R rmax = std::numeric_limits<R>::max()) :
+                 R rmax = std::numeric_limits<R>::max())
+            :
                 m_RNG(std::random_device()()),
                 m_RNG_real_udist(rmin, rmax)
             { }
 
-            R get(){ return m_RNG_real_udist(m_RNG); }
-            R operator()() { return get(); }
-            R get_in(R rmin, R rmax) {
-                m_RNG_real_udist.param(typename std::uniform_real_distribution<R>::param_type(rmin, rmax));
+            R get()
+            { 
+                return m_RNG_real_udist(m_RNG);
+            }
+            
+            R operator()() 
+            { 
                 return get();
             }
-            R operator()(R rmin, R rmax) { return get_in(rmin, rmax); }
+            
+            R get_in(R rmin, R rmax)
+            {
+                m_RNG_real_udist.param(
+                    typename std::uniform_real_distribution<R>::param_type(rmin, rmax)
+                );
+                return get();
+            }
+            
+            R operator()(R rmin, R rmax) 
+            { 
+                return get_in(rmin, rmax);
+            }
         };
     }// rng
 
 
     // log2(x)
-    inline double log2(double x)
+    inline double 
+    log2(double x)
 	{
         return log(x)/log(2.0);
     }

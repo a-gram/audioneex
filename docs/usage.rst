@@ -4,11 +4,11 @@ How to use it
 
 To use the engine in your applications all you need to do is include the API 
 header file ``audioneex.h`` and link to the shared library according to the 
-platform used to build the application.
+target platform.
 
 The first thing to do is fingerprinting some audio (a process here referred to 
 as "indexing") by creating an instance of :class:`Indexer`, setting some 
-properties, starting an indexing session and call the :meth:`Indexer::Index()` 
+properties, starting an indexing session and calling the :meth:`Indexer::Index()` 
 method, as shown in the following code
 
 .. code-block:: cpp

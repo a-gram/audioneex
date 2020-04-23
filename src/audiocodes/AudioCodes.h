@@ -10,7 +10,8 @@
 #ifndef AUDIOCODES_H
 #define AUDIOCODES_H
 
-namespace Audioneex {
+namespace Audioneex
+{
   const uint8_t* GetAudioCodes();
   size_t GetAudioCodesSize();
 }

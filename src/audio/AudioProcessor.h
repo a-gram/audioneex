@@ -16,16 +16,16 @@
 #include <sstream>
 #include <memory>
 
-#include "AudioBlock.h"
+#include "AudioBuffer.h"
 #include "FFT.h"
 
-/// Class implementing various audio processing routines on AudioBlocks
+/// Class implementing various audio processing routines on AudioBuffers
 /// with audio format of type T.
 
 template <typename T>
 class AudioProcessor
 {
-    std::unique_ptr<FFT> mFFT;
+    FFT mFFT;
 
  public:
 
@@ -36,7 +36,10 @@ class AudioProcessor
     ~AudioProcessor() = default;
 
 	/// Mix two audio blocks into the given buffer
-    void Mix(AudioBlock<T> &block1, AudioBlock<T> &block2, AudioBlock<T> &out)
+    void 
+    Mix(AudioBuffer<T> &block1, 
+        AudioBuffer<T> &block2, 
+        AudioBuffer<T> &out)
     {
         assert(block1.SampleRate() == block2.SampleRate());
         assert(block2.SampleRate() == out.SampleRate());
@@ -54,20 +57,19 @@ class AudioProcessor
 
     }
 
-    /// Performs the DFT of the input block using FFT. Input block's size must be a
+    /// Perform the FFT of the input buffer. Input buffer's size must be a
     /// power of 2 for efficiency. Return the FFT in the given vector of float.
     /// The type of FFT returned is specified in the <type> parameter.
-    void FFT_Transform(AudioBlock<float> &inBlock, 
-                       std::vector<float> &fft, 
-                       int type = FFT::MagnitudeSpectrum)
+    void 
+    FFT_Transform(AudioBuffer<float> &inBlock, 
+                  std::vector<float> &fft, 
+                  int type = FFT::MagnitudeSpectrum)
     {
-        assert(mFFT.get());
+        mFFT.Compute(inBlock);
 
-        mFFT->Compute(inBlock);
+        FFTFrame &fftFrame = mFFT.GetFFTFrame();
 
-        FFTFrame &fftFrame = mFFT->GetFFTFrame();
-
-        if(fft.size()!=fftFrame.Size())
+        if(fft.size() != fftFrame.Size())
            fft.resize(fftFrame.Size());
 
         if(type == FFT::MagnitudeSpectrum)
@@ -85,15 +87,14 @@ class AudioProcessor
            for(size_t i=0; i<fft.size(); i++)
                fft[i] = fftFrame.Energy(i);
         }
+        else
+        {
+           throw std::logic_error
+           ("Bug: Unknown FFT type");
+        }
 
     }
-
-    /// Set FFT params
-    void SetFFT(FFT *fft)
-    {
-        mFFT.reset(fft);
-    }
-
+    
  private:
 
 

@@ -29,7 +29,11 @@ TEST_HERE( namespace { Audioneex::Tester TEST; } )
 //                                 Indexer
 //=============================================================================
 
-Audioneex::Indexer* Audioneex::Indexer::Create() { return new IndexerImpl; }
+Audioneex::Indexer* 
+Audioneex::Indexer::Create() 
+{ 
+    return new IndexerImpl;
+}
 
 //=============================================================================
 //                               IndexerImpl
@@ -37,17 +41,28 @@ Audioneex::Indexer* Audioneex::Indexer::Create() { return new IndexerImpl; }
 
 // Statics
 
-float Audioneex::IndexerImpl::qB        = float(Pms::Kmax - Pms::Kmin + 1) / Nbands;
-int   Audioneex::IndexerImpl::Vpf_max   = ceil(qB / Pms::qF);
-int   Audioneex::IndexerImpl::Vpt_max   = ceil(Tmax / Pms::qT);
-int   Audioneex::IndexerImpl::WORD_BITS = ceil(Utils::log2(Pms::Kmed));
-int   Audioneex::IndexerImpl::BAND_BITS = ceil(Utils::log2(Nbands));
-int   Audioneex::IndexerImpl::VPT_BITS  = ceil(Utils::log2(Vpt_max));
-int   Audioneex::IndexerImpl::VPF_BITS  = ceil(Utils::log2(Vpf_max)) + 1;//<- for negatives;
-int   Audioneex::IndexerImpl::W1_SHIFT  = VPF_BITS + VPT_BITS + WORD_BITS + BAND_BITS;
-int   Audioneex::IndexerImpl::B_SHIFT   = W1_SHIFT - BAND_BITS;
-int   Audioneex::IndexerImpl::W2_SHIFT  = B_SHIFT - WORD_BITS;
-int   Audioneex::IndexerImpl::VPT_SHIFT = W2_SHIFT - VPT_BITS;
+float
+Audioneex::IndexerImpl::qB        = float(Pms::Kmax - Pms::Kmin + 1) / Nbands;
+int
+Audioneex::IndexerImpl::Vpf_max   = ceil(qB / Pms::qF);
+int
+Audioneex::IndexerImpl::Vpt_max   = ceil(Tmax / Pms::qT);
+int
+Audioneex::IndexerImpl::WORD_BITS = ceil(Utils::log2(Pms::Kmed));
+int
+Audioneex::IndexerImpl::BAND_BITS = ceil(Utils::log2(Nbands));
+int
+Audioneex::IndexerImpl::VPT_BITS  = ceil(Utils::log2(Vpt_max));
+int
+Audioneex::IndexerImpl::VPF_BITS  = ceil(Utils::log2(Vpf_max)) + 1;//<- for negatives;
+int
+Audioneex::IndexerImpl::W1_SHIFT  = VPF_BITS + VPT_BITS + WORD_BITS + BAND_BITS;
+int
+Audioneex::IndexerImpl::B_SHIFT   = W1_SHIFT - BAND_BITS;
+int
+Audioneex::IndexerImpl::W2_SHIFT  = B_SHIFT - WORD_BITS;
+int
+Audioneex::IndexerImpl::VPT_SHIFT = W2_SHIFT - VPT_BITS;
 
 
 
@@ -62,32 +77,38 @@ Audioneex::IndexerImpl::IndexerImpl()
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::IndexerImpl::Start()
+void 
+Audioneex::IndexerImpl::Start()
 {
     // Check if a session is already in progress
     if(m_SessionOpen)
        throw Audioneex::InvalidIndexerStateException
-             ("An indexing session is already open.");
+       ("An indexing session is already open.");
 
     // Check that we have a valid data store set.
     if(m_DataStore == nullptr)
        throw Audioneex::InvalidParameterException
-             ("No data provider set.");
+       ("No datastore set.");
+       
+    if(!m_DataStore->IsOpen())
+       throw Audioneex::InvalidParameterException
+             ("The datastore is not open.");
 
     // Check that we have a valid match type
     if(m_MatchType != MSCALE_MATCH && m_MatchType != XSCALE_MATCH)
        throw Audioneex::InvalidParameterException
-             ("Invalid match type");
+       ("Invalid match type");
 
     // Get the audio codes (codebook) from the data store if none
 
     if(!m_AudioCodes)
     {
-       m_AudioCodes = Audioneex::Codebook::deserialize(GetAudioCodes(), GetAudioCodesSize());
+       m_AudioCodes = Audioneex::Codebook::deserialize(GetAudioCodes(),
+                                                       GetAudioCodesSize());
 
        if(!m_AudioCodes)
           throw Audioneex::InvalidAudioCodesException
-                ("Could't get audio codes");
+          ("Could't get audio codes");
     }
 
     m_Cache.Reset();
@@ -104,17 +125,18 @@ void Audioneex::IndexerImpl::Start()
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::IndexerImpl::Index(uint32_t FID)
+void 
+Audioneex::IndexerImpl::Index(uint32_t FID)
 {
     // Check if a session is open
     if(!m_SessionOpen)
        throw Audioneex::InvalidIndexerStateException
-             ("No indexing session open.");
+       ("No indexing session open.");
 
     // Check whether a valid audio provider is set
     if(m_AudioProvider == nullptr)
        throw Audioneex::InvalidParameterException
-             ("No audio provider set.");
+       ("No audio provider set.");
 
 
     size_t tduration = 0;
@@ -122,8 +144,8 @@ void Audioneex::IndexerImpl::Index(uint32_t FID)
     std::vector<Audioneex::QLocalFingerprint_t> QLFs;
     QLFs.reserve(4096);
 
-    AudioBlock<float> buffer;
-    AudioBlock<float> block;
+    AudioBuffer<float> buffer;
+    AudioBuffer<float> block;
 
     // Set a buffer large enough to fingerprint about 60 seconds of audio
     size_t bufferSize = static_cast<int>(Pms::Fs * 66) * Pms::Ca;
@@ -135,7 +157,7 @@ void Audioneex::IndexerImpl::Index(uint32_t FID)
     buffer.Create(bufferSize, Pms::Fs, Pms::Ca, 0);
     block.Create(blockSize+16, Pms::Fs, Pms::Ca);
 
-    Fingerprint fingerprint( buffer.Capacity() + Pms::OrigWindowSize );
+    Fingerprinter fingerprint( buffer.Capacity() + Pms::OrigWindowSize );
 
     // Fingerprinting and indexing loop.
     // Audio data is received from the registered audio provider and buffered
@@ -145,9 +167,11 @@ void Audioneex::IndexerImpl::Index(uint32_t FID)
         int nsamples = m_AudioProvider->OnAudioData(FID, block.Data(), blockSize);
 
         // Error getting data. Clean up and throw.
-        if(nsamples < 0){
+        if(nsamples < 0)
+        {
            m_Cache.Reset();
-           throw std::runtime_error("Error getting audio data.");
+           throw std::runtime_error
+           ("Error getting audio data.");
         }
 
         block.Resize(nsamples);
@@ -159,8 +183,8 @@ void Audioneex::IndexerImpl::Index(uint32_t FID)
 
         if(tduration >= Pms::MaxRecordingLength)
            throw Audioneex::InvalidFingerprintException
-                ("Recordings longer than 30m may affect performances. "
-                 "Split them into 30m long parts and reindex them.");
+           ("Recordings longer than 30m may affect performances. "
+            "Split them into 30m-long parts and reindex them.");
 
         // Fingerprint 60 second audio chunks
         if(buffer.Duration() >= 60 || (buffer.Size()>0 && nsamples==0))
@@ -194,12 +218,12 @@ void Audioneex::IndexerImpl::Index(uint32_t FID)
     // This may happen if there is something wrong with the recording.
     if(QLFs.empty())
        throw Audioneex::InvalidFingerprintException
-            ("No fingerprint for recording " + Utils::ToString(FID));
+       ("Could not extract a fingerprint for recording " + Utils::ToString(FID));
 
     // Check here the validity of the FIDs. This will avoid nasty issus afterwards.
     if(FID <= m_CurrFID)
        throw Audioneex::InvalidFingerprintException
-            ("Invalid FID. Fingerprint IDs must be positive and strict increasing.");
+       ("Invalid FID. Fingerprint IDs must be positive strict increasing numbers.");
 
     m_CurrFID = FID;
 
@@ -224,37 +248,41 @@ void Audioneex::IndexerImpl::Index(uint32_t FID)
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::IndexerImpl::Index(uint32_t FID, const uint8_t *fpdata, size_t fpsize)
+void 
+Audioneex::IndexerImpl::Index(uint32_t FID, 
+                              const uint8_t *fpdata, 
+                              size_t fpsize)
 {
     // Check if a session is open
     if(!m_SessionOpen)
        throw Audioneex::InvalidIndexerStateException
-             ("No indexing session open.");
+       ("No indexing session open.");
 
     // Check fingerprint validity
 
     if(fpdata == nullptr)
        throw Audioneex::InvalidFingerprintException
-             ("Invalid fingerprint data (null)");
+       ("Invalid fingerprint data (null)");
 
     if(fpsize == 0)
        throw Audioneex::InvalidFingerprintException
-             ("Invalid fingerprint size (0)");
+       ("Invalid fingerprint size (0)");
 
     if(fpsize % sizeof(QLocalFingerprint_t) != 0)
        throw Audioneex::InvalidFingerprintException
-             ("Invalid fingerprint size");
+       ("Invalid fingerprint size");
 
     // Check here the validity of the FIDs. This will avoid nasty issus afterwards.
     if(FID <= m_CurrFID)
        throw Audioneex::InvalidFingerprintException
-            ("Invalid FID. Fingerprint IDs must be positive and strict increasing.");
+       ("Invalid FID. Fingerprint IDs must be positive and strict increasing.");
 
     m_CurrFID = FID;
 
     size_t NLFs = fpsize / sizeof(Audioneex::QLocalFingerprint_t);
 
-    const QLocalFingerprint_t *QLFs = reinterpret_cast<const QLocalFingerprint_t*>(fpdata);
+    const QLocalFingerprint_t*
+    QLFs = reinterpret_cast<const QLocalFingerprint_t*>(fpdata);
 
     if(m_MatchType == MSCALE_MATCH)
        IndexSTerms(FID, QLFs, NLFs);
@@ -269,7 +297,10 @@ void Audioneex::IndexerImpl::Index(uint32_t FID, const uint8_t *fpdata, size_t f
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::IndexerImpl::IndexSTerms(uint32_t FID, const QLocalFingerprint_t *lfs, size_t Nlfs)
+void 
+Audioneex::IndexerImpl::IndexSTerms(uint32_t FID, 
+                                    const QLocalFingerprint_t *lfs, 
+                                    size_t Nlfs)
 {
     assert(lfs != nullptr);
 
@@ -286,7 +317,10 @@ void Audioneex::IndexerImpl::IndexSTerms(uint32_t FID, const QLocalFingerprint_t
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::IndexerImpl::IndexBTerms(uint32_t FID, const QLocalFingerprint_t *lfs, size_t Nlfs)
+void 
+Audioneex::IndexerImpl::IndexBTerms(uint32_t FID, 
+                                    const QLocalFingerprint_t *lfs, 
+                                    size_t Nlfs)
 {
 
     assert(lfs != nullptr);
@@ -335,7 +369,8 @@ void Audioneex::IndexerImpl::IndexBTerms(uint32_t FID, const QLocalFingerprint_t
     // Ckeck for duplicate postings generated by this fingerprint
     size_t dup_occ = m_Cache.GetDuplicateOcc();
 
-    if(dup_occ){
+    if(dup_occ)
+    {
        WARNING_MSG("Duplicate occurrences in fingerprint " << FID << " (" << dup_occ << ")")
        m_Cache.SetDuplicateOcc(0);
     }
@@ -344,7 +379,8 @@ void Audioneex::IndexerImpl::IndexBTerms(uint32_t FID, const QLocalFingerprint_t
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::IndexerImpl::DoFlush()
+void 
+Audioneex::IndexerImpl::DoFlush()
 {
     // Produce and emit postings lists chunks in lexicographic order.
 
@@ -371,7 +407,11 @@ void Audioneex::IndexerImpl::DoFlush()
     //       Here we don't know the size of the serialized chunks, so this
     //       size must be big enough to accomodate all of them, since the
     //       buffer can't be reallocated in the encoding routines.
-    std::vector<uint8_t> bchunk( BlockEncoder::GetEncodedSizeEstimate(DataStoreImpl::POSTINGSLIST_BLOCK_THRESHOLD) );
+    std::vector<uint8_t> bchunk( 
+        BlockEncoder::GetEncodedSizeEstimate(
+            DataStoreImpl::POSTINGSLIST_BLOCK_THRESHOLD
+        )
+    );
 
     std::vector<uint32_t*> plchunk;
 
@@ -407,7 +447,7 @@ void Audioneex::IndexerImpl::DoFlush()
            
            if(IsNull(hdr))
                throw Audioneex::InvalidIndexDataException
-                   ("Got an empty header for existing block ?");
+               ("Got an empty header for existing block ?");
         }
 
         // Minimum size of a posting must be <FID,tf,LID,T,E>
@@ -442,11 +482,12 @@ void Audioneex::IndexerImpl::DoFlush()
                // get into the system.
                if(*plchunk.back() <= hdr.FIDmax)
                   throw Audioneex::InvalidIndexDataException
-                       ("Invalid FID have been assigned. When adding new "
-                        "fingerprints make sure that the new FID are strict "
-                        "increasing from the maximum FID in the database "
-                        "(new FID "+std::to_string(*plchunk.back())+
-                        " must be > max FID "+std::to_string(hdr.FIDmax)+").");
+              
+                  ("Invalid FID have been assigned. When adding new "
+                   "fingerprints make sure that the new FID are strict "
+                   "increasing from the maximum FID in the database "
+                   "(new FID "+std::to_string(*plchunk.back())+
+                   " must be > max FID "+std::to_string(hdr.FIDmax)+").");
 
                const uint32_t* const* plchunk_ptr = plchunk.data();
 
@@ -454,7 +495,8 @@ void Audioneex::IndexerImpl::DoFlush()
 
                // Append the chunk to the current block if its size is below the threshold
                // else append it to a new block
-               if(!IsNull(hdr) && hdr.BodySize < DataStoreImpl::POSTINGSLIST_BLOCK_THRESHOLD){
+               if(!IsNull(hdr) && hdr.BodySize < DataStoreImpl::POSTINGSLIST_BLOCK_THRESHOLD)
+               {
 
                    blockEncoder.Encode(plchunk_ptr, plchunk_nposts,
                                        bchunk_ptr, bchunk_size,
@@ -463,7 +505,8 @@ void Audioneex::IndexerImpl::DoFlush()
                    hdr.FIDmax = *plchunk.back();
                    m_DataStore->OnIndexerChunk(term, lhdr, hdr, bchunk_ptr, ebytes);
                }
-               else{
+               else
+               {
                    blockEncoder.Encode(plchunk_ptr, plchunk_nposts,
                                        bchunk_ptr, bchunk_size,
                                        ebytes, 0);
@@ -493,11 +536,13 @@ void Audioneex::IndexerImpl::DoFlush()
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::IndexerImpl::Flush()
+void 
+Audioneex::IndexerImpl::Flush()
 {
     // Check if a session is open
     if(!m_SessionOpen)
-       throw Audioneex::InvalidIndexerStateException("No indexing session open.");
+       throw Audioneex::InvalidIndexerStateException
+       ("No indexing session open.");
 
     m_DataStore->OnIndexerFlushStart();
     DoFlush();
@@ -507,7 +552,8 @@ void Audioneex::IndexerImpl::Flush()
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::IndexerImpl::End(bool flush)
+void 
+Audioneex::IndexerImpl::End(bool flush)
 {
     // Return if no session is open
     if(!m_SessionOpen)
@@ -527,7 +573,8 @@ void Audioneex::IndexerImpl::End(bool flush)
 
 // ----------------------------------------------------------------------------
 
-uint32_t Audioneex::IndexerImpl::GetMaxTermValue(Audioneex::eMatchType type)
+uint32_t 
+Audioneex::IndexerImpl::GetMaxTermValue(Audioneex::eMatchType type)
 {
     if(type == MSCALE_MATCH)
        return Pms::Kmed << 6 | Pms::GetChannelsCount();
@@ -538,7 +585,8 @@ uint32_t Audioneex::IndexerImpl::GetMaxTermValue(Audioneex::eMatchType type)
               Vpt_max << VPT_SHIFT |
               (-Vpf_max & 0x3F);
     else
-       throw Audioneex::InvalidParameterException("Invalid algorithm");
+       throw Audioneex::InvalidParameterException
+       ("Invalid algorithm");
 }
 
 
@@ -548,12 +596,14 @@ uint32_t Audioneex::IndexerImpl::GetMaxTermValue(Audioneex::eMatchType type)
 
 
 
-void Audioneex::IndexCache::Update(int term, int FID, int LID, int T, int E)
+void 
+Audioneex::IndexCache::Update(int term, int FID, int LID, int T, int E)
 {
     std::vector<uint32_t> &plist = m_Buffer[term];
 
     // List is empty. Append a new posting.
-    if (plist.empty()){
+    if (plist.empty())
+    {
         plist.push_back(FID);
         plist.push_back(1);
         plist.push_back(LID);
@@ -581,13 +631,15 @@ void Audioneex::IndexCache::Update(int term, int FID, int LID, int T, int E)
 
 
         // Current FID is the last inserted posting. Append new element.
-        if(FID == FIDo){
+        if(FID == FIDo)
+        {
             uint32_t last_LID = plist[plist.size()-1-3];
             uint32_t last_T   = plist[plist.size()-1-2];
             uint32_t last_E   = plist[plist.size()-1-1];
 
             // Skip and keep track of duplicate postings
-            if(LID==last_LID && T==last_T && E==last_E){
+            if(LID==last_LID && T==last_T && E==last_E)
+            {
                m_DuplicateOcc++;
                return;
             }
@@ -611,7 +663,8 @@ void Audioneex::IndexCache::Update(int term, int FID, int LID, int T, int E)
             m_MemoryUsed += 3 * sizeof(uint32_t);
         }
         // New posting
-        else if(FID > FIDo){
+        else if(FID > FIDo)
+        {
 
             plist.resize(plist.size()-1);
 
@@ -634,14 +687,16 @@ void Audioneex::IndexCache::Update(int term, int FID, int LID, int T, int E)
 
 // ----------------------------------------------------------------------------
 
-bool Audioneex::IndexCache::CanFlush() const
+bool 
+Audioneex::IndexCache::CanFlush() const
 {
     return m_MemoryUsed / 1048576 >= m_MemoryLimit;
 }
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::IndexCache::Reset()
+void 
+Audioneex::IndexCache::Reset()
 {
     // Clear postings lists
     m_Buffer.clear();

@@ -19,7 +19,8 @@
 
 
 
-void Audioneex::Codebook::FindDuplicates()
+void 
+Audioneex::Codebook::FindDuplicates()
 {
     int ndupes = 0;
     std::vector<BinaryVector> uwords;
@@ -48,7 +49,8 @@ void Audioneex::Codebook::FindDuplicates()
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::Codebook::Analyze()
+void 
+Audioneex::Codebook::Analyze()
 {
 /*
     std::ofstream of;
@@ -105,12 +107,12 @@ Audioneex::Codebook::deserialize(const uint8_t *data, size_t data_size)
 
     if(data == nullptr || data_size == 0)
        throw Audioneex::InvalidAudioCodesException
-             ("Invalid audio codes");
+       ("Invalid audio codes");
 
     // Codebook data size must be an integer multiple of the record size.
     if(data_size % ClusterRecordSize != 0)
        throw Audioneex::InvalidAudioCodesException
-             ("Invalid audio codes data size");
+       ("Invalid audio codes data size");
 
     size_t Nwords = data_size / ClusterRecordSize;
 
@@ -138,7 +140,8 @@ Audioneex::Codebook::deserialize(const uint8_t *data, size_t data_size)
 // ----------------------------------------------------------------------------
 
 /*static*/
-void Audioneex::Codebook::serialize(const Codebook &cbook, std::vector<uint8_t> &data)
+void 
+Audioneex::Codebook::serialize(const Codebook &cbook, std::vector<uint8_t> &data)
 {
     // Size of a centroid in bit blocks (elements)
     size_t csize = ceil(static_cast<float>(Pms::IDI_b) /
@@ -187,7 +190,8 @@ void Audioneex::Codebook::serialize(const Codebook &cbook, std::vector<uint8_t> 
 // ----------------------------------------------------------------------------
 
 /*static*/
-void Audioneex::Codebook::Save(const Codebook &cbook, const std::string &filename)
+void 
+Audioneex::Codebook::Save(const Codebook &cbook, const std::string &filename)
 {
     std::vector<uint8_t> ser;
 
@@ -231,7 +235,8 @@ Audioneex::Codebook::Load(const std::string &filename)
 
 // ----------------------------------------------------------------------------
 
-Audioneex::Codebook::QResults Audioneex::Codebook::quantize(const LocalFingerprint_t &lf)
+Audioneex::Codebook::QResults 
+Audioneex::Codebook::quantize(const LocalFingerprint_t &lf)
 {
     assert(m_Clusters.size() > 0);
     //assert(m_Index.size() > 0);
@@ -243,8 +248,8 @@ Audioneex::Codebook::QResults Audioneex::Codebook::quantize(const LocalFingerpri
     std::list<int> tlist;
     int max_sim = 0;
 
-    for(size_t c=0; c<m_Clusters.size(); c++){
-
+    for(size_t c=0; c<m_Clusters.size(); c++)
+    {
         uint32_t d = Utils::Dh(lf.D.data(), lf.D.size(),
                                m_Clusters[c].Centroid.data(),
                                m_Clusters[c].Centroid.bcount());
@@ -266,18 +271,21 @@ Audioneex::Codebook::QResults Audioneex::Codebook::quantize(const LocalFingerpri
     // Get best matching cluster (ideally only one but there may be ties)
 
     // We have only one best match
-    if(tlist.size() == 1){
+    if(tlist.size() == 1)
+    {
        res.word = *tlist.begin();
     }
     // We have ties :|
     // Ties are broken by choosing the cluster with minimum ME.
     // For this to work the clusters' MEs must be all different.
-    else if(tlist.size() > 1){
+    else if(tlist.size() > 1)
+    {
        res.word = *std::max_element(tlist.begin(), tlist.end());
        //WARNING_MSG("Ties found. Chose word " << res.word)
     }
     // We have no matches (this should never happen actually)
-    else{
+    else
+    {
        DEBUG_MSG("ERROR: Quantization failed. No matches found.")
     }
 

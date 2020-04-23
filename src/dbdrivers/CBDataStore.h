@@ -14,6 +14,9 @@
 #include <libcouchbase/couchbase.h>
 #include "KVDataStore.h"
 
+using namespace Audioneex;
+
+
 //-----------------------------------------------------------------------------
 
 struct CBKey
@@ -233,12 +236,12 @@ public:
     ~CBInfo() = default;
 
     /// Read custom info
-    DBInfo_t
+    std::string
     Read();
 
     /// Store custom info
     void 
-    Write(const DBInfo_t &info);
+    Write(const std::string &info);
 };
 
 
@@ -251,7 +254,7 @@ public:
 /// recognition engine. We also use a "delta index" for build-merge strategies.
 
 
-class CBDataStore : public KVDataStore
+class CBDataStore : public KVDataStoreImpl
 {
     CBIndex               m_MainIndex;
     CBIndex               m_DeltaIndex;
@@ -262,12 +265,14 @@ class CBDataStore : public KVDataStore
 
 public:
 
-    explicit CBDataStore(const std::string &url = std::string());
+    explicit CBDataStore(const std::string &url = std::string(),
+                         const std::string &name = std::string());
+                         
     ~CBDataStore() = default;
 
     /// Open the datastore in the specified mode using the specified collections.
     void 
-    Open(eOperation op = GET,
+    Open(eOperation op = FETCH,
          bool use_fing_db=true,
          bool use_meta_db=false,
          bool use_info_db=false) override;
@@ -278,15 +283,20 @@ public:
 	
     /// Check whether the datastore contains no data
     bool 
-    Empty() override;
+    IsEmpty() override;
 
     /// Clear the datastore (delete all contents)
     void 
     Clear() override;
+    
+    /// Set the database files/collections name
+    void 
+    SetDatabaseName(const std::string &name) override;
 
     /// Store a fingerprint
     void 
-    PutFingerprint(uint32_t FID, const uint8_t* data, size_t size)  override {
+    PutFingerprint(uint32_t FID, const uint8_t* data, size_t size)  override 
+    {
         m_QFingerprints.WriteFingerprint(FID, data, size);
     }
 
@@ -299,25 +309,29 @@ public:
 
     /// Store metadata for the specified fingerprint
     void 
-    PutMetadata(uint32_t FID, const std::string& meta) override {
+    PutMetadata(uint32_t FID, const std::string& meta) override 
+    {
         m_Metadata.Write(FID, meta);
     }
 
     /// Get metadata for the specified fingerprint
     std::string 
-    GetMetadata(uint32_t FID) override {
+    GetMetadata(uint32_t FID) override 
+    {
         return m_Metadata.Read(FID);
     }
 
     /// Store custom info
     void 
-    PutInfo(const DBInfo_t& info) override { 
+    PutInfo(const std::string& info) override 
+    { 
         m_Info.Write(info); 
     }
 
     /// Get custom info
-    DBInfo_t 
-    GetInfo() override {
+    std::string 
+    GetInfo() override 
+    {
         return m_Info.Read(); 
     }
 

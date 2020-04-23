@@ -13,9 +13,8 @@
 #include <cassert>
 #include <memory>
 
-#include "KVDataStore.h"
-#include "AudioSource.h"
 #include "audioneex.h"
+#include "AudioSource.h"
 
 
 /// Abstract class for various tasks performed by the identification
@@ -25,31 +24,38 @@ class IdTask
 {
 protected:
 
-    std::shared_ptr<Audioneex::Indexer>     m_Indexer;
-    std::shared_ptr<Audioneex::Recognizer>  m_Recognizer;
-    std::shared_ptr<KVDataStore>            m_DataStore;
+    std::shared_ptr<Audioneex::Indexer>      m_Indexer;
+    std::shared_ptr<Audioneex::Recognizer>   m_Recognizer;
+    std::shared_ptr<Audioneex::KVDataStore>  m_DataStore;
 
 public:
 
     IdTask() = default;
     virtual ~IdTask() = default;
 
-    virtual void Run() = 0;
-    virtual void Terminate() = 0;
+    virtual void 
+    Run() = 0;
+    
+    virtual void 
+    Terminate() = 0;
 
-    virtual AudioSource* GetAudioSource() = 0;
+    virtual AudioSource* 
+    GetAudioSource() = 0;
 
-    void SetIndexer(std::shared_ptr<Audioneex::Indexer> &indexer) 
+    void 
+    SetIndexer(std::shared_ptr<Audioneex::Indexer> &indexer) 
     {
         m_Indexer = indexer;
     }
 
-    void SetRecognizer(std::shared_ptr<Audioneex::Recognizer> &recognizer) 
+    void 
+    SetRecognizer(std::shared_ptr<Audioneex::Recognizer> &recognizer) 
     {
         m_Recognizer = recognizer;
     }
 
-    void SetDataStore(std::shared_ptr<KVDataStore> &datastore) 
+    void 
+    SetDataStore(std::shared_ptr<Audioneex::KVDataStore> &datastore) 
     {
         m_DataStore = datastore;
     }

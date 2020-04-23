@@ -19,8 +19,8 @@
 #  AX_BUILD_MODE     = debug | release
 #  AX_DATASTORE_T    = TCDataStore | CBDataStore
 #  AX_WITH_EXAMPLES  = ON | OFF
-#  AX_WITH_ID3       = ON | OFF  (for the examples only)
 #  AX_WITH_TESTS     = ON | OFF  (for project developers only)
+#  AX_NO_RTTI        = ON | OFF
 #
 
 cmake_minimum_required(VERSION 3.11 FATAL_ERROR)

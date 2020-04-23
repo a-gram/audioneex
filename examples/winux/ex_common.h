@@ -14,9 +14,11 @@
 
 /// Interfaces used in the examples
 
-class IdentificationResultsListener{
+class IdResultsListener
+{
  public:
-    virtual void OnResults(const Audioneex::IdMatch* results) = 0;
+    virtual void 
+    OnResults(const Audioneex::IdMatch* results) = 0;
 };
 
 

@@ -19,24 +19,27 @@
 
 
 template<class T>
-inline std::string n_to_string(const T &val) {
+inline std::string 
+n_to_string(const T &val) 
+{
     std::stringstream out;
     out << val;
-    return out.str ();
+    return out.str();
 }
 
 
 class IndexingTask : public Audioneex::AudioProvider
 {
-    Audioneex::Indexer* m_Indexer;
-    std::string         m_AudioDir;
-    uint32_t            m_FID;
-    AudioSourceWavFile  m_AudioSource;
-    AudioBlock<int16_t> m_InputBlock;
-    AudioBlock<float>   m_AudioBlock;
+    Audioneex::Indexer*  m_Indexer;
+    std::string          m_AudioDir;
+    uint32_t             m_FID;
+    AudioSourceWavFile   m_AudioSource;
+    AudioBuffer<int16_t> m_InputBuffer;
+    AudioBuffer<float>   m_AudioBuffer;
 
 
-    int OnAudioData(uint32_t FID, float *buffer, size_t nsamples)
+    int 
+    OnAudioData(uint32_t FID, float *buffer, size_t nsamples)
     {
         assert(FID == m_FID);
 
@@ -47,30 +50,31 @@ class IndexingTask : public Audioneex::AudioProvider
         // NOTE: Audio must be 16 bit normalized in [-1,1], mono, 11025 Hz.
 
         // Set the input buffer to the requested amount of samples.
-        m_InputBlock.Resize( nsamples );
+        m_InputBuffer.Resize( nsamples );
 
-        m_AudioSource.Read( m_InputBlock );
+        m_AudioSource.Read( m_InputBuffer );
 
         // If we reached the end of the stream, signal it to the indexer
         // by returning 0.
-        if(m_InputBlock.Size() == 0)
+        if(m_InputBuffer.Size() == 0)
            return 0;
 
         // The audio must be normalized prior to fingerprinting
-        m_InputBlock.Normalize( m_AudioBlock );
+        m_InputBuffer.Normalize( m_AudioBuffer );
 
         // Copy the audio into indexer buffer
-        std::copy(m_AudioBlock.Data(),
-                  m_AudioBlock.Data() + m_AudioBlock.Size(),
+        std::copy(m_AudioBuffer.Data(),
+                  m_AudioBuffer.Data() + m_AudioBuffer.Size(),
                   buffer);
 
-        return m_AudioBlock.Size();
+        return m_AudioBuffer.Size();
 	}
 	
 
-    void DoIndexing(const std::string &audiofile)
+    void 
+    DoIndexing(const std::string &audiofile)
     {
-		std::string filename = audiofile;//filename.substr(filename.find_last_of("/")+1);
+		auto filename = audiofile;
 
 		m_AudioSource.Open(audiofile);
 
@@ -85,7 +89,8 @@ class IndexingTask : public Audioneex::AudioProvider
 		// extracted for some reason, such as invalid audio or incorrect FIDs.
 		// These errors may be recovered by just skipping the failed fingerprint.
 		// Anything else is a serious error and indexing should be aborted.
-		try{
+		try
+      {
 			// Start indexing of current audio file.
 			// This call is synchronous. It will call OnAudioData() repeatedly
 			// and will return once all audio for the current recording has been
@@ -97,9 +102,10 @@ class IndexingTask : public Audioneex::AudioProvider
 			// a database ...
 
 		}
-		catch(const Audioneex::InvalidFingerprintException &ex){
-            LOG_E("FAILED: %s", ex.what())
-            m_FID--; // reuse FID
+		catch(const Audioneex::InvalidFingerprintException &ex)
+      {
+         LOG_E("FAILED: %s", ex.what())
+         m_FID--; // reuse FID
 		}
 
 		// Reset all resources for next audio file
@@ -109,29 +115,37 @@ class IndexingTask : public Audioneex::AudioProvider
 
 public:
 
-    explicit IndexingTask(const std::string &audio_dir) :
-        m_Indexer     (nullptr),
-        m_AudioDir    (audio_dir),
-        m_InputBlock  (11025*10, 11025, 1), //< 10s buffer is enough
-        m_AudioBlock  (11025*10, 11025, 1), //< the normalized audio
-        m_FID         (0)
+    explicit 
+    IndexingTask(const std::string &audio_dir) 
+    :
+        m_Indexer      (nullptr),
+        m_AudioDir     (audio_dir),
+        m_InputBuffer  (11025 * 10, 11025, 1), //< 10s buffer is enough
+        m_AudioBuffer  (11025 * 10, 11025, 1), //< the normalized audio
+        m_FID          (0)
     {}
 
-    void Run()
+    void 
+    Run()
     {
         assert(m_Indexer);
 
         m_Indexer->Start();
 
-        for(int i=1; i<=TEST_REC_NUM; i++){
-        	LOG_D("Indexing rec %d ...", i)
+        for(int i=1; i<=TEST_REC_NUM; i++)
+        {
+            LOG_D("Indexing rec %d ...", i)
             DoIndexing( m_AudioDir+"/rec"+n_to_string(i)+".wav" );
         }
 
         m_Indexer->End();
-	}
+    }
 
-    void SetIndexer(Audioneex::Indexer* indexer) { m_Indexer = indexer; }
+    void 
+    SetIndexer(Audioneex::Indexer* indexer) 
+    { 
+        m_Indexer = indexer; 
+    }
 
 };
 
@@ -139,17 +153,18 @@ public:
 
 class IdentificationTask
 {
-	Audioneex::Recognizer* m_Recognizer;
-    AudioSourceWavFile     m_AudioSource;
+    Audioneex::Recognizer*  m_Recognizer;
+    AudioSourceWavFile      m_AudioSource;
 
-    uint32_t DoIdentify(const std::string &audioclip)
+    uint32_t 
+    DoIdentify(const std::string &audioclip)
     {
 	   LOG_D("Identifying %s ...", audioclip.c_str())
 
 	   const Audioneex::IdMatch* results = nullptr;
 
-	   AudioBlock<int16_t> iblock;
-	   AudioBlock<float>   iaudio;
+	   AudioBuffer<int16_t> iblock;
+	   AudioBuffer<float>   iaudio;
 
 	   m_AudioSource.Open( audioclip );
 
@@ -162,7 +177,8 @@ class IdentificationTask
 
 	   // Read audio blocks from the source and perform identification
 	   // until results are produced or all audio is exhausted
-	   do{
+	   do
+      {
 		   m_AudioSource.Read(iblock);
 		   iblock.Normalize( iaudio );
 		   m_Recognizer->Identify(iaudio.Data(), iaudio.Size());
@@ -174,28 +190,33 @@ class IdentificationTask
 	   // is provided for it to make a decision. If the audio data
 	   // is exhausted before the engine returns a results you may
 	   // flush the internal buffers and check again.
-	   if(!results) {
-           m_Recognizer->Flush();
-           results = m_Recognizer->GetResults();
-       }
+	   if(!results) 
+      {
+         m_Recognizer->Flush();
+         results = m_Recognizer->GetResults();
+      }
 
 	   uint32_t res = 0;
 
        // Parse the results, if any
-	   if(results){
+	   if(results)
+      {
           std::vector<Audioneex::IdMatch> BestMatch;
 
           // Get the best match(es), if any (there may be ties)
           for(int i=0; !Audioneex::IsNull(results[i]); i++)
               BestMatch.push_back( results[i] );
 
-          if(BestMatch.size() == 1){
-        	 LOG_D("Got a match: %d", BestMatch[0].FID)
-			 res = BestMatch[0].FID;
+          if(BestMatch.size() == 1)
+          {
+             LOG_D("Got a match: %d", BestMatch[0].FID)
+             res = BestMatch[0].FID;
           }
-       }
+      }
 	   else
-	     LOG_D("Not enough audio.")
+      {
+	       LOG_D("Not enough audio.")
+      }
 
 	   // IMPORTANT:
 	   // Always reset the Recognizer instance if reused for new identifications.
@@ -210,14 +231,24 @@ public:
         m_Recognizer  (nullptr)
     { }
 
-    uint32_t Identify(const std::string &audioclip)
+    uint32_t 
+    Identify(const std::string &audioclip)
     {
         assert(m_Recognizer);
         return DoIdentify( audioclip );
     }
 
-    void SetRecognizer(Audioneex::Recognizer* recognizer) { m_Recognizer = recognizer; }
-    AudioSourceWavFile& GetAudioSource() { return m_AudioSource; }
+    void 
+    SetRecognizer(Audioneex::Recognizer* recognizer) 
+    { 
+        m_Recognizer = recognizer;
+    }
+    
+    AudioSourceWavFile& 
+    GetAudioSource() 
+    { 
+        return m_AudioSource;
+    }
 
 };
 

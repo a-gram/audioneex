@@ -23,7 +23,9 @@ using namespace Audioneex;
 
 // ----------------------------------------------------------------------------
 
-TCDataStore::TCDataStore(const std::string &url) :
+TCDataStore::TCDataStore(const std::string &url,
+                         const std::string &name) 
+:
     m_MainIndex     (this),
     m_QFingerprints (this),
     m_DeltaIndex    (this),
@@ -32,24 +34,40 @@ TCDataStore::TCDataStore(const std::string &url) :
     m_ReadBuffer    (32768)
 {
     m_DBURL = url;
+    m_DBName = !name.empty() ? name : "data";
     
-    m_MainIndex.SetName("data.idx");
-    m_QFingerprints.SetName("data.qfp");
-    m_Metadata.SetName("data.met");
-    m_Info.SetName("data.inf");
-    m_DeltaIndex.SetName("data.tmp");
+    m_MainIndex.SetName(m_DBName + ".idx");
+    m_QFingerprints.SetName(m_DBName + ".qfp");
+    m_Metadata.SetName(m_DBName + ".met");
+    m_Info.SetName(m_DBName + ".inf");
+    m_DeltaIndex.SetName(m_DBName + ".tmp");
 }
 
 // ----------------------------------------------------------------------------
 
-void TCDataStore::Open(eOperation op,
-                       bool use_fing_db, 
-                       bool use_meta_db,
-                       bool use_info_db)
+void 
+TCDataStore::Open(eOperation op,
+                  bool use_fing_db, 
+                  bool use_meta_db,
+                  bool use_info_db)
 {
     if(m_IsOpen)
        Close();
-    int open_mode = op == GET ? OPEN_READ : OPEN_READ_WRITE;
+    
+    int open_mode = -1;
+    
+    if(op == FETCH)
+    {
+       open_mode = OPEN_READ;
+    }
+    else if(op == BUILD || op == BUILD_MERGE)
+    {
+       open_mode = OPEN_READ_WRITE;
+    }
+    else {
+       throw DatastoreException
+       ("Invalid database open mode");
+    }
 
     // Append the path separator if missing (Windows accepts '/' as well)
     m_DBURL += m_DBURL.empty() ? "" :
@@ -84,7 +102,8 @@ void TCDataStore::Open(eOperation op,
 
 // ----------------------------------------------------------------------------
 
-void TCDataStore::Close()
+void 
+TCDataStore::Close()
 {
     m_MainIndex.Close();
     m_DeltaIndex.Close();
@@ -97,16 +116,24 @@ void TCDataStore::Close()
 
 // ----------------------------------------------------------------------------
 
-bool TCDataStore::Empty()
+bool 
+TCDataStore::IsEmpty()
 {
-    return m_MainIndex.GetRecordsCount() == 0 &&
-           m_QFingerprints.GetRecordsCount() == 0 &&
-           m_Metadata.GetRecordsCount() == 0;
+    bool empty = m_MainIndex.GetRecordsCount() == 0;
+    
+    if(m_QFingerprints.IsOpen())
+       empty &= m_QFingerprints.GetRecordsCount() == 0;
+    
+    if(m_Metadata.IsOpen())
+       empty &= m_Metadata.GetRecordsCount() == 0;
+    
+    return empty;
 }
 
 // ----------------------------------------------------------------------------
 
-void TCDataStore::Clear()
+void 
+TCDataStore::Clear()
 {
     m_MainIndex.Drop();
     m_QFingerprints.Drop();
@@ -116,7 +143,8 @@ void TCDataStore::Clear()
 
 // ----------------------------------------------------------------------------
 
-void TCDataStore::SetOpMode(KVDataStore::eOperation mode)
+void 
+TCDataStore::SetOpMode(KVDataStore::eOperation mode)
 {
     if(mode == m_Op) return;
     Open(mode, m_QFingerprints.IsOpen(), m_Metadata.IsOpen());
@@ -124,16 +152,33 @@ void TCDataStore::SetOpMode(KVDataStore::eOperation mode)
 
 // ----------------------------------------------------------------------------
 
-size_t TCDataStore::GetFingerprintsCount()
+void 
+TCDataStore::SetDatabaseName(const std::string &name)
+{
+    KVDataStoreImpl::SetDatabaseName(!name.empty() ? name : "data");
+    
+    m_MainIndex.SetName(m_DBName + ".idx");
+    m_QFingerprints.SetName(m_DBName + ".qfp");
+    m_Metadata.SetName(m_DBName + ".met");
+    m_Info.SetName(m_DBName + ".inf");
+    m_DeltaIndex.SetName(m_DBName + ".tmp");
+}
+
+// ----------------------------------------------------------------------------
+
+size_t 
+TCDataStore::GetFingerprintsCount()
 {
     return m_QFingerprints.GetRecordsCount();
 }
 
 // ----------------------------------------------------------------------------
 
-const uint8_t* TCDataStore::GetPListBlock(int list_id,
-                                          int block, 
-                                          size_t &data_size, bool headers)
+const uint8_t* 
+TCDataStore::GetPListBlock(int list_id,
+                           int block, 
+                           size_t &data_size, 
+                           bool headers)
 {
     // Read block from datastore into read buffer
     // (or get a reference to its memory location if the block is cached)
@@ -143,11 +188,12 @@ const uint8_t* TCDataStore::GetPListBlock(int list_id,
 
 // ----------------------------------------------------------------------------
 
-void TCDataStore::OnIndexerStart()
+void 
+TCDataStore::OnIndexerStart()
 {
-    if(m_Op == GET)
-       throw std::invalid_argument
-       ("OnIndexerStart(): Invalid operation (GET)");
+    if(m_Op == FETCH)
+       throw DatastoreException
+       ("OnIndexerStart(): Invalid database mode (FETCH)");
 
      if(m_Op == BUILD_MERGE)
         m_DeltaIndex.Open(OPEN_READ_WRITE);
@@ -158,7 +204,8 @@ void TCDataStore::OnIndexerStart()
 
 // ----------------------------------------------------------------------------
 
-void TCDataStore::OnIndexerEnd()
+void 
+TCDataStore::OnIndexerEnd()
 { 
     // Here we shall merge the temporary delta index with the live index
     // if we're performing a build-merge operation.
@@ -185,9 +232,10 @@ void TCDataStore::OnIndexerEnd()
 
 // ----------------------------------------------------------------------------
 
-void TCDataStore::OnIndexerFlushStart()
+void 
+TCDataStore::OnIndexerFlushStart()
 {
-    std::cout<<"Flushing..."<<std::endl;
+    //std::cout<<"Flushing..."<<std::endl;
 
     m_Run ++;
 
@@ -197,7 +245,8 @@ void TCDataStore::OnIndexerFlushStart()
 
 // ----------------------------------------------------------------------------
 
-void TCDataStore::OnIndexerFlushEnd()
+void 
+TCDataStore::OnIndexerFlushEnd()
 {
     // Flush the block cache to the database
     if(m_Op == BUILD)
@@ -208,9 +257,10 @@ void TCDataStore::OnIndexerFlushEnd()
 
 // ----------------------------------------------------------------------------
 
-PListHeader TCDataStore::OnIndexerListHeader(int list_id)
+PListHeader 
+TCDataStore::OnIndexerListHeader(int list_id)
 {
-    // If we're build-merging read the headers to be updated from the
+    // If we're build-merging, read the headers to be updated from the
     // main index on first run as the delta index is still empty, read
     // them from the delta index after the first run, and only read from
     // main index if they cannot be found in the delta.
@@ -228,13 +278,14 @@ PListHeader TCDataStore::OnIndexerListHeader(int list_id)
     else if(m_Op == BUILD)
        return m_MainIndex.GetPListHeader(list_id);
     else
-       throw std::invalid_argument
+       throw DatastoreException
        ("OnIndexerListHeader(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
 
-PListBlockHeader TCDataStore::OnIndexerBlockHeader(int list_id, int block)
+PListBlockHeader 
+TCDataStore::OnIndexerBlockHeader(int list_id, int block)
 {
     if(m_Op == BUILD_MERGE){
        if(m_Run == 1)
@@ -247,45 +298,50 @@ PListBlockHeader TCDataStore::OnIndexerBlockHeader(int list_id, int block)
     else if(m_Op == BUILD)
        return m_MainIndex.GetPListBlockHeader(list_id, block);
     else
-       throw std::invalid_argument
+       throw DatastoreException
        ("OnIndexerBlockHeader(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
 
-void TCDataStore::OnIndexerChunk(int list_id,
-                                 PListHeader &lhdr,
-                                 PListBlockHeader &hdr,
-                                 uint8_t* data, size_t data_size)
+void 
+TCDataStore::OnIndexerChunk(int list_id,
+                            PListHeader &lhdr,
+                            PListBlockHeader &hdr,
+                            uint8_t* data, size_t data_size)
 {
     if(m_Op == BUILD_MERGE)
        m_DeltaIndex.AppendChunk(list_id, lhdr, hdr, data, data_size);
     else if(m_Op == BUILD)
        m_MainIndex.AppendChunk(list_id, lhdr, hdr, data, data_size);
     else
-       throw std::invalid_argument
+       throw DatastoreException
        ("OnIndexerChunkAppend(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
 
-void TCDataStore::OnIndexerNewBlock(int list_id,
-                                    PListHeader &lhdr,
-                                    PListBlockHeader &hdr,
-                                    uint8_t* data, size_t data_size)
+void 
+TCDataStore::OnIndexerNewBlock(int list_id,
+                               PListHeader &lhdr,
+                               PListBlockHeader &hdr,
+                               uint8_t* data, size_t data_size)
 {
     if(m_Op == BUILD_MERGE)
        m_DeltaIndex.AppendChunk(list_id, lhdr, hdr, data, data_size, true);
     else if(m_Op == BUILD)
        m_MainIndex.AppendChunk(list_id, lhdr, hdr, data, data_size, true);
     else
-       throw std::invalid_argument
+       throw DatastoreException
        ("OnIndexerChunkNewBlock(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
 
-void TCDataStore::OnIndexerFingerprint(uint32_t FID, uint8_t *data, size_t size)
+void 
+TCDataStore::OnIndexerFingerprint(uint32_t FID, 
+                                  uint8_t *data, 
+                                  size_t size)
 {
     if(m_QFingerprints.IsOpen())
        m_QFingerprints.WriteFingerprint(FID, data, size);
@@ -293,17 +349,19 @@ void TCDataStore::OnIndexerFingerprint(uint32_t FID, uint8_t *data, size_t size)
 
 // ----------------------------------------------------------------------------
 
-size_t TCDataStore::GetFingerprintSize(uint32_t FID)
+size_t 
+TCDataStore::GetFingerprintSize(uint32_t FID)
 {
     return m_QFingerprints.ReadFingerprintSize(FID);
 }
 
 // ----------------------------------------------------------------------------
 
-const uint8_t* TCDataStore::GetFingerprint(uint32_t FID, 
-                                           size_t &read, 
-                                           size_t nbytes, 
-                                           uint32_t bo)
+const uint8_t* 
+TCDataStore::GetFingerprint(uint32_t FID, 
+                            size_t &read, 
+                            size_t nbytes, 
+                            uint32_t bo)
 {
     read = m_QFingerprints.ReadFingerprint(FID, m_ReadBuffer, nbytes, bo);
     return m_ReadBuffer.data();
@@ -321,10 +379,11 @@ const uint8_t* TCDataStore::GetFingerprint(uint32_t FID,
                            int err = tchdbecode(db);                 \
                            estr.append(tchdberrmsg(err));            \
                            if(err!=TCESUCCESS)                       \
-                              throw std::runtime_error(estr);        \
+                              throw DatastoreException(estr);        \
 
 
-TCCollection::TCCollection(TCDataStore *datastore) :
+TCCollection::TCCollection(TCDataStore *datastore) 
+:
     KVCollection (datastore),
     m_DBHandle   ()
 {
@@ -339,7 +398,8 @@ TCCollection::~TCCollection()
 
 // ----------------------------------------------------------------------------
 
-void TCCollection::Open(int mode)
+void 
+TCCollection::Open(int mode)
 {
     int db_mode = 0;
 
@@ -348,7 +408,7 @@ void TCCollection::Open(int mode)
     else if(mode == OPEN_WRITE || mode == OPEN_READ_WRITE)
        db_mode = HDBOWRITER|HDBOCREAT;
     else
-       throw std::logic_error
+       throw DatastoreException
        ("Unrecognized database opening mode");
 
     // Close current database if open
@@ -358,7 +418,8 @@ void TCCollection::Open(int mode)
     m_DBHandle = tchdbnew();
 
     if(!m_DBHandle)
-       throw std::runtime_error("Got an invalid db handle");
+       throw DatastoreException
+       ("Got an invalid db handle");
 
     tchdbtune(m_DBHandle, 1000000, 4, 10, HDBTLARGE);
     tchdbsetcache(m_DBHandle, 1000000);
@@ -373,7 +434,7 @@ void TCCollection::Open(int mode)
         estr += " " + full_url;
         tchdbdel(m_DBHandle);
         m_DBHandle = nullptr;
-        throw std::runtime_error(estr);
+        throw DatastoreException(estr);
     }
 
     m_IsOpen = true;
@@ -381,7 +442,8 @@ void TCCollection::Open(int mode)
 
 // ----------------------------------------------------------------------------
 
-void TCCollection::Close()
+void 
+TCCollection::Close()
 {
     if(m_DBHandle){
        tchdbclose(m_DBHandle);
@@ -394,7 +456,8 @@ void TCCollection::Close()
 
 // ----------------------------------------------------------------------------
 
-void TCCollection::Drop()
+void 
+TCCollection::Drop()
 {
     if(m_DBHandle && !tchdbvanish(m_DBHandle)){
        CHECK_OP(m_DBHandle)
@@ -403,9 +466,14 @@ void TCCollection::Drop()
 
 // ----------------------------------------------------------------------------
 
-uint64_t TCCollection::GetRecordsCount() const
+uint64_t 
+TCCollection::GetRecordsCount() const
 {
-    return m_DBHandle ? tchdbrnum(m_DBHandle) : 0;
+    if(!m_IsOpen)
+       throw DatastoreException
+       ("Database '"+m_Name+"' not open");
+
+    return tchdbrnum(m_DBHandle);
 }
 
 
@@ -416,14 +484,16 @@ uint64_t TCCollection::GetRecordsCount() const
 
 
 
-TCIndex::TCIndex(TCDataStore *dstore) :
+TCIndex::TCIndex(TCDataStore *dstore) 
+:
     TCCollection (dstore)
 {
 }
 
 // ----------------------------------------------------------------------------
 
-PListHeader TCIndex::GetPListHeader(int list_id)
+PListHeader 
+TCIndex::GetPListHeader(int list_id)
 {
     int               bsize;
     void             *block;
@@ -448,7 +518,8 @@ PListHeader TCIndex::GetPListHeader(int list_id)
 
 // ----------------------------------------------------------------------------
 
-PListBlockHeader TCIndex::GetPListBlockHeader(int list_id, int block_id)
+PListBlockHeader 
+TCIndex::GetPListBlockHeader(int list_id, int block_id)
 {
     int               bsize;
     void             *block;
@@ -482,10 +553,11 @@ PListBlockHeader TCIndex::GetPListBlockHeader(int list_id, int block_id)
 
 // ----------------------------------------------------------------------------
 
-size_t TCIndex::ReadBlock(int list_id, 
-                          int block_id, 
-                          std::vector<uint8_t> &buffer, 
-                          bool headers)
+size_t 
+TCIndex::ReadBlock(int list_id, 
+                   int block_id, 
+                   std::vector<uint8_t> &buffer, 
+                   bool headers)
 {
     int               bsize;
     void             *block;
@@ -522,10 +594,11 @@ size_t TCIndex::ReadBlock(int list_id,
 
 // ----------------------------------------------------------------------------
 
-void TCIndex::WriteBlock(int list_id, 
-                         int block_id, 
-                         std::vector<uint8_t> &buffer, 
-                         size_t data_size)
+void 
+TCIndex::WriteBlock(int list_id, 
+                    int block_id, 
+                    std::vector<uint8_t> &buffer, 
+                    size_t data_size)
 {
     assert(!buffer.empty());
     assert(data_size <= buffer.size());
@@ -542,11 +615,12 @@ void TCIndex::WriteBlock(int list_id,
 
 // ----------------------------------------------------------------------------
 
-void TCIndex::AppendChunk(int list_id,
-                          PListHeader &lhdr,
-                          PListBlockHeader &hdr,
-                          uint8_t *chunk, size_t chunk_size,
-                          bool new_block)
+void 
+TCIndex::AppendChunk(int list_id,
+                     PListHeader &lhdr,
+                     PListBlockHeader &hdr,
+                     uint8_t *chunk, size_t chunk_size,
+                     bool new_block)
 {
     assert(chunk && chunk_size);
     assert(!IsNull(hdr));
@@ -604,7 +678,8 @@ void TCIndex::AppendChunk(int list_id,
 
 // ----------------------------------------------------------------------------
 
-void TCIndex::UpdateListHeader(int list_id, PListHeader &lhdr)
+void 
+TCIndex::UpdateListHeader(int list_id, PListHeader &lhdr)
 {
     // Try the cache first
     std::vector<uint8_t> &block = m_BlocksCache.buffer[1];
@@ -625,7 +700,8 @@ void TCIndex::UpdateListHeader(int list_id, PListHeader &lhdr)
 
 // ----------------------------------------------------------------------------
 
-void TCIndex::Merge(TCIndex &lidx)
+void 
+TCIndex::Merge(TCIndex &lidx)
 {
     void *key, *val;
     int ksize, vsize;
@@ -706,7 +782,10 @@ void TCIndex::Merge(TCIndex &lidx)
 
 // ----------------------------------------------------------------------------
 
-PListBlock TCIndex::RawBlockToBlock(uint8_t *block, size_t block_size, bool isFirst)
+PListBlock 
+TCIndex::RawBlockToBlock(uint8_t *block, 
+                         size_t block_size, 
+                         bool isFirst)
 {
     PListBlock rblock = {};
 
@@ -748,7 +827,8 @@ PListBlock TCIndex::RawBlockToBlock(uint8_t *block, size_t block_size, bool isFi
 
 // ----------------------------------------------------------------------------
 
-void TCIndex::FlushBlockCache()
+void 
+TCIndex::FlushBlockCache()
 {
     if(m_BlocksCache.buffer.empty())
        return;
@@ -763,7 +843,8 @@ void TCIndex::FlushBlockCache()
     ClearCache();
 }
 
-void TCIndex::ClearCache()
+void 
+TCIndex::ClearCache()
 {
     m_BlocksCache.list_id = 0;
     m_BlocksCache.accum = 0;
@@ -777,17 +858,20 @@ void TCIndex::ClearCache()
 
 
 
-TCFingerprints::TCFingerprints(TCDataStore *dstore) :
+TCFingerprints::TCFingerprints(TCDataStore *dstore) 
+:
     TCCollection (dstore)
 {
 }
 
 // ----------------------------------------------------------------------------
 
-size_t TCFingerprints::ReadFingerprintSize(uint32_t FID)
+size_t 
+TCFingerprints::ReadFingerprintSize(uint32_t FID)
 {
     if(!m_IsOpen)
-       throw std::runtime_error("Fingerprint database not open");
+       throw DatastoreException
+       ("Fingerprint database not open");
 
     int vsize = tchdbvsiz(m_DBHandle, &FID, sizeof(uint32_t));
     return vsize > 0 ? static_cast<size_t>(vsize) : 0;
@@ -795,16 +879,18 @@ size_t TCFingerprints::ReadFingerprintSize(uint32_t FID)
 
 // ----------------------------------------------------------------------------
 
-size_t TCFingerprints::ReadFingerprint(uint32_t FID, 
-                                       std::vector<uint8_t> &buffer, 
-                                       size_t size, 
-									   uint32_t bo)
+size_t 
+TCFingerprints::ReadFingerprint(uint32_t FID, 
+                                std::vector<uint8_t> &buffer, 
+                                size_t size, 
+                                uint32_t bo)
 {
     int dsize;
     void *data;
 
     if(!m_IsOpen)
-       throw std::runtime_error("Fingerprint database not open");
+       throw DatastoreException
+       ("Fingerprint database not open");
 
     data = tchdbget(m_DBHandle, &FID, sizeof(uint32_t), &dsize);
 
@@ -827,10 +913,14 @@ size_t TCFingerprints::ReadFingerprint(uint32_t FID,
 
 // ----------------------------------------------------------------------------
 
-void TCFingerprints::WriteFingerprint(uint32_t FID, const uint8_t *data, size_t size)
+void 
+TCFingerprints::WriteFingerprint(uint32_t FID, 
+                                 const uint8_t *data, 
+                                 size_t size)
 {
     if(!m_IsOpen)
-       throw std::runtime_error("Fingerprint database not open");
+       throw DatastoreException
+       ("Fingerprint database not open");
 
     assert(data);
     assert(size > 0);
@@ -848,17 +938,20 @@ void TCFingerprints::WriteFingerprint(uint32_t FID, const uint8_t *data, size_t 
 
 
 
-TCMetadata::TCMetadata(TCDataStore *dstore) :
+TCMetadata::TCMetadata(TCDataStore *dstore) 
+:
     TCCollection (dstore)
 {
 }
 
 // ----------------------------------------------------------------------------
 
-std::string TCMetadata::Read(uint32_t FID)
+std::string 
+TCMetadata::Read(uint32_t FID)
 {
     if(!m_IsOpen)
-       throw std::runtime_error("Metadata database not open");
+       throw DatastoreException
+       ("Metadata database not open");
 
     std::string str;
     if(m_DBHandle){
@@ -872,10 +965,13 @@ std::string TCMetadata::Read(uint32_t FID)
 
 // ----------------------------------------------------------------------------
 
-void TCMetadata::Write(uint32_t FID, const std::string &meta)
+void 
+TCMetadata::Write(uint32_t FID, 
+                  const std::string &meta)
 {
     if(!m_IsOpen)
-       throw std::runtime_error("Metadata database not open");
+       throw DatastoreException
+       ("Metadata database not open");
 
     std::string str = std::to_string(FID);
     if(!tchdbput2(m_DBHandle, str.c_str(), meta.c_str())){
@@ -891,42 +987,41 @@ void TCMetadata::Write(uint32_t FID, const std::string &meta)
 
 
 
-TCInfo::TCInfo(TCDataStore *dstore) :
+TCInfo::TCInfo(TCDataStore *dstore) 
+:
     TCCollection (dstore)
 {
 }
 
 // ----------------------------------------------------------------------------
 
-DBInfo_t TCInfo::Read()
+std::string 
+TCInfo::Read()
 {
     if(!m_IsOpen)
-       throw std::runtime_error("Info database not open");
+       throw DatastoreException
+       ("Info database not open");
 
-    int dsize, key = 0;
-    void *data;
-    DBInfo_t dbinfo;
-
-    data = tchdbget(m_DBHandle, &key, sizeof(int), &dsize);
-
-    if(data){
-       assert(dsize == sizeof(DBInfo_t));
-       dbinfo = *reinterpret_cast<DBInfo_t*>(data);
-       tcfree(data);
+    std::string str;
+    if(m_DBHandle){
+       char* pstr = tchdbget2(m_DBHandle, "0");
+       str.assign( pstr ? pstr : "" );
+       tcfree(pstr);
     }
-    return dbinfo;
+    return str;
 }
 
 // ----------------------------------------------------------------------------
 
-void TCInfo::Write(const DBInfo_t &info)
+void 
+TCInfo::Write(const std::string &info)
 {
     if(!m_IsOpen)
-       throw std::runtime_error("Info database not open");
+       throw DatastoreException
+       ("Info database not open");
 
-    int key = 0;
-    if(!tchdbput(m_DBHandle, &key, sizeof(int), &info, sizeof(DBInfo_t))){
-        CHECK_OP(m_DBHandle);
+    if(!tchdbput2(m_DBHandle, "0", info.c_str())){
+       CHECK_OP(m_DBHandle);
     }
 }
 

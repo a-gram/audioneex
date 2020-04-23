@@ -17,7 +17,7 @@ set(AX_LIB_INC
     ${AX_SRC_ROOT}/src/tools)
 
 set(AX_LIB_SRC
-    ident/Fingerprint.cpp
+    ident/Fingerprinter.cpp
     ident/Matcher.cpp
     ident/MatchFuzzyClassifier.cpp
     ident/Recognizer.cpp

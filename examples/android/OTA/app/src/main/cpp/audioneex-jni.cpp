@@ -47,23 +47,29 @@ extern "C"
 
 // Internal helpers
 
-std::string ResultsToJSON(const Audioneex::IdMatch* results);
+std::string 
+ResultsToJSON(const Audioneex::IdMatch* results);
 
 // Implementation
 
-jboolean Java_com_audioneex_recognition_RecognitionService_Initialize(JNIEnv *env,
-                                                                      jclass clazz,
-                                                                      jstring datastoreDir)
+jboolean 
+Java_com_audioneex_recognition_RecognitionService_Initialize(JNIEnv *env,
+                                                             jclass clazz,
+                                                             jstring datastoreDir)
 {
     try
     {
-    	const char *ddir_c = env->GetStringUTFChars(datastoreDir, NULL);
-	if (NULL == ddir_c)
-	    throw std::runtime_error("Couldn't get C string from JNI");
+        const char *ddir_c = env->GetStringUTFChars(datastoreDir, NULL);
+
+        if (NULL == ddir_c)
+           throw std::runtime_error("Couldn't get C string from JNI");
+
         std::string dstoreDir = ddir_c;
         env->ReleaseStringUTFChars(datastoreDir, ddir_c);
+
         LOG_D("JNI Init: Datastore dir: %s", dstoreDir.c_str())
         LOG_D("JNI Init: AUDIONEEX ENGINE VERSION: %s", Audioneex::GetVersion())
+
         ACIEngine::instance().init(dstoreDir);
 
     }
@@ -75,24 +81,27 @@ jboolean Java_com_audioneex_recognition_RecognitionService_Initialize(JNIEnv *en
     return true;
 }
 
-jboolean Java_com_audioneex_recognition_Recognizer_Identify(JNIEnv *env,
-                                                            jclass clazz,
-                                                            jfloatArray audio,
-                                                            jint audiolen)
+jboolean 
+Java_com_audioneex_recognition_Recognizer_Identify(JNIEnv *env,
+                                                   jclass clazz,
+                                                   jfloatArray audio,
+                                                   jint audiolen)
 {
     try
     {
-    	jfloat *audio_c = env->GetFloatArrayElements(audio, NULL);
+        jfloat *audio_c = env->GetFloatArrayElements(audio, NULL);
         jsize bufferlen = env->GetArrayLength(audio);
 
-	if (NULL == audio_c)
-	   throw std::runtime_error("Couldn't get C array from JNI");
-	if(audiolen > bufferlen)
-	   throw std::runtime_error("Invalid audio clip length");
+        if (NULL == audio_c)
+            throw std::runtime_error("Couldn't get C array from JNI");
+
+        if(audiolen > bufferlen)
+            throw std::runtime_error("Invalid audio clip length");
 
         LOG_D("JNI Identify: Identifying clip of %d samples", audiolen)
         
         ACIEngine::instance().recognizer()->Identify(audio_c, audiolen);
+
         env->ReleaseFloatArrayElements(audio, audio_c, 0);
     }
     catch(const std::exception &ex)
@@ -103,14 +112,16 @@ jboolean Java_com_audioneex_recognition_Recognizer_Identify(JNIEnv *env,
     return true;
 }
 
-jstring Java_com_audioneex_recognition_Recognizer_GetResults(JNIEnv *env, jclass clazz)
+jstring 
+Java_com_audioneex_recognition_Recognizer_GetResults(JNIEnv *env, jclass clazz)
 {
     try
     {
-        const Audioneex::IdMatch* results = ACIEngine::instance().recognizer()->GetResults();
+        auto results = ACIEngine::instance().recognizer()->GetResults();
 
-        if(results) {
-           std::string json = ResultsToJSON(results);
+        if(results)
+        {
+           auto json = ResultsToJSON(results);
            jstring ret = env->NewStringUTF(json.c_str());
            LOG_D("ID RESULTS: %s", json.c_str())
            return ret;
@@ -119,14 +130,16 @@ jstring Java_com_audioneex_recognition_Recognizer_GetResults(JNIEnv *env, jclass
     catch(const std::exception &ex)
     {
         LOG_E("EXCEPTION [Recognizer.GetResults()]: %s", ex.what())
-        std::string error = "{ \"status\":\"ERROR\",\"message\":\""+std::string(ex.what())+"\"}";
+        auto error = std::string("{ \"status\":\"ERROR\",\"message\":\"") + 
+                     std::string(ex.what()) + "\"}";
         jstring ret = env->NewStringUTF(error.c_str());
         return ret;
     }
     return NULL;
 }
 
-void Java_com_audioneex_recognition_Recognizer_Reset(JNIEnv *env, jclass clazz)
+void 
+Java_com_audioneex_recognition_Recognizer_Reset(JNIEnv *env, jclass clazz)
 {
     try
     {
@@ -138,11 +151,15 @@ void Java_com_audioneex_recognition_Recognizer_Reset(JNIEnv *env, jclass clazz)
     }
 }
 
-void Java_com_audioneex_recognition_Recognizer_SetMatchType(JNIEnv *env, jclass clazz, jint mtype)
+void 
+Java_com_audioneex_recognition_Recognizer_SetMatchType(JNIEnv *env, 
+                                                       jclass clazz, 
+                                                       jint mtype)
 {
     try
     {
-        ACIEngine::instance().recognizer()->SetMatchType(static_cast<Audioneex::eMatchType>(mtype));
+        auto emtype = static_cast<Audioneex::eMatchType>(mtype);
+        ACIEngine::instance().recognizer()->SetMatchType(emtype);
     }
     catch(const std::exception &ex)
     {
@@ -150,7 +167,8 @@ void Java_com_audioneex_recognition_Recognizer_SetMatchType(JNIEnv *env, jclass 
     }
 }
 
-jint Java_com_audioneex_recognition_Recognizer_GetMatchType(JNIEnv *env, jclass clazz)
+jint 
+Java_com_audioneex_recognition_Recognizer_GetMatchType(JNIEnv *env, jclass clazz)
 {
     try
     {
@@ -163,11 +181,15 @@ jint Java_com_audioneex_recognition_Recognizer_GetMatchType(JNIEnv *env, jclass 
     return UNSPECIFIED_ERROR;
 }
 
-void Java_com_audioneex_recognition_Recognizer_SetIdentificationType(JNIEnv *env, jclass clazz, jint idtype)
+void 
+Java_com_audioneex_recognition_Recognizer_SetIdentificationType(JNIEnv *env, 
+                                                                jclass clazz, 
+                                                                jint idtype)
 {
     try
     {
-        ACIEngine::instance().recognizer()->SetIdentificationType(static_cast<Audioneex::eIdentificationType>(idtype));
+        auto eidtype = static_cast<Audioneex::eIdentificationType>(idtype);
+        ACIEngine::instance().recognizer()->SetIdentificationType(eidtype);
     }
     catch(const std::exception &ex)
     {
@@ -175,7 +197,9 @@ void Java_com_audioneex_recognition_Recognizer_SetIdentificationType(JNIEnv *env
     }
 }
 
-jint Java_com_audioneex_recognition_Recognizer_GetIdentificationType(JNIEnv *env, jclass clazz)
+jint 
+Java_com_audioneex_recognition_Recognizer_GetIdentificationType(JNIEnv *env, 
+                                                                jclass clazz)
 {
     try
     {
@@ -188,11 +212,15 @@ jint Java_com_audioneex_recognition_Recognizer_GetIdentificationType(JNIEnv *env
     return UNSPECIFIED_ERROR;
 }
 
-void Java_com_audioneex_recognition_Recognizer_SetIdentificationMode(JNIEnv *env, jclass clazz, jint idmode)
+void 
+Java_com_audioneex_recognition_Recognizer_SetIdentificationMode(JNIEnv *env, 
+                                                                jclass clazz, 
+                                                                jint idmode)
 {
     try
     {
-        ACIEngine::instance().recognizer()->SetIdentificationMode(static_cast<Audioneex::eIdentificationMode>(idmode));
+        auto eidmode = static_cast<Audioneex::eIdentificationMode>(idmode);
+        ACIEngine::instance().recognizer()->SetIdentificationMode(eidmode);
     }
     catch(const std::exception &ex)
     {
@@ -200,7 +228,9 @@ void Java_com_audioneex_recognition_Recognizer_SetIdentificationMode(JNIEnv *env
     }
 }
 
-jint Java_com_audioneex_recognition_Recognizer_GetIdentificationMode(JNIEnv *env, jclass clazz)
+jint 
+Java_com_audioneex_recognition_Recognizer_GetIdentificationMode(JNIEnv *env, 
+                                                                jclass clazz)
 {
     try
     {
@@ -213,7 +243,10 @@ jint Java_com_audioneex_recognition_Recognizer_GetIdentificationMode(JNIEnv *env
     return UNSPECIFIED_ERROR;
 }
 
-void Java_com_audioneex_recognition_Recognizer_SetBinaryIdThreshold(JNIEnv *env, jclass clazz, jfloat value)
+void 
+Java_com_audioneex_recognition_Recognizer_SetBinaryIdThreshold(JNIEnv *env, 
+                                                               jclass clazz, 
+                                                               jfloat value)
 {
     try
     {
@@ -225,7 +258,9 @@ void Java_com_audioneex_recognition_Recognizer_SetBinaryIdThreshold(JNIEnv *env,
     }
 }
 
-jfloat Java_com_audioneex_recognition_Recognizer_GetBinaryIdThreshold(JNIEnv *env, jclass clazz)
+jfloat 
+Java_com_audioneex_recognition_Recognizer_GetBinaryIdThreshold(JNIEnv *env, 
+                                                               jclass clazz)
 {
     try
     {
@@ -239,7 +274,8 @@ jfloat Java_com_audioneex_recognition_Recognizer_GetBinaryIdThreshold(JNIEnv *en
 }
 
 
-std::string ResultsToJSON(const Audioneex::IdMatch* results)
+std::string 
+ResultsToJSON(const Audioneex::IdMatch* results)
 {
     std::stringstream ss;
     std::map<int, std::string> idclass;
@@ -250,16 +286,17 @@ std::string ResultsToJSON(const Audioneex::IdMatch* results)
 
     ss << "{ \"status\":\"OK\", \"Matches\":[";
 
-    for(int i=0; !Audioneex::IsNull(results[i]); i++){
-    	std::string meta = ACIEngine::instance().datastore()->GetMetadata(results[i].FID);
+    for(int i=0; !Audioneex::IsNull(results[i]); i++)
+    {
+    	auto meta = ACIEngine::instance().datastore()->GetMetadata(results[i].FID);
     	ss << (i>0?",":"")
     	   << "{"
-           << "\"FID\":" << results[i].FID << ","
-           << "\"Score\":" << results[i].Score << ","
-           << "\"Confidence\":" << results[i].Confidence << ","
-           << "\"IdClass\":\"" << idclass[results[i].IdClass] << "\","
-           << "\"Metadata\":" << "\"" << meta << "\""
-           << "}";
+         << "\"FID\":" << results[i].FID << ","
+         << "\"Score\":" << results[i].Score << ","
+         << "\"Confidence\":" << results[i].Confidence << ","
+         << "\"IdClass\":\"" << idclass[results[i].IdClass] << "\","
+         << "\"Metadata\":" << "\"" << meta << "\""
+         << "}";
     }
     ss << "]}";
     return ss.str();

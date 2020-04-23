@@ -22,7 +22,7 @@
 #include "common.h"
 
 #include "Parameters.h"
-#include "Fingerprint.h"
+#include "Fingerprinter.h"
 #include "Matcher.h"
 #include "Utils.h"
 
@@ -233,7 +233,7 @@ class Tester
 	
 	// ----------------------------------------------------------------------------
 	
-	void AddToPlotSpectrum(const Fingerprint &fp)
+	void AddToPlotSpectrum(const Fingerprinter &fp)
 	{
 	    // add fingerprint spectrum to plot spectrum
 	

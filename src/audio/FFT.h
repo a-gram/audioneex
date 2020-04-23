@@ -18,7 +18,8 @@
 #include <cassert>
 #include <fftss/fftss.h>
 
-#include "AudioBlock.h"
+#include "Parameters.h"
+#include "AudioBuffer.h"
 
 
 class FFTFrame
@@ -36,35 +37,41 @@ class FFTFrame
 
     ~FFTFrame() = default;
 
-    float Magnitude(int i) const
+    float
+    Magnitude(int i) const
     { 
         assert(mData);
         return std::sqrt(mData[i]);
     }
 	
-    float Energy(int i) const
+    float
+    Energy(int i) const
     { 
         assert(mData);
         return mData[i]; 
     }
 	
-    float Power(int i) const
+    float
+    Power(int i) const
     { 
         assert(mData);
         return mData[i]/mSize; 
     }
 	
-    int Size() const
+    int
+    Size() const
     { 
         return mSize; 
     }
 	
-    float* Data()
+    float*
+    Data()
     { 
         return mData.get(); 
     }
 	
-    void Resize(size_t size)
+    void
+    Resize(size_t size)
     { 
         mData.reset(new float[size]);
         mSize=size;
@@ -72,8 +79,11 @@ class FFTFrame
 
  private:
 
-    std::unique_ptr<float[]> mData;
-    int                      mSize {0};
+    std::unique_ptr<float[]>
+    mData;
+    
+    int
+    mSize {0};
 };
 
 
@@ -81,43 +91,66 @@ class FFTFrame
 
 class FFT
 {
-    size_t mWindowSize    {0};    // The original non-zero padded data frame
-    size_t mFFTFrameSize  {0};    // The data frame size after zero-padding
-    double mZeroPadFac    {0.0};
+    /// The original non-zero padded data frame
+    size_t
+    mWindowSize   {0};
+    
+    /// The data frame size after zero-padding
+    size_t
+    mFFTFrameSize {0};
+    
+    /// The zero-pad factor
+    double
+    mZeroPadFac   {0.0};
 
-    std::vector<double> mWindow;
-    FFTFrame            mFFTFrame;
+    /// Windowing function weights
+    std::vector<double> 
+    mWindow;
+    
+    /// The FFT frame
+    FFTFrame
+    mFFTFrame;
 
-    std::vector<double> mInput;
-    std::vector<double> mOutput;
-    fftss_plan          mFFTPlan;
+    std::vector<double> 
+    mInput;
+    
+    std::vector<double> 
+    mOutput;
+    
+    fftss_plan
+    mFFTPlan;
+    
 
-    void PrepareWindow()
+    void 
+    PrepareWindow()
     {	
         mWindow.resize(mWindowSize);
 
-        double scale = 2.f * M_PI / (mWindow.size()-1);
-        for(size_t n=0; n<mWindow.size(); n++)
+        double scale = 2.f * M_PI / (mWindow.size() - 1);
+        for(size_t n = 0; n < mWindow.size(); n++)
             mWindow[n] = 0.54 - 0.46 * std::cos(scale * n);
     }
 
-    void ApplyWindow(std::vector<double> &dataFrame)
+    void 
+    ApplyWindow(std::vector<double> &dataFrame)
     {	
         assert(dataFrame.size() >= mWindowSize);
-        for(size_t i=0; i<mWindowSize; i++)
-            dataFrame[i*2] *= mWindow[i];
+        for(size_t i = 0; i < mWindowSize; i++)
+            dataFrame[i * 2] *= mWindow[i];
     }
 
  public:
 
     enum eSpectrumType
     {
-       PowerSpectrum,
-       MagnitudeSpectrum,
-       EnergySpectrum
+        PowerSpectrum,
+        MagnitudeSpectrum,
+        EnergySpectrum
     };
 
-    FFT(size_t windowSize, double zeroPadFactor) :
+    FFT(size_t windowSize = Audioneex::Pms::OrigWindowSize, 
+        double zeroPadFactor = Audioneex::Pms::zeroPadFactor) 
+        :
         mWindowSize (windowSize),
         mZeroPadFac (zeroPadFactor),
         mFFTFrameSize (windowSize * (1.0 + zeroPadFactor))
@@ -138,7 +171,8 @@ class FFT
 
     ~FFT() = default;
 
-    void Compute(AudioBlock<float> &block)
+    void 
+    Compute(AudioBuffer<float> &block)
     {	
         assert(block.Size() <= mWindowSize);
 
@@ -147,6 +181,7 @@ class FFT
 
         float* block_ptr = block.Data();
         double* input_ptr = mInput.data();
+        
         for(size_t n=0; n<block.Size(); n++)
             input_ptr[n*2] = block_ptr[n];
 
@@ -170,7 +205,11 @@ class FFT
             *fftdata++ = optr[0] * optr[0] + optr[1] * optr[1];
     }
 
-    FFTFrame& GetFFTFrame() { return mFFTFrame; }
+    FFTFrame& 
+    GetFFTFrame() 
+    { 
+        return mFFTFrame; 
+    }
 
 };
 

@@ -28,6 +28,8 @@
   #define AUDIONEEX_API_TEST
 #endif
 
+namespace bu = boost::unordered;
+
 
 namespace Audioneex
 {
@@ -40,7 +42,7 @@ class IndexCache
 public:
 
     //typedef std::map<int, std::vector<uint32_t> > buffer_type;
-    typedef boost::unordered::unordered_map<int, std::vector<uint32_t> > buffer_type;
+    typedef bu::unordered_map<int, std::vector<uint32_t> > buffer_type;
 
     IndexCache() = default;
    ~IndexCache() = default;
@@ -48,35 +50,72 @@ public:
     /// Update the cache by appending the given posting's payload to the
     /// last posting in the list for the specified term. If the posting
     /// does not exist, append a new one.
-    void Update(int term, int FID, int LID, int T, int E);
+    void 
+    Update(int term, int FID, int LID, int T, int E);
 
     /// Specify the condition that must be met in order for the cache contents
     /// to be flushed on disk.
-    bool CanFlush() const;
+    bool 
+    CanFlush() const;
 
     /// Get the internal buffer (a map in the current implementation)
-    buffer_type& GetBuffer() { return m_Buffer; }
+    buffer_type& 
+    GetBuffer() 
+    { 
+        return m_Buffer;
+    }
 
     /// Reset the cache
-    void Reset();
+    void 
+    Reset();
 
     /// Check whether the cache is empty
-    bool IsEmpty() const { return m_Buffer.empty(); }
+    bool 
+    IsEmpty() const 
+    { 
+        return m_Buffer.empty();
+    }
 
     /// Clear the specified postings list
-    void ClearList(int term) { m_Buffer[term].clear(); }
+    void 
+    ClearList(int term) 
+    { 
+        m_Buffer[term].clear();
+    }
 
     /// Set the memory limit (in MB) beyond which the cache is flushed
-    void   SetMemoryLimit(size_t limit) { m_MemoryLimit = limit; }
-    size_t GetMemoryLimit() const { return m_MemoryLimit; }
+    void
+    SetMemoryLimit(size_t limit) 
+    { 
+        m_MemoryLimit = limit; 
+    }
+    
+    size_t 
+    GetMemoryLimit() const 
+    { 
+        return m_MemoryLimit;
+    }
 
     /// Get the current cache size in bytes.
-    size_t GetMemoryUsed() const { return m_MemoryUsed; }
+    size_t
+    GetMemoryUsed() const 
+    { 
+        return m_MemoryUsed;
+    }
 
     /// This is only called for monitoring the rate of duplicate
     /// occurences.
-    size_t GetDuplicateOcc() const { return m_DuplicateOcc; }
-    void   SetDuplicateOcc(size_t val) { m_DuplicateOcc = val; }
+    size_t 
+    GetDuplicateOcc() const 
+    { 
+        return m_DuplicateOcc; 
+    }
+    
+    void
+    SetDuplicateOcc(size_t val) 
+    { 
+        m_DuplicateOcc = val;
+    }
 
 //void Dump(){
 //    //DEBUG_MSG("# of entries: " << m_BufferSize)
@@ -107,25 +146,31 @@ class AUDIONEEX_API_TEST IndexerImpl : public Audioneex::Indexer
 {
 public:
     // Number of frequency bands
-    static const uint32_t Nbands = 3;
+    static const uint32_t 
+    Nbands = 3;
 
     // This is the max distance of paired LFs from pivot.
     // It may be in number of LFs or time units. This value determines the size
     // of the final index. The bigger it is, the more LFs are paired to the pivot.
-    static const size_t Dmax = 10;
+    static const size_t 
+    Dmax = 10;
 
     // Max time distance of paired LFs from pivot. May be used in conjunction
     // with Dmax
-    static const size_t Tmax = 73;
+    static const size_t 
+    Tmax = 73;
 
     // Bandwidth in frequency units
-    static float qB;
+    static float 
+    qB;
 
     // Max value of Vp frequency component in quantized units
-    static int Vpf_max;
+    static int 
+    Vpf_max;
 
     // Max value of Vp time component in quantized units
-    static int Vpt_max;
+    static int 
+    Vpt_max;
 
     // Number of bits needed to hash the various components of a term
     static int WORD_BITS;
@@ -142,7 +187,8 @@ public:
     IndexerImpl();
 
     /// Start the indexing session.
-    void Start();
+    void 
+    Start();
 
     /// Do indexing of audio recordings. The client shall call this method
     /// for every audio recording to be fingerprinted by passing its unique
@@ -154,59 +200,126 @@ public:
     /// the recording with identifier FID. The fingerprint for the current
     /// audio recording is emitted by calling DataStore::OnIndexerFingerprint()
     /// and is indexed according to the currently set match type.
-    void Index(uint32_t FID);
+    void 
+    Index(uint32_t FID);
 
     ///
-    void Index(uint32_t FID, const uint8_t* fpdata, size_t fpsize);
+    void 
+    Index(uint32_t FID, 
+          const uint8_t* fpdata, 
+          size_t fpsize);
 
     /// Flush the serialized in-memory index to the InvertedIndex.
-    void Flush();
+    void 
+    Flush();
 
     /// End the indexing session
-    void End(bool flush = true);
+    void 
+    End(bool flush = true);
 
     /// Set the indexing algorithm. This determines the type and size of the
     /// inverted index.
-    void SetMatchType(Audioneex::eMatchType type) { m_MatchType = type; }
+    void 
+    SetMatchType(Audioneex::eMatchType type) 
+    { 
+        m_MatchType = type;
+    }
 
-    Audioneex::eMatchType GetMatchType() const { return m_MatchType; }
+    Audioneex::eMatchType 
+    GetMatchType() const 
+    { 
+        return m_MatchType; 
+    }
     
     /// Set the memory limit (in MB) after which the cached index is flushed
-    void SetCacheLimit(size_t limit) { m_Cache.SetMemoryLimit(limit); }
+    void 
+    SetCacheLimit(size_t limit) 
+    { 
+        m_Cache.SetMemoryLimit(limit);
+    }
 
-    size_t GetCacheLimit() const { return m_Cache.GetMemoryLimit(); }
+    size_t 
+    GetCacheLimit() const 
+    { 
+        return m_Cache.GetMemoryLimit();
+    }
 
     /// Return the amount of memory currently used by the cache in bytes.
-    size_t GetCacheUsed() const { return m_Cache.GetMemoryUsed(); }
+    size_t 
+    GetCacheUsed() const 
+    { 
+        return m_Cache.GetMemoryUsed();
+    }
 
     /// Set the client's data store implementation
-    void SetDataStore(Audioneex::DataStore* dstore) { m_DataStore = dstore; }
+    void
+    SetDataStore(Audioneex::DataStore* dstore) 
+    { 
+        m_DataStore = dstore;
+    }
 
-    Audioneex::DataStore* GetDataStore() const { return m_DataStore; }
+    Audioneex::DataStore* 
+    GetDataStore() const 
+    { 
+        return m_DataStore;
+    }
 
     /// Set the client's audio provider implementation
-    void SetAudioProvider(Audioneex::AudioProvider* aprovider) { m_AudioProvider = aprovider; }
+    void 
+    SetAudioProvider(Audioneex::AudioProvider* aprovider) 
+    { 
+        m_AudioProvider = aprovider;
+    }
 
-    Audioneex::AudioProvider* GetAudioProvider() const { return m_AudioProvider; }
+    Audioneex::AudioProvider* 
+    GetAudioProvider() const 
+    { 
+        return m_AudioProvider;
+    }
 
     /// Get the maximum possible value that a term can take.
     /// This value depends on how the various components that make up a term
     /// are combined by the indexing algorithm.
-    static uint32_t GetMaxTermValue(Audioneex::eMatchType type);
+    static uint32_t 
+    GetMaxTermValue(Audioneex::eMatchType type);
+    
     
 private:
 
-    Audioneex::DataStore*       m_DataStore      {nullptr};
-    Audioneex::AudioProvider*   m_AudioProvider  {nullptr};
-    bool                        m_SessionOpen    {false};
-    uint32_t                    m_CurrFID        {0};
-    Audioneex::eMatchType       m_MatchType      {MSCALE_MATCH};
-    IndexCache                  m_Cache;
-    std::unique_ptr <Codebook>  m_AudioCodes;
+    Audioneex::DataStore*
+    m_DataStore      {nullptr};
     
-    void DoFlush();
-    void IndexSTerms(uint32_t FID, const QLocalFingerprint_t* lfs, size_t Nlfs);
-    void IndexBTerms(uint32_t FID, const QLocalFingerprint_t *lfs, size_t Nlfs);
+    Audioneex::AudioProvider*
+    m_AudioProvider  {nullptr};
+    
+    bool
+    m_SessionOpen    {false};
+    
+    uint32_t
+    m_CurrFID        {0};
+    
+    Audioneex::eMatchType
+    m_MatchType      {MSCALE_MATCH};
+    
+    IndexCache
+    m_Cache;
+    
+    std::unique_ptr <Codebook> 
+    m_AudioCodes;
+    
+    
+    void 
+    DoFlush();
+    
+    void 
+    IndexSTerms(uint32_t FID, 
+                const QLocalFingerprint_t* lfs, 
+                size_t Nlfs);
+    
+    void 
+    IndexBTerms(uint32_t FID, 
+                const QLocalFingerprint_t *lfs, 
+                size_t Nlfs);
 
 };
 

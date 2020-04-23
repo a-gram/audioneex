@@ -14,14 +14,15 @@
 #include <thread>
 
 #include "audioneex.h"
-#include "Fingerprint.h"
+#include "Fingerprinter.h"
 #include "Matcher.h"
 #include "AudioSource.h"
 
 
-inline void GetAudio(AudioSourceFile& source,
-                     AudioBlock<int16_t>& ibuf, 
-                     AudioBlock<float>& obuf)
+inline void 
+GetAudio(AudioSourceFile& source,
+         AudioBuffer<int16_t>& ibuf, 
+         AudioBuffer<float>& obuf)
 {
     REQUIRE_NOTHROW( source.GetAudioBlock(ibuf) );
     REQUIRE( ibuf.Size() > 0 );
@@ -36,7 +37,9 @@ public:
     explicit BrokenDataStore(const std::string &url = std::string()) :
         DATASTORE_T(url) {}
 
-    size_t GetFingerprintSize(uint32_t FID){
+    size_t 
+    GetFingerprintSize(uint32_t FID)
+    {
         return sizeof(Audioneex::QLocalFingerprint_t) * 5 + 1;
     }
 };
@@ -49,10 +52,12 @@ public:
     explicit BrokenDataStore2(const std::string &url = std::string()) :
         DATASTORE_T(url) {}
 
-    const uint8_t* GetFingerprint(uint32_t FID, 
-                                  size_t &read, 
-                                  size_t nbytes = 0, 
-                                  uint32_t bo = 0){
+    const uint8_t* 
+    GetFingerprint(uint32_t FID, 
+                   size_t &read, 
+                   size_t nbytes = 0, 
+                   uint32_t bo = 0)
+    {
         return nullptr;
     }
 };
@@ -60,7 +65,8 @@ public:
 
 class IndexFiles {
 	
-	size_t get_file_size(const std::string &file)
+	size_t 
+    get_file_size(const std::string &file)
 	{
 		std::ifstream ifs (file, std::ios::binary | std::ios::ate);
 		return ifs.tellg();

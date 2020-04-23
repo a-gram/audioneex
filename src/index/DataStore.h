@@ -35,11 +35,13 @@ namespace DataStoreImpl
 /// Fuzzy block size limiter. Postings list blocks growing beyond this limit
 /// will be terminated (not truncated) and new appended chunks will be put
 /// in a new block. This allows us to have blocks of similar sizes.
-const int POSTINGSLIST_BLOCK_THRESHOLD = 32768;
+const int 
+POSTINGSLIST_BLOCK_THRESHOLD = 32768;
 
 /// Postings list chunk size limit. A chunk of about 20-25% the block's limit
 /// should be sufficient. For uncompressed chunks 8-10% should be enough.
-const int POSTINGSLIST_CHUNK_THRESHOLD = POSTINGSLIST_BLOCK_THRESHOLD * 0.2;
+const int 
+POSTINGSLIST_CHUNK_THRESHOLD = POSTINGSLIST_BLOCK_THRESHOLD * 0.2;
 
 
 /// Posting cursor used to iterate over the postings lists.
@@ -51,15 +53,20 @@ struct AUDIONEEX_API_TEST Posting_t
     uint32_t* T   {nullptr};
     uint32_t* E   {nullptr};
 
-    bool empty() const { 
+    bool 
+    empty() const 
+    { 
         return !FID && !tf && !LID && !T && !E;
 	}
 	
-    void reset() { 
+    void 
+    reset() 
+    { 
         FID=0; tf=0; LID=nullptr; T=nullptr; E=nullptr;
     }
 	
-    operator bool() const { 
+    operator bool() const 
+    { 
         return !empty(); 
     }
 };
@@ -75,7 +82,8 @@ struct AUDIONEEX_API_TEST Posting_t
 /// this iterator.
 class AUDIONEEX_API_TEST PListIterator
 {
-    friend AUDIONEEX_API_TEST PListIterator* GetPListIterator(Audioneex::DataStore* store, int term);
+    friend AUDIONEEX_API_TEST PListIterator* 
+    GetPListIterator(Audioneex::DataStore* store, int term);
 
     Audioneex::DataStore*    m_DataStore   {nullptr};
     int                      m_Term        {0};
@@ -92,7 +100,8 @@ class AUDIONEEX_API_TEST PListIterator
 
     // Fetch the next block from the index. Returns false if there are
     // no more blocks (EOL), true otherwise.
-    bool NextBlock()
+    bool 
+    NextBlock()
     {
         size_t block_size = 0;
         size_t m_BlockDecoded_size = 0; // No vector::resize() pls
@@ -127,7 +136,8 @@ class AUDIONEEX_API_TEST PListIterator
             m_NextBlock++;
             return true;
         }
-		else{
+		else
+        {
             m_Cursor.reset();
             m_EOL   = true;
             return false;
@@ -135,9 +145,11 @@ class AUDIONEEX_API_TEST PListIterator
     }
 
     /// Get the next posting in the current block.
-    void NextPosting()
+    void 
+    NextPosting()
     {
-        if(m_begin < m_end){
+        if(m_begin < m_end)
+        {
             m_Cursor.FID = *m_begin++;
             m_Cursor.tf  = *m_begin++;
             m_Cursor.LID = m_begin; m_begin+=m_Cursor.tf;
@@ -161,27 +173,34 @@ public:
 
     /// Advance the cursor to the next postings in the list. When the end
     /// of the list is reached, an empty posting will be set.
-    void next()
+    void 
+    next()
     {
         if(m_EOL) return;
+        
         NextPosting();
+        
         if(m_Cursor.empty() && NextBlock())
            NextPosting();
     }
 
     /// Get the posting at current cursor position.
-    Posting_t& get()
+    Posting_t& 
+    get()
     {
         // If the iterator hasn't been initialized, call next()
         if(!m_begin)
             next();
+        
         return m_Cursor;
     }
 
 };
 
 /// Get a postings itarator for the specified postings list from the specified data store.
-AUDIONEEX_API_TEST inline PListIterator* GetPListIterator(Audioneex::DataStore* store, int term){
+AUDIONEEX_API_TEST inline PListIterator* 
+GetPListIterator(Audioneex::DataStore* store, int term)
+{
     assert(store != nullptr);
     PListIterator* it = new PListIterator;
     it->m_Term = term;

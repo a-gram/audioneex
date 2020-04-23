@@ -6,14 +6,13 @@
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 
 
-Audioneex is an audio content recognition engine specifically designed
-for real-time applications. It is general purpose, based on content-agnostic
-algorithms and runs on all kinds of machines, from big servers to mobile and 
-embedded devices.
+Audioneex is an audio content recognition engine with audio fingerprinting
+technology specifically designed for real-time applications. It is general 
+purpose, based on content-agnostic algorithms and runs on all kinds of machines.
 
 Features
 
-- **Compact fingerprints** - 1 hr of audio encoded in less than a MB
+- **Compact fingerprints** - 1 hr of audio encoded in less than 1 MB
 - **Fast identification** - only a few seconds to perform a recognition
 - **Content-agnostic** - recognition of audio of different nature
 - **Cross-platform** - runs anywhere there is a modern C++ compiler (v11+)
@@ -81,4 +80,4 @@ If you are including this work in your research, please use the following BibTex
 
 or in plain text
 
-_A.Gramaglia (2014). "A Binary Auditory Words Model for Audio Content Identification". Audioneex.com._
+_A. Gramaglia, "A Binary Auditory Words Model for Audio Content Identification", Audioneex.com, 2014._

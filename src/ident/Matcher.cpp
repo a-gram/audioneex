@@ -38,12 +38,17 @@ Audioneex::Matcher::Matcher()
 
 // ----------------------------------------------------------------------------
 
-int Audioneex::Matcher::Process(const lf_vector &lfs)
+int 
+Audioneex::Matcher::Process(const lf_vector &lfs)
 {
     // Check whether we have valid data store
     if(m_DataStore == nullptr)
        throw Audioneex::InvalidParameterException
-             ("No data provider set.");
+             ("No datastore set.");
+             
+    if(!m_DataStore->IsOpen())
+       throw Audioneex::InvalidParameterException
+             ("The datastore is not open.");
 
     // Nothing to process
     if(lfs.empty()) return 0;
@@ -73,7 +78,14 @@ int Audioneex::Matcher::Process(const lf_vector &lfs)
     {
         int Xk_T = Xk[m_ko + Pms::Nk - 1].T;
 
-        TEST_HERE( DEBUG_MSG( "INPUT: Processing "<<Pms::Nk<<" LFs ("<<(Xk_T - m_ko_T)*Pms::dt<<" s)" ) )
+        TEST_HERE
+        ( 
+            DEBUG_MSG( "INPUT: Processing " 
+                       << Pms::Nk 
+                       << " LFs (" 
+                       << (Xk_T - m_ko_T) * Pms::dt 
+                       << " s)" )
+        )
 
         DoMatch(m_ko, m_ko+Pms::Nk);
 
@@ -90,12 +102,17 @@ int Audioneex::Matcher::Process(const lf_vector &lfs)
 
 // ----------------------------------------------------------------------------
 
-int Audioneex::Matcher::Flush()
+int 
+Audioneex::Matcher::Flush()
 {
     // Check whether we have a valid data store
     if(m_DataStore == nullptr)
        throw Audioneex::InvalidParameterException
-             ("No data provider set.");
+             ("No datastore set.");
+
+    if(!m_DataStore->IsOpen())
+       throw Audioneex::InvalidParameterException
+             ("The datastore is not open.");
 
     // Validate query sequence
     if(!ValidQuerySequence())
@@ -112,7 +129,14 @@ int Audioneex::Matcher::Flush()
 
     int Xk_T = Xk[m_ko + Nlf - 1].T;
 	
-    TEST_HERE( DEBUG_MSG( "INPUT: Flushing "<<Nlf<<" LFs ("<<(Xk_T - m_ko_T)*Pms::dt<<" s)" ) )
+    TEST_HERE
+    ( 
+        DEBUG_MSG( "INPUT: Flushing "
+                   << Nlf
+                   << " LFs ("
+                   << (Xk_T - m_ko_T) * Pms::dt
+                   << " s)" )
+    )
 	
     DoMatch(m_ko, m_ko+Nlf);
     m_ko += Nlf;
@@ -124,7 +148,8 @@ int Audioneex::Matcher::Flush()
 
 // ----------------------------------------------------------------------------
 
-bool Audioneex::Matcher::ValidQuerySequence()
+bool 
+Audioneex::Matcher::ValidQuerySequence()
 {
     // The LFs in the query sequence must have sequential IDs starting from 0
     for(size_t k=0; k<m_XkSeq.size(); k++)
@@ -136,7 +161,8 @@ bool Audioneex::Matcher::ValidQuerySequence()
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::Matcher::Reset()
+void 
+Audioneex::Matcher::Reset()
 {
     Xk.clear();
     m_XkSeq.clear();
@@ -150,7 +176,8 @@ void Audioneex::Matcher::Reset()
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::Matcher::SetMaxRecordingDuration(size_t duration)
+void 
+Audioneex::Matcher::SetMaxRecordingDuration(size_t duration)
 {
     size_t H_size =  duration / (Pms::dt * Pms::Tk);
     m_H.Resize(H_size);
@@ -158,7 +185,8 @@ void Audioneex::Matcher::SetMaxRecordingDuration(size_t duration)
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::Matcher::SetDataStore(DataStore* dstore)
+void 
+Audioneex::Matcher::SetDataStore(DataStore* dstore)
 {
     m_DataStore = dstore;
 
@@ -182,7 +210,8 @@ void Audioneex::Matcher::SetDataStore(DataStore* dstore)
 // ----------------------------------------------------------------------------
 
 
-void Audioneex::Matcher::DoMatch(int ko, int kn)
+void 
+Audioneex::Matcher::DoMatch(int ko, int kn)
 {
     // Search the Database for candidate Qi's similar to the current query LFs.
 
@@ -258,7 +287,8 @@ void Audioneex::Matcher::DoMatch(int ko, int kn)
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::Matcher::Reranking()
+void 
+Audioneex::Matcher::Reranking()
 {
     Qhisto_t Hr (m_H.Ht.size());
 
@@ -286,8 +316,9 @@ void Audioneex::Matcher::Reranking()
          // number of bins selected using this method depends on the lenght of the
          // recording and the time complexity is approx O(Nh/r) where Nh is the
          // size of the histogram and r the window's radius.
-         // Alternatively we can select the top n bins regrdless of their distribution
-         // in the histogram, which will have a constant time complexity O(k=n).
+         // Alternatively we can select the top n bins regrdless of their 
+         // distribution in the histogram, which will have a constant time 
+         // complexity O(k=n).
 
             int TopBin = 0,
                 TopBinScore = 0,
@@ -310,12 +341,12 @@ void Audioneex::Matcher::Reranking()
                         ismax=false;
 
                 // If peak bin found
-                if(ismax && H.Ht[i].score > Matcher::MIN_ACCEPT_SCORE*1.5)
+                if(ismax && H.Ht[i].score > Matcher::MIN_ACCEPT_SCORE * 1.5)
                 {
                     // Perform T-F coherence on bin
                     GraphMatching(H, i, Hr);
 
-                    // Update Qi score in candidates set (or insert it if doesn't exist)
+                    // Update (or create) Qi score in candidates set
 
 					if(Hr.Ht[Hr.Bmax].score > 0)
                        m_Results.Qc[H.Qi].Ac += Hr.Ht[Hr.Bmax].score;
@@ -326,7 +357,7 @@ void Audioneex::Matcher::Reranking()
                     }
                     Hr.Reset();
                 }
-            }// end for(i)
+            }
 
             // Give an estimate of the match time point within the recording by
             // a fixed linear interpolation at the bin centre. The time point is
@@ -340,7 +371,8 @@ void Audioneex::Matcher::Reranking()
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::Matcher::FindCandidatesBWords(int ko, int kn)
+void 
+Audioneex::Matcher::FindCandidatesBWords(int ko, int kn)
 {
 	hashtable_PLIter  iterators;
     hashtable_EOLIter EOL_iterators;
@@ -522,7 +554,8 @@ void Audioneex::Matcher::FindCandidatesBWords(int ko, int kn)
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::Matcher::FindCandidatesSWords(int ko, int kn)
+void 
+Audioneex::Matcher::FindCandidatesSWords(int ko, int kn)
 {
 	hashtable_PLIter  iterators;
     hashtable_EOLIter EOL_iterators;
@@ -667,7 +700,10 @@ void Audioneex::Matcher::FindCandidatesSWords(int ko, int kn)
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::Matcher::GraphMatching(Qhisto_t &Qhisto_i, int bin, Qhisto_t &Qhisto)
+void 
+Audioneex::Matcher::GraphMatching(Qhisto_t &Qhisto_i, 
+                                  int bin, 
+                                  Qhisto_t &Qhisto)
 {
     hashtable_qlf_pair  Hx,Hq;
 
@@ -747,7 +783,8 @@ int common_edges=0;
         size_t Qhsize = Nh * sizeof(QLocalFingerprint_t);
 
         size_t rsize;
-        const uint8_t* pQh = m_DataStore->GetFingerprint(Qi, rsize, Qhsize, bstart);
+        const uint8_t* pQh = m_DataStore->GetFingerprint(Qi, rsize, 
+                                                         Qhsize, bstart);
 
         if(rsize == 0 || pQh == nullptr)
            throw Audioneex::InvalidFingerprintException
@@ -811,8 +848,8 @@ common_edges++;
                 // If both matching LFs fall in the same time bin then give the
                 // bin full score. If they fall into different (adjacent) bins
                 // then share the score between the 2 bins.
-                Qhisto.Ht[Hbin1].score += score/2;
-                Qhisto.Ht[Hbin2].score += score/2;
+                Qhisto.Ht[Hbin1].score += score / 2;
+                Qhisto.Ht[Hbin2].score += score / 2;
 
                 // Update max bin index
                 if(Qhisto.Ht[Hbin1].score > Qhisto.Ht[Qhisto.Bmax].score)
@@ -832,7 +869,11 @@ common_edges++;
 
 // ----------------------------------------------------------------------------
 
-void Audioneex::Matcher::BuildGraphs(const QLocalFingerprint_t *lfs, size_t Nlfs, int iRef, hashtable_qlf_pair &H)
+void 
+Audioneex::Matcher::BuildGraphs(const QLocalFingerprint_t *lfs, 
+                                size_t Nlfs, 
+                                int iRef, 
+                                hashtable_qlf_pair &H)
 {
     // Build LF sequence graph by Pair-wise Geodesic Hashing
 

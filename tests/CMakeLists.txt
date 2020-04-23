@@ -19,7 +19,7 @@ set(AX_TEST_INC
 
 # --- Modules definitions ---
 
-set(AX_TEST_FINGERPRINT_SRC test_fingerprinting.cpp
+set(AX_TEST_FINGERPRINTER_SRC test_fingerprinting.cpp
   ${AX_SRC_ROOT}/src/audio/AudioSource.cpp)
 							 
 set(AX_TEST_INDEXER_SRC test_indexing.cpp
@@ -39,7 +39,7 @@ find_library(AX_DATASTORE_LIB
 
 # --- Setup the targets ---
 
-add_executable(test_fingerprinting ${AX_TEST_FINGERPRINT_SRC})
+add_executable(test_fingerprinting ${AX_TEST_FINGERPRINTER_SRC})
 
 target_include_directories(test_fingerprinting PRIVATE ${AX_TEST_INC})
 target_compile_options(test_fingerprinting PRIVATE "${AX_TEST_CXX_FLAGS}")

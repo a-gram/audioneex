@@ -40,6 +40,10 @@ elseif(AX_BUILD_MODE STREQUAL release)
    set(AX_PLAT_CXX_FLAGS ${AX_PLAT_CXX_FLAGS} -Wno-deprecated-declarations)
 endif()
 
+if(AX_NO_RTTI)
+   set(AX_PLAT_CXX_FLAGS ${AX_PLAT_CXX_FLAGS} -fno-rtti)
+endif()
+
 if(DATASTORE_T STREQUAL TCDataStore)
    set(AX_DATASTORE_LIB_NAME tokyocabinet)
    set(AX_PLAT_DEFS ${AX_PLAT_DEFS} 
@@ -71,14 +75,10 @@ set(AX_LIB_VERSIONED TRUE)
 # Examples configuration
 # ----------------------
 
-set(AX_EXE_DEFS ${AX_PLAT_DEFS})
+set(AX_EXE_DEFS ${AX_PLAT_DEFS} -DWITH_ID3)
 set(AX_EXE_CXX_FLAGS ${AX_PLAT_CXX_FLAGS})
 set(AX_EXE_LIB_PATHS ${AX_PLAT_LIB_PATHS})
-
-if(AX_WITH_ID3)
-   set(AX_ID3TAG_LIB_NAME tag)
-   set(AX_EXE_DEFS ${AX_EXE_DEFS} -DWITH_ID3)
-endif()
+set(AX_ID3TAG_LIB_NAME tag)
 
 
 # Tests configuration

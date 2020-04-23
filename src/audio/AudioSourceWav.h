@@ -7,24 +7,28 @@
 
 */
 
-/// A simple audio source class to stream audio from WAV files
+/// A simple class to stream audio from WAV files
 
 #include <iostream>
 #include <fstream>
 #include <cstdint>
 
-#include "AudioBlock.h"
+#include "AudioBuffer.h"
 
-struct WavHeader {
 
-    struct RIFF {
+struct WavHeader
+{
+
+    struct RIFF
+    {
         char      ID[4];
         uint32_t  Size;
         char      Format[4];
     }
     RIFF;
 
-    struct FMT {
+    struct FMT
+    {
         char     ID[4];
         uint32_t Size;
         uint16_t AudioFormat;
@@ -36,32 +40,48 @@ struct WavHeader {
     }
     FMT;
 
-    struct DATA {
+    struct DATA
+    {
         char     ID[4];
         uint32_t Size;
     }
     DATA;
 };
 
+
 class AudioSourceWavFile
 {
-    std::ifstream m_File;
-    WavHeader     m_Header;
-    size_t        m_AvailableData {0};
-    size_t        m_Nsamples      {0};
-    float         m_Duration      {0};
-    float         m_Position      {0};
+    std::ifstream 
+    m_File;
+    
+    WavHeader
+    m_Header;
+    
+    size_t
+    m_AvailableData {0};
+    
+    size_t
+    m_Nsamples      {0};
+    
+    float
+    m_Duration      {0};
+    
+    float
+    m_Position      {0};
+    
 
-    bool IsTag(char* tag, char t1, char t2, char t3, char t4){
-		
+    bool 
+    IsTag(char* tag, char t1, char t2, char t3, char t4)
+    {
         return tag[0] == t1 &&
                tag[1] == t2 &&
                tag[2] == t3 &&
                tag[3] == t4;
     }
 
-    bool IsValidWav(){
-		
+    bool
+    IsValidWav()
+    {
         bool isvalid = true;
 		
         m_File.read(reinterpret_cast<char*>(&m_Header), sizeof(WavHeader));
@@ -86,79 +106,118 @@ class AudioSourceWavFile
 
     AudioSourceWavFile() = default;
 
-    ~AudioSourceWavFile(){
-         Close();
+    ~AudioSourceWavFile()
+    {
+        Close();
     }
 
-    void Open(const std::string &filename){
-		
-         Close();
-         m_File.open(filename, std::ios::in|std::ios::binary);
-         if(!m_File.is_open())
-            throw std::runtime_error("Couldn't open "+filename);
-         if(!IsValidWav())
-            throw std::runtime_error("Invalid WAV file "+filename);
-         m_AvailableData = m_Header.DATA.Size;
-         m_Nsamples = m_AvailableData / (m_Header.FMT.BitsPerSample/8);
-         m_Duration = static_cast<float>(m_Nsamples / m_Header.FMT.Channels) /
-                                         m_Header.FMT.SampleRate;
-         m_Position = 0;
+    void 
+    Open(const std::string &filename)
+    {
+        Close();
+        m_File.open(filename, std::ios::in|std::ios::binary);
+         
+        if(!m_File.is_open())
+           throw std::runtime_error
+           ("Couldn't open "+filename);
+        
+        if(!IsValidWav())
+           throw std::runtime_error
+           ("Invalid WAV file "+filename);
+        
+        m_AvailableData = m_Header.DATA.Size;
+        m_Nsamples = m_AvailableData / (m_Header.FMT.BitsPerSample / 8);
+        m_Duration = static_cast<float>(m_Nsamples / m_Header.FMT.Channels) /
+                                        m_Header.FMT.SampleRate;
+        m_Position = 0;
     }
 
-    void Close(){
+    void
+    Close()
+    {
+        if(m_File.is_open())
+           m_File.close();
 		
-         if(m_File.is_open())
-            m_File.close();
-		
-         m_AvailableData = 0;
-         m_Position = 0;
-         m_Duration = 0;
-         m_Nsamples = 0;
+        m_AvailableData = 0;
+        m_Position = 0;
+        m_Duration = 0;
+        m_Nsamples = 0;
     }
 
-    void SetPosition(float time){
-		
-         size_t offset = static_cast<size_t>(time * m_Header.FMT.SampleRate) *
-                                                   (m_Header.FMT.BitsPerSample/8) *
-                                                    m_Header.FMT.Channels;
+    void
+    SetPosition(float time)
+    {
+        size_t offset = static_cast<size_t>(time * m_Header.FMT.SampleRate) *
+                                           (m_Header.FMT.BitsPerSample / 8) *
+                                            m_Header.FMT.Channels;
 													
-         offset = std::min<size_t>(offset, m_Header.DATA.Size);
-         m_File.seekg (sizeof(WavHeader) + offset);
-         m_AvailableData = m_Header.DATA.Size - offset;
-         m_Position = offset < m_Header.DATA.Size ? time : m_Duration;
+        offset = std::min<size_t>(offset, m_Header.DATA.Size);
+        m_File.seekg (sizeof(WavHeader) + offset);
+        m_AvailableData = m_Header.DATA.Size - offset;
+        m_Position = offset < m_Header.DATA.Size ? time : m_Duration;
     }
 
-    float GetPosition() const { return m_Position; }
+    float
+    GetPosition() const
+    { 
+        return m_Position; 
+    }
 
     template <typename T>
-    size_t Read(T* buffer, size_t nsamples){
-		
-         if(buffer && m_AvailableData && nsamples>0)
-         {
-            size_t nbytes = std::min(m_AvailableData, nsamples * sizeof(T));
-            m_File.read(reinterpret_cast<char*>(buffer), nbytes);
-            assert(m_File.gcount() == nbytes);
-            m_AvailableData -= nbytes;
-            m_Position = static_cast<float>( (m_Header.DATA.Size-m_AvailableData) /
-                                             (m_Header.FMT.BitsPerSample/8) /
-                                              m_Header.FMT.Channels) /
-                                              m_Header.FMT.SampleRate;
-            return nbytes / sizeof(T);
-         }
-         return 0;
+    size_t
+    Read(T* buffer, size_t nsamples)
+    {
+        if(buffer && m_AvailableData && nsamples>0)
+        {
+           size_t nbytes = std::min(m_AvailableData, nsamples * sizeof(T));
+           m_File.read(reinterpret_cast<char*>(buffer), nbytes);
+           assert(m_File.gcount() == nbytes);
+           m_AvailableData -= nbytes;
+           m_Position = static_cast<float>((m_Header.DATA.Size-m_AvailableData) /
+                                           (m_Header.FMT.BitsPerSample/8) /
+                                            m_Header.FMT.Channels) /
+                                            m_Header.FMT.SampleRate;
+           return nbytes / sizeof(T);
+        }
+        return 0;
     }
 
     template <class T>
-    void Read(AudioBlock<T> &block){
-		
-         block.Resize( Read(block.Data(), block.Size()) );
+    void 
+    Read(AudioBuffer<T> &buffer)
+    {
+        buffer.Resize( Read(buffer.Data(), buffer.Size()) );
     }
 
-    int GetSampleRate() const { return m_Header.FMT.SampleRate; }
-    int GetChannels()   const { return m_Header.FMT.Channels; }
-    int GetSampleResolution() const { return m_Header.FMT.BitsPerSample; }
-    float GetLenSeconds() const { return m_Duration; }
-    size_t GetLenSamples() const { return m_Nsamples; }
+    int 
+    GetSampleRate() const
+    { 
+        return m_Header.FMT.SampleRate;
+    }
+    
+    int 
+    GetChannels() const 
+    { 
+        return m_Header.FMT.Channels;
+    }
+    
+    int 
+    GetSampleResolution() const 
+    { 
+        return m_Header.FMT.BitsPerSample;
+    }
+    
+    float 
+    GetLenSeconds() const 
+    { 
+        return m_Duration;
+    }
+    
+    size_t 
+    GetLenSamples() const 
+    { 
+        return m_Nsamples;
+    }
 
 };
 

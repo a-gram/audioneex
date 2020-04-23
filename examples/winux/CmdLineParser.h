@@ -17,8 +17,9 @@
 #include <set>
 #include <boost/lexical_cast.hpp>
 
-/// Custom exception for malformed cmd lines
-class bad_cmd_line_exception : public std::logic_error {
+/// Custom exception for ill-formed cmd lines
+class bad_cmd_line_exception : public std::logic_error 
+{
  public: explicit bad_cmd_line_exception(const std::string& msg) :
                   std::logic_error(msg) {}
 };
@@ -27,27 +28,53 @@ class bad_cmd_line_exception : public std::logic_error {
 /// This structure defines all the supported options
 struct CmdLineOptions_t
 {
-    std::string                    apath     {};
-    std::string                    db_url    {"./data"};
-    KVDataStore::eOperation        db_op     {KVDataStore::BUILD};
-    uint32_t                       FID_base  {0};
-    Audioneex::eMatchType          mtype     {Audioneex::MSCALE_MATCH};
-    float                          mms       {1};
-    Audioneex::eIdentificationType id_type   {Audioneex::FUZZY_IDENTIFICATION};
-    Audioneex::eIdentificationMode id_mode   {Audioneex::EASY_IDENTIFICATION};
-    float                          b_thresh  {0.7f};
-    bool                           list_dev  {false};
-    float                          offset    {0};
+    std::string
+     apath     {};
+    
+    std::string
+     db_url    {"./data"};
+    
+    KVDataStore::eOperation
+     db_op     {KVDataStore::BUILD};
+    
+    uint32_t
+     FID_base  {0};
+    
+    Audioneex::eMatchType
+     mtype     {Audioneex::MSCALE_MATCH};
+    
+    float
+     mms       {1};
+    
+    Audioneex::eIdentificationType 
+     id_type   {Audioneex::FUZZY_IDENTIFICATION};
+    
+    Audioneex::eIdentificationMode 
+     id_mode   {Audioneex::EASY_IDENTIFICATION};
+    
+    float
+     b_thresh  {0.7f};
+    
+    bool
+     list_dev  {false};
+    
+    float
+     offset    {0};
 };
 
 
 /// A simple command line parser with no ambitions
 class CmdLineParser
 {
-    std::set<std::string>     m_SupportedOptions;
-    std::vector<std::string>  m_Args;
+    std::set<std::string>
+    m_SupportedOptions;
+    
+    std::vector<std::string>
+    m_Args;
+    
 
-    bool ValidOptions()
+    bool 
+    ValidOptions()
     {
         for(auto &arg : m_Args)
         {
@@ -60,7 +87,8 @@ class CmdLineParser
     }
 	
     template<typename T>
-    bool GetOptionValue(const std::string& opt, T& val)
+    bool 
+    GetOptionValue(const std::string& opt, T& val)
     {
         auto it = std::find(m_Args.begin(), m_Args.end(), opt);
 		
@@ -77,7 +105,8 @@ class CmdLineParser
         return false;
     }
 	
-    bool OptionExists(const std::string& opt)
+    bool 
+    OptionExists(const std::string& opt)
     {
         return
         std::find(m_Args.begin(), m_Args.end(), opt) != m_Args.end();
@@ -97,7 +126,8 @@ class CmdLineParser
         m_SupportedOptions.insert("-s");
     }
 
-    void Parse(char** argv, int argc, CmdLineOptions_t& opts)
+    void 
+    Parse(char** argv, int argc, CmdLineOptions_t& opts)
     {
          m_Args.clear();
          m_Args.insert(m_Args.end(), argv, argv + argc);

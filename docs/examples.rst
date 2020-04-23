@@ -28,7 +28,7 @@ The following drivers are provided:
 
 * ``TCDataStore`` - This driver provides access to `Tokyo Cabinet 
   <http://fallabs.com/tokyocabinet/>`_, a memory-mapped, key-value store management 
-  library. It is an “embedded database", so that's the right choice for deploying 
+  library. It is a small in-process database, so that's the right choice for deploying 
   ACR applications on embedded or mobile devices for on-device recognition (that 
   is without the need to access a database over a network).
 
@@ -38,8 +38,9 @@ The following drivers are provided:
   for large scale applications (e.g. web services). The examples have been tested 
   on the Community Edition.
 
-The examples only need one of those databases (it is also possible to use both),
-which must be specified at build time using a special CMake parameter (see below).
+Only one of those databases is needed for the engine to work (although it is also 
+possible to use both at the same time). The chosen database must be specified at 
+build time using a special CMake parameter (see below).
 You can download them from their respective websites, then build the libraries 
 (*libtokyocabinet* and/or *libcouchbase*) and install the binaries and headers in 
 your system (the headers should be put into a ``tcabinet`` and ``libcouchbase``
@@ -63,9 +64,8 @@ threading, events handling, etc.) so you need to install that too. At least vers
 1.55 is required. The only needed modules are *thread* and *filesystem* (and their 
 dependencies), so you can build just those two if you don't want to build the whole 
 thing.
-
-Optionally, if you wish to extract metadata from the audio files, to be used in the
-identification process, get the TagLib library as well.
+To extract the metadata from the audio files the examples use the TagLib library, 
+so get that as well.
 
 Building
 ^^^^^^^^
@@ -84,13 +84,6 @@ database by specifying the ``DATASTORE_T`` parameter as follows
 .. code-block:: bash
 
    $ ./build WITH_EXAMPLES=ON DATASTORE_T=CBDataStore
-
-If you want to build with ID3 tag support to handle the metadata then include
-the ``WITH_ID3`` paramater
-
-.. code-block:: bash
-
-   $ ./build WITH_EXAMPLES=ON WITH_ID3=ON
 
 
 Android examples

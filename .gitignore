@@ -1,10 +1,30 @@
 # Temp and output directories
-_build/
-_deps/
-_tmp/
+_*/
+build/
+tmp/
+temp/
 lib/
 bin/
 Testing/
 
-# Logs and other junk files
+# Logs
 *.log
+log.txt
+
+# Binaries and executables
+*.exe
+*.exe.manifest
+*.dll
+*.dll.manifest
+*.lib
+*.pyc
+*.pyd
+
+# Media files
+*.wav
+*.mp3
+*.ogg
+
+# Other
+audioneex_wrap.h
+audioneex_wrap.cpp

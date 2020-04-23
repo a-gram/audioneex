@@ -25,27 +25,51 @@ namespace Audioneex
 {
 
 /// A binary vector quantizator based on a k-medians algorithm.
+/// This class provides all the functionality to learn the audio
+/// codes (auditory words) from a set of binary descriptors.
+
 
 class BVQuantizer
 {
-    int                         m_K;
-    std::vector<BinaryVector>   m_Points;
-    std::vector<Cluster>        m_Clusters;
+    int
+    m_K;
+    
+    std::vector<BinaryVector>
+    m_Points;
+    
+    std::vector<Cluster>
+    m_Clusters;
 
-    void KmeansPP();
-    void RandomSeeding();
+    
+    void 
+    KmeansPP();
+    
+    void 
+    RandomSeeding();
+    
 
   public:
 
     BVQuantizer(int K);
    ~BVQuantizer() = default;
 
-    void addPoint(BinaryVector &point);
+    void 
+    addPoint(BinaryVector &point);
 
-    std::shared_ptr <Codebook> Kmedians();
+    std::shared_ptr <Codebook> 
+    Kmedians();
 
-    BinaryVector& point(size_t n) { return m_Points[n]; }
-    size_t npoints()              { return m_Points.size(); }
+    BinaryVector& 
+    point(size_t n) 
+    { 
+        return m_Points[n]; 
+    }
+    
+    size_t 
+    npoints()
+    { 
+        return m_Points.size();
+    }
 
 };
 

@@ -32,7 +32,8 @@ AudioFileWriter::AudioFileWriter(const AudioFormat &aformat)
 #endif
 
    if(hDLL_LIBSNDFILE == nullptr)
-      throw std::runtime_error("Couldn't load library "+std::string(LIBSNDFILE_MOD_NAME));
+      throw std::runtime_error
+      ("Couldn't load library "+std::string(LIBSNDFILE_MOD_NAME));
 
    // Get Interface functions from the DLL
 #ifdef WIN32
@@ -62,7 +63,8 @@ AudioFileWriter::AudioFileWriter(const AudioFormat &aformat)
 
 //------------------------------------------------------------------------------
 
-void AudioFileWriter::Open(std::string filename)
+void
+AudioFileWriter::Open(std::string filename)
 {
    SF_INFO sfInfo = { };
 
@@ -78,7 +80,8 @@ void AudioFileWriter::Open(std::string filename)
        else if(mFormat.Format == FLAC)
           sfInfo.format = SF_FORMAT_FLAC;
        else
-          throw std::invalid_argument("Unsupported audio format");
+          throw std::invalid_argument
+          ("Unsupported audio format");
 
        sfInfo.samplerate = mFormat.SampleRate;
        sfInfo.channels   = mFormat.ChannelsCount;
@@ -94,19 +97,22 @@ void AudioFileWriter::Open(std::string filename)
            sfInfo.format |= SF_FORMAT_PCM_24;
 	   else if(mFormat.SampleResolution == SIGNED_32_BIT)
            // NOTE: libsndfile FLAC only supports 8/16/24 bits
-           sfInfo.format |= (mFormat.Format != FLAC ? SF_FORMAT_PCM_32 : SF_FORMAT_PCM_24);
+           sfInfo.format |= (mFormat.Format != FLAC ? SF_FORMAT_PCM_32 : 
+                                                      SF_FORMAT_PCM_24);
 	   else if(mFormat.SampleResolution == NORMALIZED_FLOAT)
            sfInfo.format |= SF_FORMAT_FLOAT;
 	   else if(mFormat.SampleResolution == NORMALIZED_DOUBLE)
            sfInfo.format |= SF_FORMAT_DOUBLE;
        else
-           throw std::invalid_argument("Unsupported sample resolution");
+           throw std::invalid_argument
+           ("Unsupported sample resolution");
 
 
        mFile = sfOpen(filename.c_str(), SFM_WRITE, &sfInfo);
 
        if(mFile == NULL)
-          throw std::runtime_error(sfError(mFile));
+          throw std::runtime_error
+          (sfError(mFile));
 
    }
 
@@ -114,14 +120,16 @@ void AudioFileWriter::Open(std::string filename)
 
 //------------------------------------------------------------------------------
 
-void AudioFileWriter::Close()
+void 
+AudioFileWriter::Close()
 {
    sfClose(mFile);
 }
 
 //------------------------------------------------------------------------------
 
-int64_t AudioFileWriter::Write(const float *buff, size_t nsamples)
+int64_t 
+AudioFileWriter::Write(const float *buff, size_t nsamples)
 {
     assert(mFile != nullptr);
     assert(sfWriteFloat != nullptr);
@@ -134,7 +142,8 @@ int64_t AudioFileWriter::Write(const float *buff, size_t nsamples)
 
 //------------------------------------------------------------------------------
 
-int64_t AudioFileWriter::Write(const short* buff, size_t nsamples)
+int64_t 
+AudioFileWriter::Write(const short* buff, size_t nsamples)
 {
     assert(mFile != nullptr);
     assert(sfWrite16bit != nullptr);

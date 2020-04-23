@@ -10,7 +10,8 @@ list(APPEND MY_INCLUDES
     "include"
     "/usr/local/include"
     "/usr/local/include/tcabinet"
-    "/usr/local/share/boost_1_66_0")
+    "/usr/local/share/boost_1_66_0"
+)
 
 ###########################################################
 #                      Build Config                       #
@@ -29,10 +30,12 @@ string(REPLACE "." "" CLANG_VER "${CMAKE_CXX_COMPILER_VERSION}")
 string(SUBSTRING "${CLANG_VER}" 0 4 CLANG_VER)
 string(TOLOWER "${CMAKE_BUILD_TYPE}" BUILD_TYPE)
 
+# Create the JNI libs directory (used by Gradle for packaging)
 set(LIB_DIR_TAG "android-${ANDROID_ABI}-clang${CLANG_VER}")
 set(AX_LIB_DIR "${AX_ROOT}/lib/${LIB_DIR_TAG}/${BUILD_TYPE}")
 set(JNI_LIBS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}")
 
+# Copy the native libs to the JNI libs dir
 file(MAKE_DIRECTORY ${JNI_LIBS_DIR})
 file(GLOB AX_LIBS ${AX_LIB_DIR}/*.so)
 file(COPY ${AX_LIBS} DESTINATION ${JNI_LIBS_DIR})

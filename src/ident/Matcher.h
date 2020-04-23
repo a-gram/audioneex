@@ -16,7 +16,7 @@
 #include <boost/unordered_set.hpp>
 #include <boost/container/flat_map.hpp>
 
-#include "Fingerprint.h"
+#include "Fingerprinter.h"
 #include "Codebook.h"
 #include "DataStore.h"
 #include "audioneex.h"
@@ -29,13 +29,17 @@
   #define AUDIONEEX_API_TEST
 #endif
 
+namespace bu = boost::unordered;
+namespace bc = boost::container;
+
 
 namespace Audioneex
 {
 
 // -------- Internal exceptions introduced by the following classes -------
 
-class InvalidMatchSequenceException : public Audioneex::Exception {
+class InvalidMatchSequenceException : public Audioneex::Exception
+{
   public: explicit InvalidMatchSequenceException(const std::string& msg) :
                    Audioneex::Exception(msg) {}
 };
@@ -45,14 +49,30 @@ struct Qhisto_t;
 struct Ac_t;
 
 /// Blessing Typedefs
-typedef std::map<int, std::list<int>, std::greater<int> >  hashtable_Qi;
-typedef boost::unordered::unordered_map<int, Ac_t>         hashtable_Qc;
-typedef boost::unordered::unordered_map<int, lf_pair>      hashtable_lf_pair;
-typedef boost::unordered::unordered_map<int, qlf_pair>     hashtable_qlf_pair;
-//typedef std::map<int, std::list<Qhisto_t>, std::greater<int> > hashtable_Qhisto;
-typedef boost::container::flat_map<int, std::list<Qhisto_t>, std::greater<int> > hashtable_Qhisto;
-typedef boost::unordered::unordered_map<int, std::unique_ptr <DataStoreImpl::PListIterator> > hashtable_PLIter;
-typedef boost::unordered::unordered_set<int>               hashtable_EOLIter;
+typedef std::map<int, std::list<int>, std::greater<int> >  
+        hashtable_Qi;
+        
+typedef bu::unordered_map<int, Ac_t>
+        hashtable_Qc;
+        
+typedef bu::unordered_map<int, lf_pair>
+        hashtable_lf_pair;
+        
+typedef bu::unordered_map<int, qlf_pair>
+        hashtable_qlf_pair;
+        
+//typedef std::map<int, std::list<Qhisto_t>, std::greater<int> > 
+//        hashtable_Qhisto;
+
+typedef bc::flat_map<int, std::list<Qhisto_t>, std::greater<int> > 
+        hashtable_Qhisto;
+        
+typedef bu::unordered_map<int, std::unique_ptr <DataStoreImpl::PListIterator> > 
+        hashtable_PLIter;
+        
+typedef bu::unordered_set<int>
+        hashtable_EOLIter;
+        
 
 /// Time histogram structure
 struct AUDIONEEX_API_TEST HistoBin_t
@@ -63,7 +83,7 @@ struct AUDIONEEX_API_TEST HistoBin_t
         int Pivot  {0};
     };
 
-    typedef boost::unordered::unordered_map<int, Info_t> info_table;
+    typedef bu::unordered_map<int, Info_t> info_table;
 
     int score      {0};
     int last_T     {0};
@@ -71,7 +91,8 @@ struct AUDIONEEX_API_TEST HistoBin_t
     bool scored    {false};
     info_table Info;
 
-    void Reset()
+    void 
+    Reset()
 	{
         score  = 0;
         last_T = 0;
@@ -90,39 +111,53 @@ struct AUDIONEEX_API_TEST Qhisto_t
 
     Qhisto_t(size_t size=0) : Ht(size) {}
 
-    void Reset()
+    void 
+    Reset()
 	{
-        for(HistoBin_t &bin : Ht) {
+        for(HistoBin_t &bin : Ht)
+        {
             bin.Reset();
 		}
-        Bmax=0; Qi=0;
+        Bmax = 0; 
+        Qi = 0;
     }
 
-    void ResetBinScoredFlag()
+    void 
+    ResetBinScoredFlag()
 	{
-        for(HistoBin_t &bin : Ht) {
+        for(HistoBin_t &bin : Ht)
+        {
             bin.scored = false;
 		}
     }
 
-    HistoBin_t& operator[](size_t bin)
+    HistoBin_t& 
+    operator[](size_t bin)
 	{
         return Ht[bin];
     }
 
-    const HistoBin_t& operator[](size_t bin) const
+    const HistoBin_t& 
+    operator[](size_t bin) const
 	{
         return Ht[bin];
     }
 
-    void operator+=(const Qhisto_t &Qh)
+    void 
+    operator+=(const Qhisto_t &Qh)
 	{
          assert(Qh.Ht.size() == Ht.size());
          for(size_t bin=0; bin<Ht.size(); bin++)
+         {
              Ht[bin].score += Qh.Ht[bin].score;
+         }
     }
 
-    void Resize(size_t size) { Ht.resize(size); }
+    void 
+    Resize(size_t size) 
+    { 
+        Ht.resize(size); 
+    }
 
 };
 
@@ -138,13 +173,18 @@ struct AUDIONEEX_API_TEST MatchResults_t
 {
     hashtable_Qc   Qc;      // list of candidate Qi accumulators
     hashtable_Qi   Top_K;   // list of top-k Qi matches <score, tie list>
+    bool           Reranked;
 
     /// Get the k-th elements (tie list)
-    std::list<int> GetTop(int k) const 
+    std::list<int> 
+    GetTop(int k) const 
 	{
         if(Top_K.empty() || k>Top_K.size())
+        {
            return std::list<int>();
-        else{
+        }
+        else
+        {
            hashtable_Qi::const_iterator it = Top_K.cbegin();
            for(int i=1; i<k; ++i, ++it);
            return it->second;
@@ -152,23 +192,28 @@ struct AUDIONEEX_API_TEST MatchResults_t
     }
 
     /// Get the k-th score
-    int GetTopScore(int k) const 
+    int 
+    GetTopScore(int k) const 
 	{
         if(Top_K.empty() || k>Top_K.size())
+        {
            return 0;
-        else{
+        }
+        else
+        {
            hashtable_Qi::const_iterator it = Top_K.cbegin();
            for(int i=1; i<k; ++i, ++it);
            return it->first;
         }
     }
 
-    int GetCuePoint(int Qi) const {
+    int 
+    GetCuePoint(int Qi) const 
+    {
         hashtable_Qc::const_iterator it = Qc.find(Qi);
         return it!=Qc.end() ? it->second.Tmatch : -1;
     }
 
-    bool Reranked;
 };
 
 
@@ -177,45 +222,101 @@ struct AUDIONEEX_API_TEST MatchResults_t
 
 class AUDIONEEX_API_TEST Matcher
 {
-    std::unique_ptr <Codebook>       m_AudioCodes;
+    /// The codebook used for quantization
+    std::unique_ptr <Codebook>
+    m_AudioCodes;
 
-    MatchResults_t                   m_Results;
-    std::vector<QLocalFingerprint_t> Xk;
-    std::vector<uint32_t>            m_XkSeq;
-
-    Audioneex::eMatchType            m_MatchType        {MSCALE_MATCH};
-    float                            m_RerankThreshold  {0.5};
-    hashtable_Qhisto                 m_TopKMc;
-    Qhisto_t                         m_H;
+    /// The found best matches
+    MatchResults_t
+    m_Results;
     
-	Audioneex::DataStore*            m_DataStore        {nullptr};
+    /// The input LF sequence
+    std::vector<QLocalFingerprint_t> 
+    Xk;
+    
+    /// The quantised input sequence
+    std::vector<uint32_t>
+    m_XkSeq;
+
+    /// The used matching algorithm
+    Audioneex::eMatchType
+    m_MatchType        {MSCALE_MATCH};
+    
+    /// The level-2 ranking threshold
+    float
+    m_RerankThreshold  {0.5};
+    
+    /// The top-k best matches
+    hashtable_Qhisto
+    m_TopKMc;
+    
+    /// The time historgam
+    Qhisto_t
+    m_H;
+    
+    /// Instance of connected datastore
+	Audioneex::DataStore*
+    m_DataStore        {nullptr};
 
     /// Pointer to the start of current LF batch being matched.
-    int m_ko     {0};
+    int 
+    m_ko     {0};
 
     /// The duration of the audio being matched so far from last resetting.
-    int m_ko_T   {0};
+    int 
+    m_ko_T   {0};
 
     /// Number of processing steps performed so far.
-    int m_Nsteps {0};
+    int 
+    m_Nsteps {0};
 
     /// Minimum score to be considered in the match stage.
 	/// Anything smaller will be ignored.
-    const static int MIN_ACCEPT_SCORE = Pms::Smax * 2;
+    const static int 
+    MIN_ACCEPT_SCORE = Pms::Smax * 2;
 
 #ifdef PLOTTING_ENABLED
-    std::vector< std::vector<float> > Mc;
+
+    std::vector< std::vector<float> > 
+    Mc;
+    
 #endif
 
-    bool  ValidQuerySequence();
-    void  DoMatch(int ko, int kn);
-    void  FindCandidatesBWords(int ko, int kn);
-    void  FindCandidatesSWords(int ko, int kn);
-    void  Reranking();
-    void  GraphMatching(Qhisto_t& Qhisto_i, int bin, /*[out]*/Qhisto_t& Qhisto);
-    void  BuildGraphs(const QLocalFingerprint_t *lfs, size_t Nlfs, int iRef, hashtable_qlf_pair &H);
-
-friend class RecognizerImpl;
+    /// Validate the input sequence
+    bool 
+    ValidQuerySequence();
+    
+    /// Perform similarity search
+    void 
+    DoMatch(int ko, int kn);
+    
+    /// Determine paired candidate words
+    void 
+    FindCandidatesBWords(int ko, int kn);
+    
+    /// Determine single candidae words
+    void 
+    FindCandidatesSWords(int ko, int kn);
+    
+    /// Perform level-2 ranking on current best matches
+    void 
+    Reranking();
+    
+    /// Perform t-f coherence scoring
+    void 
+    GraphMatching(Qhisto_t& Qhisto_i, 
+                  int bin, 
+                  /*[out]*/Qhisto_t& Qhisto);
+    
+    /// Create match graphs
+    void 
+    BuildGraphs(const QLocalFingerprint_t *lfs, 
+                size_t Nlfs, 
+                int iRef, 
+                hashtable_qlf_pair &H);
+    
+    // TODO: Why this?
+    friend class RecognizerImpl;
 
  public:
 
@@ -227,7 +328,8 @@ friend class RecognizerImpl;
     /// Return the number of processed LFs (the matcher might not process the
     /// given LFs stream but just buffer it until the minimum required amount
     /// to execute a processing step is available).
-    int Process(const lf_vector &lfs);
+    int 
+    Process(const lf_vector &lfs);
 
     /// Get the current match results. This method can be called at any point
     /// during the matching stage (after Process()) to analyze the matching
@@ -236,60 +338,96 @@ friend class RecognizerImpl;
     /// or not, but merely provides the status of the best match search at each
     /// processing step. The task of classification is left to an external component
     /// (the Recognizer) which will decide by analysing the match results.
-    const MatchResults_t&  GetResults() const { return m_Results; }
+    const MatchResults_t& 
+    GetResults() const 
+    { 
+        return m_Results;
+    }
 
     /// Flush any remaining LFs in the query sequence.
     /// Return the number of flushed LFs, if any.
-    int Flush();
+    int 
+    Flush();
 
     /// Reset the internal state of the matching. This method should be called
     /// by the classification module once a classification has been made, or if
     /// the classification cannot be made within a set period of time.
     /// A call to this method is not necessary if the Matcher instance is not
     /// being reused after the classification.
-    void Reset();
+    void 
+    Reset();
 
     /// Get the length of the audio being matched since last resetting (or start)
     /// NOTE: This is an approximation of the duration since it is computed from
     /// the T value of the last LF received, which does not exactly fall at the
     /// end of the audio snippet, so one must not rely on this value if an exact
     /// time duration is needed.
-    float GetMatchTime() const { return m_ko_T * Pms::dt; }
+    float 
+    GetMatchTime() const 
+    { 
+        return m_ko_T * Pms::dt; 
+    }
 
     /// Get the number of processing steps performed so far. Note that the number
     /// of processing steps is not necessrily equal to the number of times the
     /// Process() method is called as the matcher may buffer the data and defer
     /// the processing if it does not receive enough data.
-    float GetStepsCount() const { return m_Nsteps; }
+    float 
+    GetStepsCount() const 
+    { 
+        return m_Nsteps;
+    }
 
     /// Set the data provider
-    void SetDataStore(Audioneex::DataStore* dstore);
+    void 
+    SetDataStore(Audioneex::DataStore* dstore);
 
     /// Getter
-    DataStore* GetDataStore() const { return m_DataStore; }
+    DataStore* 
+    GetDataStore() const 
+    { 
+        return m_DataStore; 
+    }
 
     /// Set the matching algorithm.
     /// NOTE: This value must match the algorithm used for indexing.
-    void SetMatchType(Audioneex::eMatchType type) { m_MatchType = type; }
+    void 
+    SetMatchType(Audioneex::eMatchType type) 
+    { 
+        m_MatchType = type; 
+    }
 
     /// Get the match type
-    Audioneex::eMatchType GetMatchType() const { return m_MatchType; }
+    Audioneex::eMatchType 
+    GetMatchType() const 
+    { 
+        return m_MatchType; 
+    }
 
     /// Set the threshold to be used by the reranking algorithm. This value determines
     /// when the reranking should kick in based on the current state of the match.
     /// The provisional top-k list is analyzed and this value is used in the decision
     /// making of whether to apply the reranking or not. It's value is in the range
     /// [0,1]
-    void SetRerankThreshold(float value) { m_RerankThreshold = value; }
+    void 
+    SetRerankThreshold(float value) 
+    { 
+        m_RerankThreshold = value;
+    }
 
     /// Get the threshold used for adaptive reranking.
-    float GetRerankThreshold() const { return m_RerankThreshold; }
+    float 
+    GetRerankThreshold() const 
+    { 
+        return m_RerankThreshold;
+    }
     
     /// Set the maximum duration of the recordings in the database.
     /// This value will be used internally to optimize the efficiency of some data
     /// structures used during the matching process. It is not mandatory to set it
     /// but doing so excessive reallocations of such structures might be avoided.
-    void SetMaxRecordingDuration(size_t duration);
+    void 
+    SetMaxRecordingDuration(size_t duration);
 
 };
 

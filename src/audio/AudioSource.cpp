@@ -18,25 +18,51 @@
 #include "AudioSource.h"
 
 #ifdef WIN32
-namespace {
- const char PLATFORM_BIN_NAME[]    = "ffmpeg.exe";
- const char AUDIO_SUBSYSTEM[]      = "dshow";
- const char LIST_CAP_DEVICES_CMD[] = "ffmpeg -list_devices true -f dshow -i dummy";
- const int CAPTURE_CHUNK_SIZE      = 4096;  // samples
+
+namespace
+{
+ const char 
+ PLATFORM_BIN_NAME[]    = "ffmpeg.exe";
+ 
+ const char 
+ AUDIO_SUBSYSTEM[]      = "dshow";
+ 
+ const char 
+ LIST_CAP_DEVICES_CMD[] = "ffmpeg -list_devices true -f dshow -i dummy";
+ 
+ const int 
+ CAPTURE_CHUNK_SIZE     = 4096;  // samples
 }
+
 #else
-namespace {
- const char PLATFORM_BIN_NAME[]    = "ffmpeg";
- const char AUDIO_SUBSYSTEM[]      = "alsa";
- const char LIST_CAP_DEVICES_CMD[] = "arecord -l";
- const int CAPTURE_CHUNK_SIZE      = 4096;  // samples
+    
+namespace
+{
+ const char 
+ PLATFORM_BIN_NAME[]    = "ffmpeg";
+ 
+ const char 
+ AUDIO_SUBSYSTEM[]      = "alsa";
+ 
+ const char 
+ LIST_CAP_DEVICES_CMD[] = "arecord -l";
+ 
+ const int 
+ CAPTURE_CHUNK_SIZE     = 4096;  // samples
 }
+
 #endif
 
-// statics
-std::string            AudioSource::m_BinPath          = PLATFORM_BIN_NAME;
-std::list<std::string> AudioSource::m_SupportedFormats = {"WAV","AIFF","AU","CDA","FLAC",
-                                                          "MP3","M4A","AAC","OGG"};
+// Static members
+
+std::string
+AudioSource::m_BinPath  = PLATFORM_BIN_NAME;
+
+std::list<std::string> 
+AudioSource::m_SupportedFormats = 
+{
+    "WAV","AIFF","AU","CDA","FLAC","MP3","M4A","AAC","OGG"
+};
 
 // ----------------------------------------------------------------------------
 
@@ -48,7 +74,8 @@ AudioSource::~AudioSource()
 
 // ----------------------------------------------------------------------------
 
-void AudioSource::Close()
+void 
+AudioSource::Close()
 {
     // Terminate the capture thread if running
     if(m_CaptureThread){
@@ -67,26 +94,35 @@ void AudioSource::Close()
 
 // ----------------------------------------------------------------------------
 
-void AudioSource::StartCapture()
+void 
+AudioSource::StartCapture()
 {
     // Create the capture thread
-    m_CaptureThread.reset( new boost::thread( boost::bind(&CaptureThread::Run,
-                                                           CaptureThread::sptr
-                                                          ( new CaptureThread(this) ))) );
+    m_CaptureThread.reset(
+        new boost::thread( 
+            boost::bind(
+                &CaptureThread::Run,
+                 CaptureThread::sptr(new CaptureThread(this))
+            )
+        )
+    );
 }
 
 // ----------------------------------------------------------------------------
 
-void AudioSource::StopCapture(bool wait_for_finish)
+void 
+AudioSource::StopCapture(bool wait_for_finish)
 {
     m_StopCapture = true;
+    
     if(wait_for_finish)
        m_CaptureThread->join();
 }
 
 // ----------------------------------------------------------------------------
 
-std::string AudioSource::GetFormattedDuration()
+std::string 
+AudioSource::GetFormattedDuration()
 {
     char buf[32];
     int dur = static_cast<int>(m_TotalSamples / m_Channels / m_SampleRate);
@@ -96,7 +132,8 @@ std::string AudioSource::GetFormattedDuration()
 
 // ----------------------------------------------------------------------------
 
-void AudioSource::SetDataListener(AudioSourceDataListener *dataListener)
+void 
+AudioSource::SetDataListener(AudioSourceDataListener *dataListener)
 {
     assert(dataListener);
     m_DataListener = dataListener;
@@ -104,7 +141,8 @@ void AudioSource::SetDataListener(AudioSourceDataListener *dataListener)
 
 // ----------------------------------------------------------------------------
 
-void AudioSource::ListCaptureDevices()
+void 
+AudioSource::ListCaptureDevices()
 {
     std::string cmd = LIST_CAP_DEVICES_CMD;
 	
@@ -128,7 +166,8 @@ void AudioSource::ListCaptureDevices()
 
 // ----------------------------------------------------------------------------
 
-bool AudioSource::IsFormatSupported(std::string fmt)
+bool 
+AudioSource::IsFormatSupported(std::string fmt)
 {
 											  
 
@@ -146,7 +185,8 @@ bool AudioSource::IsFormatSupported(std::string fmt)
 // ----------------------------------------------------------------------------
 
 
-void AudioSourceFile::Open(const std::string &source_name)
+void 
+AudioSourceFile::Open(const std::string &source_name)
 {
     if(IsOpen()) Close();
 
@@ -155,7 +195,9 @@ void AudioSourceFile::Open(const std::string &source_name)
     m_Pipe.AddCmdArg( "-i \"" + source_name + "\"" );
     m_Pipe.AddCmdArg( m_SampleRate ? "-ar " + std::to_string(m_SampleRate) : "" );
     m_Pipe.AddCmdArg( m_Channels ? "-ac " + std::to_string(m_Channels) : "" );
-    m_Pipe.AddCmdArg( m_SampleResolution ? "-f s" + std::to_string(m_SampleResolution) + "le" : "-f s16le" );
+    m_Pipe.AddCmdArg( m_SampleResolution ? 
+                      "-f s" + std::to_string(m_SampleResolution) + "le" : 
+                      "-f s16le" );
     m_Pipe.AddCmdArg( m_TimeOffset ? "-ss " + std::to_string(m_TimeOffset) : "" );
     m_Pipe.AddCmdArg( m_TimeLength ? "-t " + std::to_string(m_TimeLength) : "" );
     m_Pipe.AddCmdArg( "-");
@@ -184,11 +226,12 @@ void AudioSourceFile::Open(const std::string &source_name)
 // ----------------------------------------------------------------------------
 
 
-void AudioSourceDevice::Open(const std::string &source_name)
+void 
+AudioSourceDevice::Open(const std::string &source_name)
 {
     if(m_DataListener == nullptr)
        throw std::invalid_argument
-       ("No audio data consumer set");
+       ("No audio consumer set");
 
     if(IsOpen()) Close();
 
@@ -202,7 +245,9 @@ void AudioSourceDevice::Open(const std::string &source_name)
 #endif
     m_Pipe.AddCmdArg( m_SampleRate ? "-ar " + std::to_string(m_SampleRate) : "" );
     m_Pipe.AddCmdArg( m_Channels ? "-ac " + std::to_string(m_Channels) : "" );
-    m_Pipe.AddCmdArg( m_SampleResolution ? "-f s" + std::to_string(m_SampleResolution) + "le" : "-f s16le" );
+    m_Pipe.AddCmdArg( m_SampleResolution ? 
+                      "-f s" + std::to_string(m_SampleResolution) + "le" : 
+                      "-f s16le" );
     m_Pipe.AddCmdArg( "-" );
 #ifdef WIN32
     m_Pipe.SetUseErrorChannel(true);
@@ -226,24 +271,27 @@ void AudioSourceDevice::Open(const std::string &source_name)
 // ----------------------------------------------------------------------------
 
 
-void AudioSource::CaptureThread::Run()
+void 
+AudioSource::CaptureThread::Run()
 {
     // Set capture buffer
-    AudioBlock<int16_t> cbuffer(CAPTURE_CHUNK_SIZE,
-                                m_AudioSource->m_SampleRate,
-                                m_AudioSource->m_Channels, 0);
+    AudioBuffer<int16_t> cbuffer(CAPTURE_CHUNK_SIZE,
+                                 m_AudioSource->m_SampleRate,
+                                 m_AudioSource->m_Channels, 0);
 
     size_t read_samples = 0;
     size_t readBytes = sizeof(int16_t) * CAPTURE_CHUNK_SIZE;
 
     while(!m_AudioSource->m_StopCapture)
     {
-        if(!m_AudioSource->m_Pipe.Read(cbuffer.Data(), readBytes, read_samples)){
+        if(!m_AudioSource->m_Pipe.Read(cbuffer.Data(), readBytes, read_samples))
+        {
             std::cout << "Audio thread: Reading from pipe failed." << std::endl;
             break;
         }
 
-        if(read_samples == 0){
+        if(read_samples == 0)
+        {
            std::cout << "Audio thread: No data received from pipe." << std::endl;
            break;
         }
@@ -272,7 +320,8 @@ ID3Tag::ID3Tag(const std::string& file) :
 }
 
 
-void ID3Tag::SetFile(std::string file)
+void 
+ID3Tag::SetFile(std::string file)
 {
    if(file == "")
       return;

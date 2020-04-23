@@ -22,13 +22,14 @@
 namespace Audioneex
 {
 
-int BlockEncoder::Encode(const uint32_t* const* plist_chunk,
-                         size_t plist_chunk_size,
-                         uint8_t* enc_chunk,
-                         size_t enc_chunk_size,
-                         size_t &enc_bytes,
-                         uint32_t FIDo,
-                         bool delta_encode)
+int 
+BlockEncoder::Encode(const uint32_t* const* plist_chunk,
+                     size_t plist_chunk_size,
+                     uint8_t* enc_chunk,
+                     size_t enc_chunk_size,
+                     size_t &enc_bytes,
+                     uint32_t FIDo,
+                     bool delta_encode)
 {
     // Serialize the postings list chunk into an array of integers converting
     // from the cache layout to the final layout.
@@ -64,13 +65,14 @@ int BlockEncoder::Encode(const uint32_t* const* plist_chunk,
 
 // ----------------------------------------------------------------------------
 
-int BlockEncoder::Decode(const uint8_t* enc_chunk,
-                         size_t enc_chunk_size,
-                         uint32_t* dec_chunk,
-                         size_t dec_chunk_size,
-                         size_t &dec_elem,
-                         uint32_t base_FID,
-                         bool delta_decode)
+int 
+BlockEncoder::Decode(const uint8_t* enc_chunk,
+                     size_t enc_chunk_size,
+                     uint32_t* dec_chunk,
+                     size_t dec_chunk_size,
+                     size_t &dec_elem,
+                     uint32_t base_FID,
+                     bool delta_decode)
 {
     assert(enc_chunk && dec_chunk);
 
@@ -91,12 +93,13 @@ int BlockEncoder::Decode(const uint8_t* enc_chunk,
 
 // ----------------------------------------------------------------------------
 
-void BlockEncoder::Serialize(const uint32_t * const *plist_chunk,
-                             size_t plist_chunk_size,
-                             uint32_t *ser_chunk,
-                             size_t ser_chunk_size,
-                             uint32_t prev_FID,
-                             bool delta_encode)
+void 
+BlockEncoder::Serialize(const uint32_t * const *plist_chunk,
+                        size_t plist_chunk_size,
+                        uint32_t *ser_chunk,
+                        size_t ser_chunk_size,
+                        uint32_t prev_FID,
+                        bool delta_encode)
 {
     size_t vpos = 0, poff0 = 0, poff1 = 0;
 

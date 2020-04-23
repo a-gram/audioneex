@@ -30,7 +30,7 @@ The following code is included by default in the build:
 
 Optionally, it may also include the following code:
 
-| `Embedded JSON Database engine C library <https://github.com/Softmotions/ejdb/tree/ejdb_1.x>`_
+| `Embeddable JSON Database engine C library <https://github.com/Softmotions/ejdb/tree/ejdb_1.x>`_
 | `The couchbase client for C <https://github.com/couchbase/libcouchbase>`_
 | `TagLib Audio Meta-Data Library <https://github.com/taglib/taglib>`_
 

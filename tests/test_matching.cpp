@@ -51,9 +51,9 @@ TEST_CASE("Matcher processing") {
     int Srate = Audioneex::Pms::Fs;
     int Nchan = Audioneex::Pms::Ca;
 
-    AudioBlock<int16_t> iblock(Srate*2, Srate, Nchan);
-    AudioBlock<float>   audio(Srate*2, Srate, Nchan);
-    AudioSourceFile     asource;
+    AudioBuffer<int16_t> ibuffer(Srate*2, Srate, Nchan);
+    AudioBuffer<float>   audio(Srate*2, Srate, Nchan);
+    AudioSourceFile      asource;
 
     DATASTORE_T dstore ( "./data" );
 	
@@ -66,12 +66,12 @@ TEST_CASE("Matcher processing") {
     REQUIRE_NOTHROW( dstore.Open(KVDataStore::BUILD) );
 
     // We need an empty database to perform the tests.
-    if(!dstore.Empty()) {
+    if(!dstore.IsEmpty()) {
         dstore.Clear();
 		// Wait until the clearing is finished as it may be an asynchronous
 		// operation, such as in Couchbase, in which case the execution
 		// would continue and the tests will fail.
-		while(!dstore.Empty()) {
+		while(!dstore.IsEmpty()) {
 		    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		}
 	}
@@ -89,13 +89,13 @@ TEST_CASE("Matcher processing") {
 
     REQUIRE_NOTHROW( asource.Open("./data/rec1.mp3") );
 
-    iblock.Resize(Srate*0.2);
+    ibuffer.Resize(Srate*0.2);
     audio.Resize(Srate*0.2);
 
     // Try processing a too short audio snippet
 
-    Audioneex::Fingerprint fingerprint;
-    GetAudio(asource, iblock, audio);
+    Audioneex::Fingerprinter fingerprint;
+    GetAudio(asource, ibuffer, audio);
     fingerprint.Process( audio );
     Audioneex::lf_vector lfs = fingerprint.Get();
     REQUIRE( lfs.empty() == true );
@@ -113,12 +113,12 @@ TEST_CASE("Matcher processing") {
     matcher.Reset();
     lfs.clear();
 
-    iblock.Resize(Srate*1.5);
+    ibuffer.Resize(Srate*1.5);
     audio.Resize(Srate*1.5);
 
     // Try processing a long enough audio snippet
 
-    GetAudio(asource, iblock, audio);
+    GetAudio(asource, ibuffer, audio);
     fingerprint.Process( audio );
     lfs = fingerprint.Get();
     REQUIRE( lfs.empty() == false );
@@ -141,7 +141,7 @@ TEST_CASE("Matcher processing") {
 
     matcher.SetRerankThreshold(0);
 
-    GetAudio(asource, iblock, audio);
+    GetAudio(asource, ibuffer, audio);
     fingerprint.Process( audio );
     lfs = fingerprint.Get();
     REQUIRE( lfs.empty() == false);
@@ -155,8 +155,8 @@ TEST_CASE("Matcher processing") {
 
     // Try processing an invalid lfs sequence
 
-    Audioneex::Fingerprint fingerprint2;
-    GetAudio(asource, iblock, audio);
+    Audioneex::Fingerprinter fingerprint2;
+    GetAudio(asource, ibuffer, audio);
     fingerprint2.Process( audio );
     lfs = fingerprint2.Get();
     REQUIRE( lfs.empty() == false);
@@ -174,12 +174,12 @@ TEST_CASE("Matcher processing broken data stores") {
     int Srate = Audioneex::Pms::Fs;
     int Nchan = Audioneex::Pms::Ca;
 
-    AudioBlock<int16_t> iblock(Srate*2, Srate, Nchan);
-    AudioBlock<float>   audio(Srate*2, Srate, Nchan);
-    AudioSourceFile     asource;
+    AudioBuffer<int16_t> ibuffer(Srate*2, Srate, Nchan);
+    AudioBuffer<float>   audio(Srate*2, Srate, Nchan);
+    AudioSourceFile      asource;
 
     Audioneex::Matcher matcher;
-    Audioneex::Fingerprint fingerprint;
+    Audioneex::Fingerprinter fingerprint;
 
     asource.SetSampleRate( Srate );
     asource.SetChannelCount( Nchan );
@@ -201,7 +201,7 @@ TEST_CASE("Matcher processing broken data stores") {
 
     matcher.SetRerankThreshold(1);
 
-    GetAudio(asource, iblock, audio);
+    GetAudio(asource, ibuffer, audio);
     fingerprint.Process( audio );
     Audioneex::lf_vector lfs = fingerprint.Get();
     REQUIRE( lfs.empty() == false );
@@ -227,7 +227,7 @@ TEST_CASE("Matcher processing broken data stores") {
 
     REQUIRE_NOTHROW( bstore2.Open() );
 
-    GetAudio(asource, iblock, audio);
+    GetAudio(asource, ibuffer, audio);
     fingerprint.Process( audio );
     lfs = fingerprint.Get();
     REQUIRE( lfs.empty() == false );

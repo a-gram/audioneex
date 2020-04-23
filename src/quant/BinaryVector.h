@@ -39,34 +39,39 @@ class BinaryVector
 
       public:
 
-        BitAccessor(BinaryVector* vec) :
+        BitAccessor(BinaryVector* vec) 
+        :
             m_BlockIdx(0),
             m_BitOffset(0),
             m_Vector(vec)
         {}
 
-        BitAccessor& eval_bit(size_t pos)
+        BitAccessor& 
+        eval_bit(size_t pos)
 		{
             m_BlockIdx = pos / BITBLOCK_SIZE;
             m_BitOffset = pos % BITBLOCK_SIZE;
             return *this;
         }
 
-        const BitAccessor& eval_bit(size_t pos) const
+        const BitAccessor& 
+        eval_bit(size_t pos) const
 		{
             m_BlockIdx = pos / BITBLOCK_SIZE;
             m_BitOffset = pos % BITBLOCK_SIZE;
             return *this;
         }
 
-        BitAccessor& operator=(const bool &val)
+        BitAccessor& 
+        operator=(const bool &val)
 		{
             if(val) m_Vector->m_Data[m_BlockIdx] |= (1<<m_BitOffset);
             else    m_Vector->m_Data[m_BlockIdx] &= ~(1<<m_BitOffset);
             return *this;
         }
 
-        BitAccessor& operator=(const int &val)
+        BitAccessor& 
+        operator=(const int &val)
 		{
             return operator=(val?true:false);
         }
@@ -98,10 +103,12 @@ class BinaryVector
 
   public:
 
-    static const size_t BITBLOCK_SIZE = sizeof(BitBlockType)*8;
+    static const size_t 
+    BITBLOCK_SIZE = sizeof(BitBlockType)*8;
 
 
-    BinaryVector() :
+    BinaryVector() 
+    :
         m_Data(nullptr),
         m_BlockCount(0),
         m_Size(0),
@@ -113,7 +120,8 @@ class BinaryVector
     }
 
 
-    BinaryVector(size_t size) :
+    BinaryVector(size_t size) 
+    :
         m_Data(nullptr),
         m_BlockCount(0),
         m_Size(size),
@@ -133,7 +141,10 @@ class BinaryVector
     }
 
 
-    BinaryVector(const BitBlockType *data, size_t datasize, size_t size) :
+    BinaryVector(const BitBlockType *data, 
+                 size_t datasize, 
+                 size_t size) 
+    :
         m_Data(nullptr),
         m_BlockCount(datasize),
         m_Size(size),
@@ -161,7 +172,8 @@ class BinaryVector
     }
 
 
-    BinaryVector(const BinaryVector &vec) :
+    BinaryVector(const BinaryVector &vec) 
+    :
         m_Data(nullptr),
         m_BlockCount(0),
         m_Size(0),
@@ -180,21 +192,24 @@ class BinaryVector
     }
 
 
-    BitAccessor& operator[](size_t n)
+    BitAccessor& 
+    operator[](size_t n)
 	{
         assert(0<=n && n<m_Size);
         return m_BitAccessor.eval_bit(n);
     }
 
 
-    const BitAccessor& operator[](size_t n) const
+    const BitAccessor& 
+    operator[](size_t n) const
 	{
         assert(0<=n && n<m_Size);
         return m_BitAccessor.eval_bit(n);
     }
 
 
-    BinaryVector& operator=(const BinaryVector &vec)
+    BinaryVector& 
+    operator = (const BinaryVector &vec)
 	{
         if(vec.m_Size > 0){
            // Check whether it needs reallocation
@@ -213,22 +228,72 @@ class BinaryVector
     }
 
 
-    void   label(int val)              { m_Label = val; }
-    int    label() const               { return m_Label; }
-    void   distance(int val)           { m_Distance = val; }
-    int    distance() const            { return m_Distance; }
-    void   changed(bool val)           { m_Changed = val; }
-    bool   changed() const             { return m_Changed; }
-    size_t size() const                { return m_Size; }
-    size_t bcount() const              { return m_BlockCount; }
-    BitBlockType* data()               { return m_Data; }
-    const BitBlockType* data() const   { return m_Data; }
+    void
+    label(int val)
+    { 
+        m_Label = val;
+    }
+    
+    int
+    label() const
+    { 
+        return m_Label;
+    }
+    
+    void
+    distance(int val)
+    { 
+        m_Distance = val;
+    }
+    
+    int
+    distance() const
+    { 
+        return m_Distance;
+    }
+    
+    void
+    changed(bool val)
+    { 
+        m_Changed = val;
+    }
+    
+    bool
+    changed() const
+    { 
+        return m_Changed;
+    }
+    
+    size_t 
+    size() const
+    { 
+        return m_Size; 
+    }
+    
+    size_t 
+    bcount() const
+    { 
+        return m_BlockCount; 
+    }
+    
+    BitBlockType* 
+    data()
+    { 
+        return m_Data;
+    }
+    
+    const BitBlockType* 
+    data() const
+    { 
+        return m_Data; 
+    }
 
 };
 
 
 // Binary vector comparator
-inline bool operator==(const BinaryVector &vec1, const BinaryVector &vec2) 
+inline bool 
+operator == (const BinaryVector &vec1, const BinaryVector &vec2) 
 {
     assert(vec1.size() == vec2.size());
     // TODO: It would be faster checking that all buffer blocks

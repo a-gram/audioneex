@@ -22,70 +22,93 @@ namespace Audioneex
 {
 namespace Pms
 {
+// Minimum frequency
+const int     Fmin            = 100;
+// Maximum frequency (must be in ]Fmin, Fs/2])
+const int     Fmax            = 3100;
+// Sampling frequency
+const double  Fs              = 11025;
 
-const int      Fmin            = 100;
-const int      Fmax            = 3100; // Must be in ]Fmin, Fs/2]
+// Number of audio channels
+const int     Ca              = 1;
 
-const double   Fs              = 11025;
-const int      Ca              = 1; // Audio channels
+// Wanted window size (spectrum resolution)
+const int     OrigWindowSize  = 1024;
+// Actual window size, after zero-padding
+const int     windowSize      = 2048;
+// Zero-padding factor
+const float   zeroPadFactor   = static_cast<float>(windowSize) /
+                                static_cast<float>(OrigWindowSize) - 1.f;
+                                
+// Hop size for the STFT (in sec)
+const double  hopInterval     = 0.0138776;
+// Hop size for the STFT (in samples)
+const int     hopSize         = hopInterval * Fs;
 
-const int      OrigWindowSize  = 1024;     // wanted size
-const int      windowSize      = 2048;     // actual size, after zero-padding
-const float    zeroPadFactor   = static_cast<float>(windowSize) /
-                                 static_cast<float>(OrigWindowSize) - 1.f;
-                                 
-const double   hopInterval     = 0.0138776; // in seconds
-const int      hopSize         = hopInterval * Fs;
-const double   df              = Fs / windowSize;
-const double   dt              = hopInterval;
-const int      Kmin            = floor(windowSize*Fmin/Fs);
-const int      Kmax            = floor(windowSize*Fmax/Fs);
+// Time frequency steps and spectrum limits
+const double  df              = Fs / windowSize;
+const double  dt              = hopInterval;
+const int     Kmin            = floor(windowSize * Fmin / Fs);
+const int     Kmax            = floor(windowSize * Fmax / Fs);
 
 // The optimal time span value for Wp appears to be within [0.400, 0.500]
-const float    dTWp = 0.400;     // Peak's neighborhood time span for non-maximum suppression (in s)
-const float    dFWp = 340;       // Peak's neighborhood frequency span for non-maximum suppression  (in Hz)
-const float    dTNp = 0.300;     // POI's neighborhood time span (in s)
-const float    dFNp = 200;       // POI's neighborhood frequency span (in Hz)
-const float    dTWc = 0.050;     // Scanning window time span (in s)
-const float    dFWc = 35;        // Scanning window frequency span (in Hz)
-const float    sf   = 50;        // Scanning window frequency stride (in % of dFWc)
-const float    st   = 50;        // Scanning window time stride (in % of dTWc)
-const float    bf   = 50;        // Neighboring window frequency displacement (in % of dFWc)
-const float    bt   = 50;        // Neighboring window time displacement (in % of dTWc)
+
+// Peak's neighborhood time span for non-maximum suppression (in s)
+const float   dTWp = 0.400;
+// Peak's neighborhood frequency span for non-maximum suppression  (in Hz)
+const float   dFWp = 340;
+// POI's neighborhood time span (in s)
+const float   dTNp = 0.300;
+// POI's neighborhood frequency span (in Hz)
+const float   dFNp = 200;
+// Scanning window time span (in s)
+const float   dTWc = 0.050;
+// Scanning window frequency span (in Hz)
+const float   dFWc = 35;
+// Scanning window frequency stride (in % of dFWc)
+const float   sf   = 50;
+// Scanning window time stride (in % of dTWc)
+const float   st   = 50;
+// Neighboring window frequency displacement (in % of dFWc)
+const float   bf   = 50;
+// Neighboring window time displacement (in % of dTWc)
+const float   bt   = 50;
+// Time quantization step (in s)
 // tried qT=2 qF=5, working ok. qt=5 qF=9 seems to work best(?)
-const float    qT   = 5;         // Time quantization step (in s)
-const float    qF   = 9;         // Frequency quantization step (in Hz)
+const float   qT   = 5;
+// Frequency quantization step (in Hz)
+const float   qF   = 9;
 
 // radius of Wp in t-f units (frames-bins)
-const int      rWp  = (dTWp/2) / dt;
-const int      rHp  = (dFWp/2) / df;
+const int     rWp  = (dTWp/2) / dt;
+const int     rHp  = (dFWp/2) / df;
 
 // radius of N(p) in t-f units (frames-bins)
-const int      rNpF = (dFNp/2) / df;
-const int      rNpT = (dTNp/2) / dt;
+const int     rNpF = (dFNp/2) / df;
+const int     rNpT = (dTNp/2) / dt;
 
 // radius of scanning window Wc in t-f units (frames-bins)
-const int      rWcF = (dFWc/2) / df;
-const int      rWcT = (dTWc/2) / dt;
+const int     rWcF = (dFWc/2) / df;
+const int     rWcT = (dTWc/2) / dt;
 
 // convert Wc strides in t-f units
-const int      nsf  = ((sf/100.f) * dFWc) / df;
-const int      nst  = ((st/100.f) * dTWc) / dt;
-const int      nbf  = ((bf/100.f) * dFWc) / df;
-const int      nbt  = ((bt/100.f) * dTWc) / dt;
+const int     nsf  = ((sf/100.f) * dFWc) / df;
+const int     nst  = ((st/100.f) * dTWc) / dt;
+const int     nbf  = ((bf/100.f) * dFWc) / df;
+const int     nbt  = ((bt/100.f) * dTWc) / dt;
 
 // Number of scanning windows along time and frequency in N(p)
-const int      nWcF = ((rNpF*2+1) - (rWcF*2+1)) / nsf;
-const int      nWcT = ((rNpT*2+1) - (rWcT*2+1)) / nst;
+const int     nWcF = ((rNpF * 2 + 1) - (rWcF * 2 + 1)) / nsf;
+const int     nWcT = ((rNpT * 2 + 1) - (rWcT * 2 + 1)) / nst;
 
 // Number of scanning windows in N(p)
-const int      nWc  = nWcT * nWcF;
+const int     nWc  = nWcT * nWcF;
 
 // Size of descriptor in bits (rounded to the highest byte)
-const int      IDI  = ceil(4.0 * nWc / 8.0) * 8;
+const int     IDI  = ceil(4.0 * nWc / 8.0) * 8;
 
 // Size of descriptor in bytes
-const int      IDI_b = IDI / 8;
+const int     IDI_b = IDI / 8;
 
 // ----------------------------------------------------------------------------
 //   The following parameters could be user-adjustable rather than constants
@@ -121,7 +144,7 @@ const int Nk = 20;
 ///       enough evidence and get a clear peak but the slower the recognition.
 ///       DO NOT confuse this parameter with 'Nk'. Apparently similar, they
 ///       represent 2 different things: Nk being the minimum amount of evidence
-///       necessary at each step to start the matching procedure (matching is
+///       necessary at each step to start the matching process (matching is
 ///       performed on blocks of LFs), Tk being the minimum time needed to
 ///       recognize an audio scene. The 2 values might be the same in some
 ///       applications, but they represent different things.
@@ -157,8 +180,9 @@ const int MaxRecordingLength = 1800;
 // -------------------- Functions -----------------------
 
 
-/// Get the number of spectral channels
-inline int GetChannelsCount()
+/// Get the number of frequency channels
+inline int 
+GetChannelsCount()
 {
     return ceil((Kmax - Kmin + 1) / qF);
 }

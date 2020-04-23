@@ -27,11 +27,12 @@ using namespace Audioneex;
 
 extern "C"{
 
-static void store_callback(lcb_t instance,
-                           const void *cookie,
-                           lcb_storage_t operation,
-                           lcb_error_t error,
-                           const lcb_store_resp_t *item)
+static void 
+store_callback(lcb_t instance,
+               const void *cookie,
+               lcb_storage_t operation,
+               lcb_error_t error,
+               const lcb_store_resp_t *item)
 {
     CBSetResp* sresp = (CBSetResp*)(cookie);
     assert(sresp);
@@ -56,10 +57,11 @@ static void store_callback(lcb_t instance,
 
 // ============================================================================
 
-static void get_callback(lcb_t instance,
-                         const void *cookie,
-                         lcb_error_t error,
-                         const lcb_get_resp_t *item)
+static void 
+get_callback(lcb_t instance,
+             const void *cookie,
+             lcb_error_t error,
+             const lcb_get_resp_t *item)
 {
     CBGetResp* gresp = (CBGetResp*)(cookie);
     //DEBUG_MSG("get_callback(): error="<<error<<", value="<<item->v.v0.nbytes)
@@ -121,11 +123,12 @@ static void get_callback(lcb_t instance,
 
 // ============================================================================
 
-static void http_chunk_callback(lcb_http_request_t,
-                                lcb_t,
-                                const void *cookie,
-                                lcb_error_t err,
-                                const lcb_http_resp_t *resp)
+static void 
+http_chunk_callback(lcb_http_request_t,
+                    lcb_t,
+                    const void *cookie,
+                    lcb_error_t err,
+                    const lcb_http_resp_t *resp)
 {
     CBHttpResp *hresp = (CBHttpResp *)cookie;
 
@@ -137,11 +140,12 @@ static void http_chunk_callback(lcb_http_request_t,
 
 // ============================================================================
 
-static void http_done_callback(lcb_http_request_t,
-                               lcb_t,
-                               const void *cookie,
-                               lcb_error_t err,
-                               const lcb_http_resp_t *resp)
+static void 
+http_done_callback(lcb_http_request_t,
+                   lcb_t,
+                   const void *cookie,
+                   lcb_error_t err,
+                   const lcb_http_resp_t *resp)
 {
     CBHttpResp *hresp = (CBHttpResp *)cookie;
     hresp->status = err;
@@ -151,11 +155,13 @@ static void http_done_callback(lcb_http_request_t,
 
 
 // ============================================================================
-//                          CBDataStore implementation
+//                         CBDataStore implementation
 // ============================================================================
 
 
-CBDataStore::CBDataStore(const std::string &url) :
+CBDataStore::CBDataStore(const std::string &url,
+                         const std::string &name)
+:
     m_MainIndex     (this),
     m_QFingerprints (this),
     m_DeltaIndex    (this),
@@ -164,25 +170,40 @@ CBDataStore::CBDataStore(const std::string &url) :
     m_ReadBuffer    (32768)
 {
     m_DBURL  = url;
+    m_DBName = !name.empty() ? name : "data";
 
-    m_MainIndex.SetName("data_idx");
-    m_QFingerprints.SetName("data_qfp");
-    m_Metadata.SetName("data_met");
-    m_Info.SetName("data_inf");
-    m_DeltaIndex.SetName("data_tmp");
+    m_MainIndex.SetName(m_DBName + "_idx");
+    m_QFingerprints.SetName(m_DBName + "_qfp");
+    m_Metadata.SetName(m_DBName + "_met");
+    m_Info.SetName(m_DBName + "_inf");
+    m_DeltaIndex.SetName(m_DBName + "_tmp");
 }
 
 // ----------------------------------------------------------------------------
 
-void CBDataStore::Open(eOperation op,
-                       bool use_fing_db,
-                       bool use_meta_db, 
-                       bool use_info_db)
+void 
+CBDataStore::Open(eOperation op,
+                  bool use_fing_db,
+                  bool use_meta_db, 
+                  bool use_info_db)
 {
     if(m_IsOpen)
        Close();
 
-    int open_mode = op == GET ? OPEN_READ : OPEN_READ_WRITE;
+    int open_mode = -1;
+    
+    if(op == FETCH)
+    {
+       open_mode = OPEN_READ;
+    }
+    else if(op == BUILD || op == BUILD_MERGE)
+    {
+       open_mode = OPEN_READ_WRITE;
+    }
+    else {
+       throw DatastoreException
+       ("Invalid database open mode");
+    }
 
     // Open the main index
     m_MainIndex.Open(open_mode);
@@ -208,7 +229,8 @@ void CBDataStore::Open(eOperation op,
 
 // ----------------------------------------------------------------------------
 
-void CBDataStore::Close()
+void 
+CBDataStore::Close()
 {
     m_MainIndex.Close();
     m_DeltaIndex.Close();
@@ -221,7 +243,8 @@ void CBDataStore::Close()
 
 // ----------------------------------------------------------------------------
 
-bool CBDataStore::Empty()
+bool 
+CBDataStore::IsEmpty()
 {
     return m_MainIndex.GetRecordsCount() == 0 &&
            m_QFingerprints.GetRecordsCount() == 0 &&
@@ -230,7 +253,8 @@ bool CBDataStore::Empty()
 
 // ----------------------------------------------------------------------------
 
-void CBDataStore::Clear()
+void 
+CBDataStore::Clear()
 {
     m_MainIndex.Drop();
     m_QFingerprints.Drop();
@@ -240,17 +264,33 @@ void CBDataStore::Clear()
 
 // ----------------------------------------------------------------------------
 
-size_t CBDataStore::GetFingerprintsCount()
+void 
+CBDataStore::SetDatabaseName(const std::string &name)
+{
+    KVDataStoreImpl::SetDatabaseName(!name.empty() ? name : "data");
+    
+    m_MainIndex.SetName(m_DBName + ".idx");
+    m_QFingerprints.SetName(m_DBName + ".qfp");
+    m_Metadata.SetName(m_DBName + ".met");
+    m_Info.SetName(m_DBName + ".inf");
+    m_DeltaIndex.SetName(m_DBName + ".tmp");
+}
+
+// ----------------------------------------------------------------------------
+
+size_t 
+CBDataStore::GetFingerprintsCount()
 {
     return m_QFingerprints.GetRecordsCount();
 }
 
 // ----------------------------------------------------------------------------
 
-const uint8_t* CBDataStore::GetPListBlock(int list_id, 
-                                          int block, 
-                                          size_t &data_size, 
-                                          bool headers)
+const uint8_t* 
+CBDataStore::GetPListBlock(int list_id, 
+                           int block, 
+                           size_t &data_size, 
+                           bool headers)
 {
     // Read block from datastore into read buffer
     // (or get a reference to its memory location if the block is cached)
@@ -260,11 +300,12 @@ const uint8_t* CBDataStore::GetPListBlock(int list_id,
 
 // ----------------------------------------------------------------------------
 
-void CBDataStore::OnIndexerStart()
+void 
+CBDataStore::OnIndexerStart()
 {
-    if(m_Op == GET)
-       throw std::invalid_argument
-       ("OnIndexerStart(): Invalid operation");
+    if(m_Op == FETCH)
+       throw DatastoreException
+       ("OnIndexerStart(): Invalid database mode (FETCH)");
 
     if(m_Op == BUILD_MERGE)
        m_DeltaIndex.Open(OPEN_READ_WRITE);
@@ -277,7 +318,8 @@ void CBDataStore::OnIndexerStart()
 
 // ----------------------------------------------------------------------------
 
-void CBDataStore::OnIndexerEnd()
+void 
+CBDataStore::OnIndexerEnd()
 { 
     // Here we shall merge the temporary delta index with the live index
     // if we're performing a build-merge operation.
@@ -303,16 +345,18 @@ void CBDataStore::OnIndexerEnd()
 
 // ----------------------------------------------------------------------------
 
-void CBDataStore::OnIndexerFlushStart()
+void 
+CBDataStore::OnIndexerFlushStart()
 {
-    std::cout<<"Flushing..."<<std::endl;
+    //std::cout<<"Flushing..."<<std::endl;
 
     m_Run ++;
 }
 
 // ----------------------------------------------------------------------------
 
-void CBDataStore::OnIndexerFlushEnd()
+void 
+CBDataStore::OnIndexerFlushEnd()
 {
     // Flush the block cache to the database
     if(m_Op == BUILD)
@@ -323,7 +367,8 @@ void CBDataStore::OnIndexerFlushEnd()
 
 // ----------------------------------------------------------------------------
 
-PListHeader CBDataStore::OnIndexerListHeader(int list_id)
+PListHeader 
+CBDataStore::OnIndexerListHeader(int list_id)
 {
     // If we're build-merging read the headers to be updated from the
     // main index on first run as the delta index is still empty, read
@@ -343,13 +388,14 @@ PListHeader CBDataStore::OnIndexerListHeader(int list_id)
     else if(m_Op == BUILD)
        return m_MainIndex.GetPListHeader(list_id);
     else
-       throw std::invalid_argument
+       throw DatastoreException
        ("OnIndexerListHeader(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
 
-PListBlockHeader CBDataStore::OnIndexerBlockHeader(int list_id, int block)
+PListBlockHeader 
+CBDataStore::OnIndexerBlockHeader(int list_id, int block)
 {
     if(m_Op == BUILD_MERGE){
        if(m_Run == 1)
@@ -362,45 +408,52 @@ PListBlockHeader CBDataStore::OnIndexerBlockHeader(int list_id, int block)
     else if(m_Op == BUILD)
        return m_MainIndex.GetPListBlockHeader(list_id, block);
     else
-       throw std::invalid_argument
+       throw DatastoreException
        ("OnIndexerBlockHeader(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
 
-void CBDataStore::OnIndexerChunk(int list_id,
-                                 PListHeader &lhdr,
-                                 PListBlockHeader &hdr,
-                                 uint8_t* data, size_t data_size)
+void 
+CBDataStore::OnIndexerChunk(int list_id,
+                            PListHeader &lhdr,
+                            PListBlockHeader &hdr,
+                            uint8_t* data, 
+                            size_t data_size)
 {
     if(m_Op == BUILD_MERGE)
        m_DeltaIndex.AppendChunk(list_id, lhdr, hdr, data, data_size);
     else if(m_Op == BUILD)
        m_MainIndex.AppendChunk(list_id, lhdr, hdr, data, data_size);
     else
-       throw std::invalid_argument
+       throw DatastoreException
        ("OnIndexerChunkAppend(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
 
-void CBDataStore::OnIndexerNewBlock(int list_id,
-                                    PListHeader &lhdr,
-                                    PListBlockHeader &hdr,
-                                    uint8_t* data, size_t data_size)
+void 
+CBDataStore::OnIndexerNewBlock(int list_id,
+                               PListHeader &lhdr,
+                               PListBlockHeader &hdr,
+                               uint8_t* data, 
+                               size_t data_size)
 {
     if(m_Op == BUILD_MERGE)
        m_DeltaIndex.AppendChunk(list_id, lhdr, hdr, data, data_size, true);
     else if(m_Op == BUILD)
        m_MainIndex.AppendChunk(list_id, lhdr, hdr, data, data_size, true);
     else
-       throw std::invalid_argument
+       throw DatastoreException
        ("OnIndexerChunkNewBlock(): Invalid operation");
 }
 
 // ----------------------------------------------------------------------------
 
-void CBDataStore::OnIndexerFingerprint(uint32_t FID, uint8_t *data, size_t size)
+void 
+CBDataStore::OnIndexerFingerprint(uint32_t FID, 
+                                  uint8_t *data, 
+                                  size_t size)
 {
 	if(m_QFingerprints.IsOpen())
        m_QFingerprints.WriteFingerprint(FID, data, size);
@@ -408,17 +461,19 @@ void CBDataStore::OnIndexerFingerprint(uint32_t FID, uint8_t *data, size_t size)
 
 // ----------------------------------------------------------------------------
 
-size_t CBDataStore::GetFingerprintSize(uint32_t FID)
+size_t 
+CBDataStore::GetFingerprintSize(uint32_t FID)
 {
     return m_QFingerprints.ReadFingerprintSize(FID);
 }
 
 // ----------------------------------------------------------------------------
 
-const uint8_t* CBDataStore::GetFingerprint(uint32_t FID,
-                                           size_t &read, 
-                                           size_t nbytes, 
-                                           uint32_t bo)
+const uint8_t* 
+CBDataStore::GetFingerprint(uint32_t FID,
+                            size_t &read, 
+                            size_t nbytes, 
+                            uint32_t bo)
 {
     read = m_QFingerprints.ReadFingerprint(FID, m_ReadBuffer, nbytes, bo);
     return m_ReadBuffer.data();
@@ -432,7 +487,8 @@ const uint8_t* CBDataStore::GetFingerprint(uint32_t FID,
 
 
 
-CBCollection::CBCollection(CBDataStore *datastore) :
+CBCollection::CBCollection(CBDataStore *datastore) 
+:
     KVCollection (datastore),
     m_DBHandle   ()
 {
@@ -447,21 +503,23 @@ CBCollection::~CBCollection()
 
 // ----------------------------------------------------------------------------
 
-void CBCollection::THROW_ON_FAIL(const lcb_error_t &res, 
-                                 const char *msg) const
+void 
+CBCollection::THROW_ON_FAIL(const lcb_error_t &res, 
+                            const char *msg) const
 {
     if (res != LCB_SUCCESS && res!=LCB_KEY_ENOENT){
         std::string emsg = "[Couchbase] - ";
         emsg.append(msg);
         emsg.append(" Database '" + this->GetName() + "'. ");
         emsg.append(lcb_strerror((*this), res));
-        throw std::runtime_error(emsg);
+        throw DatastoreException(emsg);
     }
 }
 
 // ----------------------------------------------------------------------------
 
-void CBCollection::Open(int mode)
+void 
+CBCollection::Open(int mode)
 {
     // Close current database if open
     if(m_IsOpen)
@@ -514,7 +572,8 @@ void CBCollection::Open(int mode)
 
 // ----------------------------------------------------------------------------
 
-void CBCollection::Close()
+void 
+CBCollection::Close()
 {
     if(m_DBHandle)
        lcb_destroy(m_DBHandle);
@@ -525,7 +584,8 @@ void CBCollection::Close()
 
 // ----------------------------------------------------------------------------
 
-void CBCollection::Drop()
+void 
+CBCollection::Drop()
 {
     if(!m_DBHandle) return;
 
@@ -566,9 +626,12 @@ void CBCollection::Drop()
 
 // ----------------------------------------------------------------------------
 
-uint64_t CBCollection::GetRecordsCount() const
+uint64_t 
+CBCollection::GetRecordsCount() const
 {
-    if(!m_DBHandle) return 0;
+    if(!m_IsOpen)
+       throw DatastoreException
+       ("Database '"+m_Name+"' not open");
 
     size_t fp_count = 0;
 
@@ -624,17 +687,19 @@ uint64_t CBCollection::GetRecordsCount() const
 
 
 
-CBIndex::CBIndex(CBDataStore *dstore) :
+CBIndex::CBIndex(CBDataStore *dstore) 
+:
     CBCollection (dstore)
 {
 }
 
 // ----------------------------------------------------------------------------
 
-PListHeader CBIndex::GetPListHeader(int list_id)
+PListHeader 
+CBIndex::GetPListHeader(int list_id)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error
+       throw DatastoreException
        ("Database '"+m_Name+"' not open");
 
     PListHeader       hdr = {};
@@ -684,10 +749,11 @@ PListHeader CBIndex::GetPListHeader(int list_id)
 
 // ----------------------------------------------------------------------------
 
-PListBlockHeader CBIndex::GetPListBlockHeader(int list_id, int block_id)
+PListBlockHeader 
+CBIndex::GetPListBlockHeader(int list_id, int block_id)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error
+       throw DatastoreException
        ("Database '"+m_Name+"' not open");
 
     PListBlockHeader  hdr = {};
@@ -738,13 +804,14 @@ PListBlockHeader CBIndex::GetPListBlockHeader(int list_id, int block_id)
 
 // ----------------------------------------------------------------------------
 
-size_t CBIndex::ReadBlock(int list_id, 
-                          int block_id, 
-                          std::vector<uint8_t> &buffer, 
-                          bool headers)
+size_t 
+CBIndex::ReadBlock(int list_id, 
+                   int block_id, 
+                   std::vector<uint8_t> &buffer, 
+                   bool headers)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error
+       throw DatastoreException
        ("Database '"+m_Name+"' not open");
 
     size_t            off=0;
@@ -793,13 +860,14 @@ size_t CBIndex::ReadBlock(int list_id,
 
 // ----------------------------------------------------------------------------
 
-void CBIndex::WriteBlock(int list_id, 
-                         int block_id, 
-                         std::vector<uint8_t> &buffer, 
-                         size_t data_size)
+void 
+CBIndex::WriteBlock(int list_id, 
+                    int block_id, 
+                    std::vector<uint8_t> &buffer, 
+                    size_t data_size)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error
+       throw DatastoreException
        ("Database '"+m_Name+"' not open");
 
     assert(!buffer.empty());
@@ -836,11 +904,12 @@ void CBIndex::WriteBlock(int list_id,
 
 // ----------------------------------------------------------------------------
 
-void CBIndex::AppendChunk(int list_id,
-                          PListHeader &lhdr,
-                          PListBlockHeader &hdr,
-                          uint8_t *chunk, size_t chunk_size,
-                          bool new_block)
+void 
+CBIndex::AppendChunk(int list_id,
+                     PListHeader &lhdr,
+                     PListBlockHeader &hdr,
+                     uint8_t *chunk, size_t chunk_size,
+                     bool new_block)
 {
     assert(chunk && chunk_size);
     assert(!IsNull(hdr));
@@ -872,7 +941,7 @@ void CBIndex::AppendChunk(int list_id,
           lcb_error_t rstatus = static_cast<lcb_error_t>(m_StoreResp.status);
 
           if (rstatus != LCB_SUCCESS)
-             throw std::runtime_error
+             throw DatastoreException
 		     ("Bulk load error. Indexing failed.");
 
           m_BlocksCache.accum = 0;
@@ -925,7 +994,8 @@ void CBIndex::AppendChunk(int list_id,
 
 // ----------------------------------------------------------------------------
 
-void CBIndex::UpdateListHeader(int list_id, PListHeader &lhdr)
+void 
+CBIndex::UpdateListHeader(int list_id, PListHeader &lhdr)
 {
     // Try the cache first
     std::vector<uint8_t> &block = m_BlocksCache.buffer[1];
@@ -950,7 +1020,8 @@ void CBIndex::UpdateListHeader(int list_id, PListHeader &lhdr)
 
 // ----------------------------------------------------------------------------
 
-void CBIndex::Merge(CBIndex &lidx)
+void 
+CBIndex::Merge(CBIndex &lidx)
 {
     // Here we should iterate through all the keys in the delta index
     // to merge them with the corresponding ones in the main index.
@@ -1032,9 +1103,10 @@ void CBIndex::Merge(CBIndex &lidx)
 
 // ----------------------------------------------------------------------------
 
-PListBlock CBIndex::RawBlockToBlock(uint8_t *block, 
-                                    size_t block_size, 
-                                    bool isFirst)
+PListBlock 
+CBIndex::RawBlockToBlock(uint8_t *block, 
+                         size_t block_size, 
+                         bool isFirst)
 {
     PListBlock rblock = {};
 
@@ -1076,7 +1148,8 @@ PListBlock CBIndex::RawBlockToBlock(uint8_t *block,
 
 // ----------------------------------------------------------------------------
 
-void CBIndex::FlushBlockCache()
+void 
+CBIndex::FlushBlockCache()
 {
     if(m_BlocksCache.buffer.empty())
        return;
@@ -1104,7 +1177,8 @@ void CBIndex::FlushBlockCache()
 
 // ----------------------------------------------------------------------------
 
-void CBIndex::ResetCaches()
+void 
+CBIndex::ResetCaches()
 {
     m_BlocksCache.accum = 0;
     m_BlocksCache.buffer.clear();
@@ -1120,14 +1194,16 @@ void CBIndex::ResetCaches()
 
 
 
-CBFingerprints::CBFingerprints(CBDataStore *dstore) :
+CBFingerprints::CBFingerprints(CBDataStore *dstore) 
+:
     CBCollection (dstore)
 {
 }
 
 // ----------------------------------------------------------------------------
 
-size_t CBFingerprints::ReadFingerprintSize(uint32_t FID)
+size_t 
+CBFingerprints::ReadFingerprintSize(uint32_t FID)
 {
     /// Unfortunately Couchbase's API does not provide a direct function
     /// to get the size of a stored value, so here we just do a 'get'
@@ -1135,7 +1211,7 @@ size_t CBFingerprints::ReadFingerprintSize(uint32_t FID)
     /// copying the data.
 
     if(m_DBHandle==NULL)
-       throw std::runtime_error
+       throw DatastoreException
       ("Database '"+m_Name+"' not open");
 
     // Create response structure
@@ -1164,13 +1240,14 @@ size_t CBFingerprints::ReadFingerprintSize(uint32_t FID)
 
 // ----------------------------------------------------------------------------
 
-size_t CBFingerprints::ReadFingerprint(uint32_t FID, 
-                                       std::vector<uint8_t> &buffer,
-                                       size_t size, 
-                                       uint32_t bo)
+size_t 
+CBFingerprints::ReadFingerprint(uint32_t FID, 
+                                std::vector<uint8_t> &buffer,
+                                size_t size, 
+                                uint32_t bo)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error
+       throw DatastoreException
        ("Database '"+m_Name+"' not open");
 
     // Create response structure
@@ -1204,14 +1281,15 @@ size_t CBFingerprints::ReadFingerprint(uint32_t FID,
 
 // ----------------------------------------------------------------------------
 
-void CBFingerprints::WriteFingerprint(uint32_t FID, 
-                                      const uint8_t *data, 
-                                      size_t size)
+void 
+CBFingerprints::WriteFingerprint(uint32_t FID, 
+                                 const uint8_t *data, 
+                                 size_t size)
 {
     assert(data);
 
     if(m_DBHandle==NULL)
-       throw std::runtime_error
+       throw DatastoreException
        ("Database '"+m_Name+"' not open");
 
     CBSetResp sresp;
@@ -1245,12 +1323,14 @@ void CBFingerprints::WriteFingerprint(uint32_t FID,
 
 
 
-CBMetadata::CBMetadata(CBDataStore *dstore) :
+CBMetadata::CBMetadata(CBDataStore *dstore) 
+:
     CBCollection (dstore)
 {
 }
 
-std::string CBMetadata::Read(uint32_t FID)
+std::string 
+CBMetadata::Read(uint32_t FID)
 {   
     std::string str;
 
@@ -1287,10 +1367,11 @@ std::string CBMetadata::Read(uint32_t FID)
 
 // ----------------------------------------------------------------------------
 
-void CBMetadata::Write(uint32_t FID, const std::string &meta)
+void 
+CBMetadata::Write(uint32_t FID, const std::string &meta)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error
+       throw DatastoreException
        ("Database '"+m_Name+"' not open");
 
     if(meta.empty())
@@ -1325,18 +1406,20 @@ void CBMetadata::Write(uint32_t FID, const std::string &meta)
 //=============================================================================
 
 
-CBInfo::CBInfo(CBDataStore *dstore) :
+CBInfo::CBInfo(CBDataStore *dstore) 
+:
     CBCollection (dstore)
 {
 }
 
-DBInfo_t CBInfo::Read()
+std::string 
+CBInfo::Read()
 {
     if(m_DBHandle==nullptr)
-       throw std::runtime_error
+       throw DatastoreException
        ("Info database not open");
 
-    DBInfo_t dbinfo;
+    std::string dbinfo;
     int key = 0;
 
     // Create response structure
@@ -1361,19 +1444,21 @@ DBInfo_t CBInfo::Read()
 
     THROW_ON_FAIL(gresp.status, "Couldn't execute get operation.");
 
-    if(gresp.read_size > 0){
-       assert(gresp.read_size == sizeof(DBInfo_t));
-       dbinfo = *reinterpret_cast<DBInfo_t*>(m_Buffer.data());
+    if(gresp.read_size > 0)
+    {
+       char *pstr = reinterpret_cast<char*>(m_Buffer.data());
+       dbinfo.assign(pstr, gresp.read_size);
     }
     return dbinfo;
 }
 
 // ----------------------------------------------------------------------------
 
-void CBInfo::Write(const DBInfo_t &info)
+void 
+CBInfo::Write(const std::string &info)
 {
     if(m_DBHandle==NULL)
-       throw std::runtime_error
+       throw DatastoreException
       ("Database '"+m_Name+"' not open");
     
     int key = 0;
@@ -1387,8 +1472,8 @@ void CBInfo::Write(const DBInfo_t &info)
 
     cmd.v.v0.key = &key;
     cmd.v.v0.nkey = sizeof(int);
-    cmd.v.v0.bytes = &info;
-    cmd.v.v0.nbytes = sizeof(DBInfo_t);
+    cmd.v.v0.bytes = info.data();
+    cmd.v.v0.nbytes = info.size();
     cmd.v.v0.operation = LCB_SET;
 
     lcb_error_t err = lcb_store(m_DBHandle, &sresp, 1, commands);

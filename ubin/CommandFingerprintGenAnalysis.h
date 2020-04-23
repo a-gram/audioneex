@@ -15,7 +15,7 @@
 
 #include "common.h"
 #include "Command.h"
-#include "Fingerprint.h"
+#include "Fingerprinter.h"
 #include "AudioSource.h"
 
 namespace bfs = boost::filesystem;
@@ -39,7 +39,7 @@ class CommandFingerprintGenAnalysis : public Command
 	{
         if(bfs::is_regular_file(audiofile))
         {
-			Audioneex::Fingerprint fingerprint;
+			Audioneex::Fingerprinter fingerprint;
 			Audioneex::Fingerprint_t fp;
 
 			m_audio_source.Open(audiofile);

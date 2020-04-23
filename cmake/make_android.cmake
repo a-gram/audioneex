@@ -1,7 +1,7 @@
 
-# ===========================
-#  Linux build configuration
-# ===========================
+# =============================
+#  Android build configuration
+# =============================
 
 # This script defines platform-level build configuration specific for Android. 
 # It defines AX_PLAT_* variables that apply globally to all targets, and
@@ -25,6 +25,10 @@ set(AX_PLAT_DEFS "")
 set(AX_PLAT_CXX_FLAGS -std=c++11 -fexceptions)
 set(AX_PLAT_LIB_PATHS ${MY_LIBRARY_ANDROID_${CMAKE_BUILD_TYPE}_DIRS})
 list(FILTER AX_PLAT_LIB_PATHS INCLUDE REGEX "/${AX_ARCH}$")
+
+if(AX_NO_RTTI)
+   set(AX_PLAT_CXX_FLAGS ${AX_PLAT_CXX_FLAGS} -fno-rtti)
+endif()
 
 
 # Library configuration

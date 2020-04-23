@@ -71,13 +71,21 @@ class AudioFileWriter
       AudioFileWriter(const AudioFormat &aformat);
       ~AudioFileWriter();
 
-      void Open(std::string filename);
-      void Close();
-      std::int64_t Write(const float *buff, size_t nsamples);
-      std::int64_t Write(const short *buff, size_t nsamples);
+      void
+      Open(std::string filename);
+      
+      void 
+      Close();
+      
+      std::int64_t 
+      Write(const float *buff, size_t nsamples);
+      
+      std::int64_t 
+      Write(const short *buff, size_t nsamples);
 
       template <typename T>
-      std::int64_t Write(const AudioBlock<T> &buf);
+      std::int64_t 
+      Write(const AudioBlock<T> &buf);
 
 private:
 
@@ -116,7 +124,8 @@ protected:
 
 
 template <typename T>
-std::int64_t AudioFileWriter::Write(const AudioBlock<T> &buff)
+std::int64_t
+AudioFileWriter::Write(const AudioBlock<T> &buff)
 {
     if(!mFile)
        return 0;

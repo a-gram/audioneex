@@ -26,7 +26,8 @@ Audioneex::MatchFuzzyClassifier::MatchFuzzyClassifier()
     SetMode(EASY_IDENTIFICATION);
 }
 
-int Audioneex::MatchFuzzyClassifier::Process(double Hu, double dT)
+int 
+Audioneex::MatchFuzzyClassifier::Process(double Hu, double dT)
 {
     double uc[Nc]     = { };
     double Rc[Nc][Nr] = { };
@@ -78,7 +79,9 @@ int Audioneex::MatchFuzzyClassifier::Process(double Hu, double dT)
 }
 
 
-void Audioneex::MatchFuzzyClassifier::SetCutPoints(int var, std::vector<double> &points)
+void 
+Audioneex::MatchFuzzyClassifier::SetCutPoints(int var, 
+                                              std::vector<double> &points)
 {
 
 //	if(points.size() != Np)
@@ -99,7 +102,8 @@ void Audioneex::MatchFuzzyClassifier::SetCutPoints(int var, std::vector<double> 
 
 }
 
-void Audioneex::MatchFuzzyClassifier::SetMode(Audioneex::eIdentificationMode mode)
+void 
+Audioneex::MatchFuzzyClassifier::SetMode(Audioneex::eIdentificationMode mode)
 {
     if(mode == EASY_IDENTIFICATION){
         // Set variable CONF
@@ -146,7 +150,8 @@ void Audioneex::MatchFuzzyClassifier::SetMode(Audioneex::eIdentificationMode mod
 
 #include <strstream>
 
-void Audioneex::MatchFuzzyClassifier::Plot(const std::string &path)
+void 
+Audioneex::MatchFuzzyClassifier::Plot(const std::string &path)
 {
 	std::ostringstream ss;
 

@@ -17,7 +17,7 @@
 #include <iomanip>
 
 #include "Command.h"
-#include "Fingerprint.h"
+#include "Fingerprinter.h"
 #include "AudioSource.h"
 #include "Tester.h"
 #include "gnuplot.h"
@@ -50,7 +50,7 @@ class CommandPlotAudioSpectrum : public Command
         asource.Open( audiofile );
 
 		Audioneex::Fingerprint_t fp;
-        Audioneex::Fingerprint fingerprint( 11025*m_time_length + Audioneex::Pms::windowSize );
+        Audioneex::Fingerprinter fingerprint( 11025*m_time_length + Audioneex::Pms::windowSize );
 
         do{
             asource.GetAudioBlock( iblock );

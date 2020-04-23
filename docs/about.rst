@@ -4,7 +4,7 @@ About
 
 Audioneex is an audio content recognition (ACR) engine providing audio fingerprinting 
 technology specifically designed for real-time applications. It is general purpose, 
-based on content-agnostic algorithms and runs on all kinds of machines, from big 
+based on content-agnostic algorithms and runs on all kinds of machines, from 
 servers to mobile and embedded devices.
 
 
@@ -14,8 +14,8 @@ What it is for
 ACR systems can be used in a variety of scenarios, such as broadcast monitoring, 
 over-the-air (OTA) identification, content synchronization, second screen, audio 
 surveillance, etc. Audio content identification and management technology finds 
-applications in a wide range of industries. Following are a few examples of the 
-most common use cases:
+applications in several fields. Following are a few examples of the most common 
+use cases:
 
 * User engagement
 * Copyright management
@@ -86,7 +86,7 @@ client applications, initiating the fingerprinting process, processing the
 resulting fingerprints into a format suitable for quick searches and storing the 
 data into the appropriate structures. In the context of the Audioneex engine, 
 all these processes collectively are referred to as “indexing”, and the outcome 
-is the generation of the “reference database”, which is the first step to take 
+is the generation of the “fingerprints database”, which is the first step to take 
 before using the engine for any recognition operation.
 
 The ``Datastore`` interface provides an abstraction layer over the data storage

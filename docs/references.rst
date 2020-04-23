@@ -18,5 +18,5 @@ citation
 
 Alternatively, you can also use the following plain text citation
 
-*A.Gramaglia (2014). "A Binary Auditory Words Model for Audio Content Identification". 
-Audioneex.com.*
+*A. Gramaglia, "A Binary Auditory Words Model for Audio Content Identification", 
+Audioneex.com, 2014.*

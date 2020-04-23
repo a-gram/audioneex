@@ -50,26 +50,27 @@ struct Performance_t
 
 class PerformanceTask : public IdTask
 {
-    AudioSourceFile     m_AudioSource;
-	AudioBlock<int16_t> m_iblock;
-	AudioBlock<float>   m_iaudio;   ///< the input audio snippets
-	AudioBlock<float>   m_noise;    ///< the noise sample
-	AudioBlock<float>   m_inoise;   ///< the noise added to the in audio
+    AudioSourceFile      m_AudioSource;
+	AudioBuffer<int16_t> m_iblock;
+	AudioBuffer<float>   m_iaudio;   ///< the input audio snippets
+	AudioBuffer<float>   m_noise;    ///< the noise sample
+	AudioBuffer<float>   m_inoise;   ///< the noise added to the in audio
 
-    std::string         m_Audiofile;
-	Performance_t       m_performance;
-	std::ofstream       m_logfile;
+    std::string          m_Audiofile;
+	Performance_t        m_performance;
+	std::ofstream        m_logfile;
 
-	size_t              m_noise_offset;
-	float               m_mean_SNR;
-	size_t              m_nclips;
-	bool                m_process_iaudio;
-	float               m_input_gain;
+	size_t               m_noise_offset;
+	float                m_mean_SNR;
+	size_t               m_nclips;
+	bool                 m_process_iaudio;
+	float                m_input_gain;
 
 	util::rng::natural<size_t> m_rng;
 
 
-    void Identify(const std::string &audioclip)
+    void 
+    Identify(const std::string &audioclip)
     {
         if(bfs::is_regular_file(audioclip))
         {
@@ -89,7 +90,8 @@ class PerformanceTask : public IdTask
                m_AudioSource.GetAudioBlock(m_iblock);
                m_iblock.Normalize( m_iaudio );
 
-			   if(m_process_iaudio && m_iaudio.Size()>0){
+			   if(m_process_iaudio && m_iaudio.Size()>0)
+               {
 				  m_iaudio.ApplyGain( m_input_gain );
 				  Process(m_iaudio);
 				  Ps += m_iaudio.GetPower();
@@ -102,7 +104,8 @@ class PerformanceTask : public IdTask
            while(m_iblock.Size() > 0 && results == NULL);
 
 
-           if(results == NULL){
+           if(results == NULL)
+           {
               m_Recognizer->Flush();
 			  results = m_Recognizer->GetResults();
 		   }
@@ -117,7 +120,8 @@ class PerformanceTask : public IdTask
 		   if(BestMatch.size() >= 1)
 		   {
 			   // Get the file id(s) associated with the best match(es) from the metadata
-			   for(Audioneex::IdMatch &m : BestMatch){
+			   for(Audioneex::IdMatch &m : BestMatch)
+               {
 				   std::string id = static_cast<KVDataStore*>(m_DataStore)->GetMetadata(m.FID);
 				   assert(!id.empty());
 				   assert(file_id.find(id) == file_id.end());
@@ -133,10 +137,12 @@ class PerformanceTask : public IdTask
 
 			   // Check if the audio snippet being processed is in the set of identified
 			   // recordings (there can be ties)
-			   if(file_id.find(file_id_clip) != file_id.end()){
+			   if(file_id.find(file_id_clip) != file_id.end())
+               {
 				  m_performance.TP++;
 			   }
-			   else{
+			   else
+               {
 				  m_performance.FP++;
 
 				  m_logfile << "FP: " << audioclip << " ->";
@@ -146,7 +152,8 @@ class PerformanceTask : public IdTask
 				  SaveFailedClip(audioclip, "FP");
 			   }
 		   }
-		   else{
+		   else
+           {
 			   m_performance.FN++;
 
 			   m_logfile << "FN: " << audioclip << std::endl;
@@ -157,7 +164,8 @@ class PerformanceTask : public IdTask
 
 		   // Compute the SNR for the current clip and the mean SNR
 		   // across all dataset
-		   if(Pn>0){
+		   if(Pn>0)
+           {
 			  snr = 10*log10(Ps/Pn);
 		      m_mean_SNR += snr;
 		   }
@@ -190,16 +198,18 @@ class PerformanceTask : public IdTask
 
 	// ------------------------------------------------------------------------
 
-	void Process(AudioBlock<float> &iaudio)
+	void 
+    Process(AudioBuffer<float> &iaudio)
 	{
-		m_noise.GetSubBlock(m_noise_offset, iaudio.Size(), m_inoise);
+		m_noise.GetSlice(m_noise_offset, iaudio.Size(), m_inoise);
 		iaudio.MixTo( m_inoise );
 		m_noise_offset += m_inoise.Size();
 	}
 
 	// ------------------------------------------------------------------------
 
-	void SaveFailedClip(const std::string &failed, const std::string &err)
+	void 
+    SaveFailedClip(const std::string &failed, const std::string &err)
 	{
 		bfs::path to_file = bfs::path(FAILED_CLIPS_DIR) /
                             bfs::path(err) /
@@ -230,7 +240,8 @@ public:
 
 	// ------------------------------------------------------------------------
 
-    void Run()
+    void 
+    Run()
     {
         assert(m_Recognizer);
 
@@ -250,8 +261,8 @@ public:
 		{
 			DEBUG_MSG("Loading noise sample ...")
 
-				AudioSourceFile noise;
-			AudioBlock<int16_t> iblock;
+            AudioSourceFile noise;
+			AudioBuffer<int16_t> iblock;
 
 			int duration = AudioSourceFile::GetID3TagsFromFile(NOISE_FILE).GetDuration() ;
 
@@ -277,12 +288,32 @@ public:
 
 	// ------------------------------------------------------------------------
 
-	Performance_t& GetPerformance() { return m_performance; }
-	void SetProcessAudio (bool value) { m_process_iaudio=value; }
-	void SetInputGain(float gain) { m_input_gain=gain; }
+	Performance_t& 
+    GetPerformance() 
+    { 
+        return m_performance; 
+    }
+    
+	void 
+    SetProcessAudio (bool value) 
+    { 
+        m_process_iaudio=value; 
+    }
+    
+	void 
+    SetInputGain(float gain) 
+    { 
+        m_input_gain=gain; 
+    }
 
-    void Terminate() {}
-    AudioSource* GetAudioSource() { return &m_AudioSource; }
+    void 
+    Terminate() {}
+    
+    AudioSource* 
+    GetAudioSource() 
+    { 
+        return &m_AudioSource; 
+    }
 
 };
 

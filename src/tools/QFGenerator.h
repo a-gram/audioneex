@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "Fingerprint.h"
+#include "Fingerprinter.h"
 #include "Utils.h"
 
 /// A synthetic fingerprint generator
@@ -21,18 +21,28 @@
 class QFGenerator
 {
     // 1 second t-f spectrum interval
-    static const int DF = 558;   // Frequency range (Kmax-Kmin+1)
-    static const int DT = 73;    // Time units (~1s)
-    static const int spec_size= sizeof(int) * 558 * 73;
+    static const int 
+    DF = 558;   // Frequency range (Kmax-Kmin+1)
+    
+    static const int 
+    DT = 73;    // Time units (~1s)
+    
+    static const int 
+    spec_size= sizeof(int) * 558 * 73;
 
-    int spec[DT][DF];
+    int 
+    spec[DT][DF];
 
-    Audioneex::Utils::rng::natural<int>          m_rand_number;
-    std::vector<Audioneex::QLocalFingerprint_t>  m_QF;
+    Audioneex::Utils::rng::natural<int> 
+    m_rand_number;
+    
+    std::vector<Audioneex::QLocalFingerprint_t>  
+    m_QF;
 
 public:
 
-    std::vector<Audioneex::QLocalFingerprint_t>& Generate()
+    std::vector<Audioneex::QLocalFingerprint_t>& 
+    Generate()
     {
         // Generate synthetic fingerprint
 

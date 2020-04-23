@@ -39,7 +39,8 @@ using namespace boost;
 using namespace Audioneex;
 
 
-void PrintUsage(){
+void PrintUsage()
+{
     DEBUG_MSG("\nUSAGE: performance [-u <db_url>] [-m <match_type>] [-i <id_type>] [-d <id_mode>]"
               " [-b <b_thresh>] [-t <b_min_time>] [-s <offset>] <audio_path>\n")
 }
@@ -58,7 +59,7 @@ int main(int argc, char** argv)
 
         // Get a connection instance to the datastore
         unique_ptr<KVDataStore> dstore ( new DATASTORE_T (opts.db_url) );
-        dstore->Open( KVDataStore::GET, true, true );
+        dstore->Open( KVDataStore::FETCH, true, true );
 
         // Create and set up the recognizer
         unique_ptr<Recognizer> recognizer ( Recognizer::Create() );
@@ -81,12 +82,14 @@ int main(int argc, char** argv)
 
         DEBUG_MSG("Done")
     }
-    catch(const bad_cmd_line_exception &ex){
+    catch(const bad_cmd_line_exception &ex)
+    {
         ERROR_MSG(ex.what())
         PrintUsage();
         return -1;
     }
-    catch(const std::exception &ex){
+    catch(const std::exception &ex)
+    {
         ERROR_MSG(ex.what())
         return -1;
     }
