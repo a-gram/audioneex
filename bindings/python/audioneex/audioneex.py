@@ -239,8 +239,12 @@ class Indexer(object):
 
     def __init__(self, *args):
         _audioneex.Indexer_swiginit(self, _audioneex.new_Indexer(*args))
+
         if(len(args) == 2):
             self._aprovider = args[1]
+
+
+
     __swig_destroy__ = _audioneex.delete_Indexer
 
     def start(self):
@@ -275,8 +279,12 @@ class Indexer(object):
 
     def set_audio_provider(self, aprovider):
         val = _audioneex.Indexer_set_audio_provider(self, aprovider)
+
         self._aprovider = aprovider
+
+
         return val
+
 
     def get_audio_provider(self):
         return _audioneex.Indexer_get_audio_provider(self)

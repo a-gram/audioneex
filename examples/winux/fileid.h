@@ -68,7 +68,7 @@ class IdentificationTask : public IdTask
            // until results are produced or all audio is consumed.
            do
            {
-               m_AudioSource.GetAudioBlock(ibuffer);
+               m_AudioSource.GetAudioData(ibuffer);
 
                ibuffer.Normalize( iaudio );
 

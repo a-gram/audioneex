@@ -47,7 +47,7 @@ class AudioIndexingTask : public IdTask,
         // Set the input buffer to the requested amount of samples.
         m_InputBuffer.Resize( nsamples );
 
-        m_AudioSource.GetAudioBlock( m_InputBuffer );
+        m_AudioSource.GetAudioData( m_InputBuffer );
 
         // If we reached the end of the stream, signal it to the indexer
         // by returning 0.

@@ -117,7 +117,7 @@ public:
 			       m_AudioSource.SetPosition(offset);
 			       m_AudioSource.SetDataLength(m_ClipLength);
 			       m_AudioSource.Open(audiofile);
-                   m_AudioSource.GetAudioBlock(m_iblock);
+                   m_AudioSource.GetAudioData(m_iblock);
 
 			       DEBUG_MSG("Extracted clip "<< c <<" from "<< filename << fileext << " @ "
                              << offset << "/" << duration << ", " << m_iblock.Duration() << " sec")

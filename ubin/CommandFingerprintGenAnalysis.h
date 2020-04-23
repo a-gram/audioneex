@@ -45,7 +45,7 @@ class CommandFingerprintGenAnalysis : public Command
 			m_audio_source.Open(audiofile);
 
 			do{
-				m_audio_source.GetAudioBlock(m_iblock);
+				m_audio_source.GetAudioData(m_iblock);
 				m_iblock.Normalize( m_iaudio );
 				fingerprint.Process( m_iaudio );
 				const Audioneex::lf_vector &lfs = fingerprint.Get();

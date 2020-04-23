@@ -660,7 +660,7 @@ AxPyAudioSourceFile::_read_from_source(int nsamples)
     }
 
     _input_buffer.Resize( nsamples );
-    _impl->GetAudioBlock( _input_buffer );
+    _impl->GetAudioData( _input_buffer );
     audio_buffer->resize(_input_buffer.Size());
     
     std::transform(_input_buffer.Data(),

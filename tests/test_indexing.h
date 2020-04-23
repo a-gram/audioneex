@@ -57,7 +57,7 @@ class IndexingTest : public Audioneex::AudioProvider
         REQUIRE(FID == m_FID);
 
         m_InputBuffer.Resize( nsamples );
-        m_AudioSource.GetAudioBlock( m_InputBuffer );
+        m_AudioSource.GetAudioData( m_InputBuffer );
 
         if(m_InputBuffer.Size() == 0)
            return 0;

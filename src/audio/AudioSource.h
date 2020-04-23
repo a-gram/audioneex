@@ -272,10 +272,10 @@ class AudioSource
     GetAudioEngineName() { return AUDIO_ENGINE_NAME; }
 
 
-    /// Read a block of audio from the open audio source.
+    /// Read audio data into the given buffer
     template <class T>
     void 
-    GetAudioBlock(AudioBuffer<T> &buffer)
+    GetAudioData(AudioBuffer<T> &buffer)
     {
         if(m_Pipe.IsOpen())
         {

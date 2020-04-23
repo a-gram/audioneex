@@ -63,7 +63,7 @@ TEST_CASE("Fingerprinter processing") {
     audio.Resize(Srate*0.2);
 
     REQUIRE_NOTHROW( asource.Open("./data/rec1.mp3") );
-    REQUIRE_NOTHROW( asource.GetAudioBlock(ibuffer) );
+    REQUIRE_NOTHROW( asource.GetAudioData(ibuffer) );
     REQUIRE_NOTHROW( ibuffer.Normalize( audio ) );
 
     Audioneex::Fingerprint_t fp;
@@ -78,7 +78,7 @@ TEST_CASE("Fingerprinter processing") {
 
     // Try fingerprinting some audio
     do{
-        REQUIRE_NOTHROW( asource.GetAudioBlock(ibuffer) );
+        REQUIRE_NOTHROW( asource.GetAudioData(ibuffer) );
         ibuffer.Normalize( audio );
         REQUIRE_NOTHROW( fingerprint.Process(audio) );
         const Audioneex::lf_vector &lfs = fingerprint.Get();

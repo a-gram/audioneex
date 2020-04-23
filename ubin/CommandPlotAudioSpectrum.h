@@ -53,7 +53,7 @@ class CommandPlotAudioSpectrum : public Command
         Audioneex::Fingerprinter fingerprint( 11025*m_time_length + Audioneex::Pms::windowSize );
 
         do{
-            asource.GetAudioBlock( iblock );
+            asource.GetAudioData( iblock );
             iblock.Normalize( audio );
             fingerprint.Process( audio );
             const Audioneex::lf_vector &lfs = fingerprint.Get();

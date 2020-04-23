@@ -87,7 +87,7 @@ class PerformanceTask : public IdTask
 
 
            do{
-               m_AudioSource.GetAudioBlock(m_iblock);
+               m_AudioSource.GetAudioData(m_iblock);
                m_iblock.Normalize( m_iaudio );
 
 			   if(m_process_iaudio && m_iaudio.Size()>0)
@@ -277,7 +277,7 @@ public:
 			noise.SetSampleResolution( 16 );
 
 			noise.Open(NOISE_FILE);
-			noise.GetAudioBlock(iblock);
+			noise.GetAudioData(iblock);
 			iblock.Normalize(m_noise);
 
 			DEBUG_MSG("Loaded noise sample ("<<duration<<"s).")

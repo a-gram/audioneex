@@ -24,7 +24,7 @@ GetAudio(AudioSourceFile& source,
          AudioBuffer<int16_t>& ibuf, 
          AudioBuffer<float>& obuf)
 {
-    REQUIRE_NOTHROW( source.GetAudioBlock(ibuf) );
+    REQUIRE_NOTHROW( source.GetAudioData(ibuf) );
     REQUIRE( ibuf.Size() > 0 );
     REQUIRE_NOTHROW( ibuf.Normalize( obuf ) );
 }

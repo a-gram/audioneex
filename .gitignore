@@ -7,7 +7,7 @@ lib/
 bin/
 Testing/
 
-# Logs
+# Log files
 *.log
 log.txt
 
