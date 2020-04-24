@@ -30,11 +30,8 @@ def fingerprint(audiofile):
     
     db = Database(dbdir)
     db.open(Database.BUILD)
-    
     aprovider = AudioProvider(AudioSourceFile())
-    
     idx = Indexer(db, aprovider)
-    
     fid = db.get_fp_count() + 1
     
     idx.start()

@@ -163,7 +163,7 @@ def __next__(self):
 
 
 // -----------------------------------------------------------------------------
-// These templates need to located here since they are only available
+// These templates need to be located here since they are only available
 // after the inclusion of the main .h file, where they are defined.
 // -----------------------------------------------------------------------------
 

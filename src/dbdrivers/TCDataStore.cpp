@@ -68,11 +68,7 @@ TCDataStore::Open(eOperation op,
        throw DatastoreException
        ("Invalid database open mode");
     }
-
-    // Append the path separator if missing (Windows accepts '/' as well)
-    m_DBURL += m_DBURL.empty() ? "" :
-              (m_DBURL.back()=='/' || m_DBURL.back()=='\\' ? "" : "/");
-
+    
     // Set databases relative URL
     m_MainIndex.SetURL(m_DBURL);
     m_DeltaIndex.SetURL(m_DBURL);
@@ -423,6 +419,10 @@ TCCollection::Open(int mode)
 
     tchdbtune(m_DBHandle, 1000000, 4, 10, HDBTLARGE);
     tchdbsetcache(m_DBHandle, 1000000);
+    
+    // Append the path separator if missing
+    if(!m_DBURL.empty() && m_DBURL.back() != '/' && m_DBURL.back() != '\\')
+        m_DBURL += "/";  // Windows accepts '/' as well
 
     std::string full_url = m_DBURL + m_Name;
 

@@ -23,7 +23,6 @@ log.txt
 # Media files
 *.wav
 *.mp3
-*.ogg
 
 # Other
 audioneex_wrap.h

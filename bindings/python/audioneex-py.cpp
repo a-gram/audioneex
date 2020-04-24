@@ -15,12 +15,28 @@ std::ofstream logfile ("C:\\Users\\Albert\\Desktop\\git\\audioneex\\bindings\\py
 //-------------------------------------------------------------------------------
 
 
-AxPyDatabase::AxPyDatabase(const AxStr& url, const AxStr& name)
+AxPyDatabase::AxPyDatabase(const AxStr& url, 
+                           const AxStr& name, 
+                           const AxStr& opmode)
 :
     _impl{ std::make_unique<TCDataStore>(url, name) }
 {
-    //set_url(url);
-    //set_name(name);
+    if(opmode != "")
+    {
+       if(opmode == "read")
+       {
+          open(FETCH);
+       }
+       else if(opmode == "write")
+       {
+          open(BUILD);
+       }
+       else
+       {
+          throw Audioneex::Exception
+          ("Invalid parameter (opmode=" + opmode + ")");
+       }
+    }
 }
 
 AxPyDatabase::~AxPyDatabase()

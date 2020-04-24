@@ -25,14 +25,14 @@ inline void LOG(const std::string &msg) {
 
 
 #if SWIG
-// During SWIG parsing the following typedefs are already
-// defined in the .i file, so disable them to avoid annoying
-// warnings.
+ // During SWIG parsing the following typedefs are already
+ // defined in the .i file, so disable them to avoid annoying
+ // warnings.
 #else
-template<class T> using AxRef = std::shared_ptr<T>;
-template<class T> using AxPtr = std::unique_ptr<T>;
-template<class T> using AxVec = std::vector<T>;
-typedef std::string     AxStr;
+ template<class T> using AxRef = std::shared_ptr<T>;
+ template<class T> using AxPtr = std::unique_ptr<T>;
+ template<class T> using AxVec = std::vector<T>;
+ typedef std::string     AxStr;
 #endif
 
 enum AxPyEMatchType
@@ -83,6 +83,7 @@ enum Params
 // -----------------------------------------------------------------------------
 // Some helpers
 // -----------------------------------------------------------------------------
+
 
 inline Audioneex::KVDataStore::eOperation
 _i_to_kvop(int val) 
@@ -196,7 +197,8 @@ public:
     };    
 
     AxPyDatabase(const AxStr& url = "",
-                 const AxStr& name = "");
+                 const AxStr& name = "",
+                 const AxStr& opmode = "");
     
     ~AxPyDatabase();
 
@@ -272,7 +274,7 @@ public:  // Python callbacks
     virtual AxRef<AxPyAudioBuffer>
     on_audio_request(int FID, int nsamples) = 0;
 
-public:  // Internal callbacks
+public:  // Internal "bridging" callbacks
 
     int 
     OnAudioData(uint32_t FID, float* buffer, size_t nsamples);
