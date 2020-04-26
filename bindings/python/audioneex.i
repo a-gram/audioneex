@@ -2,7 +2,6 @@
 %module(directors="1") audioneex
 
 %include <std_string.i>
-%include <std_vector.i>
 %include <std_shared_ptr.i>
 %include <exception.i>
 

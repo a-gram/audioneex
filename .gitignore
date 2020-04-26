@@ -9,7 +9,7 @@ Testing/
 
 # Log files
 *.log
-log.txt
+*log.txt
 
 # Binaries and executables
 *.exe
@@ -19,6 +19,10 @@ log.txt
 *.lib
 *.pyc
 *.pyd
+*.so
+*.a
+*.la
+*.dylib
 
 # Media files
 *.wav
@@ -27,3 +31,4 @@ log.txt
 # Other
 audioneex_wrap.h
 audioneex_wrap.cpp
+audioneex.py

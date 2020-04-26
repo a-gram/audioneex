@@ -26,7 +26,6 @@ def identify(audio):
     
     db = Database(dbdir)
     db.open(Database.FETCH)
-    
     rec = Recognizer(db)
     asource = AudioSourceFile(audio)
     audio = AudioBuffer()
