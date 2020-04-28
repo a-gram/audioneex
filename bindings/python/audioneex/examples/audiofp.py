@@ -26,13 +26,15 @@ def fingerprint(audiofile):
     else:
         audiofiles = [audiofile]
         
-    # The relevant code starts here
-    
-    db = Database(dbdir, "fdb", "write")
+    # Create a database instance and open it for insertions
+    db = Database(dbdir, "db", "write")
+    # Create an audio provider and connect it to an audio source (file)
     aprovider = AudioProvider(AudioSourceFile())
+    # Create an indexer connected to the database and audio provider
     idx = Indexer(db, aprovider)
+    # Initialize the starting fingerprint id
     fid = db.get_fp_count() + 1
-    
+    # Start a fingerprinting session
     idx.start()
     
     for afile in audiofiles:
@@ -43,7 +45,9 @@ def fingerprint(audiofile):
         db.put_metadata(fid, meta)
         fid += 1
     
+    # ALWAYS close the fingerprinting session when you're done
     idx.end()
+    # Close the db if no longer needed (will be done anyway at gc time)
     db.close()
 
     

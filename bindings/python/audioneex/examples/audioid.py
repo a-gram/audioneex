@@ -5,9 +5,9 @@ import os
 from audioneex import (Database, Recognizer, AudioSourceFile, AudioBuffer)
 
 
-def identify(audio):
+def identify(audiofile):
     """
-    Identify the given audio.
+    Identify audio from a file.
     """
     exdir = os.path.dirname(os.path.realpath(__file__))
     dbdir = os.path.join(exdir, "data")
@@ -17,25 +17,23 @@ def identify(audio):
             "The database could not be found in '%s'." % dbdir
         )
     
-    if not os.path.exists(audio):
+    if not os.path.exists(audiofile):
         raise FileNotFoundError(
-            "The file '%s' does not exist." % audio
+            "The file '%s' does not exist." % audiofile
         )
         
-    # The relevant code starts here
-    
-    db = Database(dbdir)
-    db.open(Database.FETCH)
+    # Create a database instance in read mode
+    db = Database(dbdir, "db", "read")
+    # Create a recognizer connected to the database
     rec = Recognizer(db)
-    asource = AudioSourceFile(audio)
-    audio = AudioBuffer()
+    # Create the audio source (here from a file)
+    audio = AudioSourceFile(audiofile)
+    
+    results = None
 
-    while True:
-        read_samples = asource.readin(audio)
-        rec.identify(audio)
-        results = rec.get_results()
-        if results or not read_samples:
-            break;
+    # Read audio from the source until it's identified or consumed
+    while audio.read() and results is None:
+        results = rec.identify(audio.buffer())
     
     if results:
         for match in results:
