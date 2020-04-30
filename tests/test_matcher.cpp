@@ -11,7 +11,7 @@
 #include "catch.hpp"
 
 #include "dao_common.h"
-#include "test_matching.h"
+#include "test_matcher.h"
 
 ///
 /// Prerequisites:
@@ -22,7 +22,7 @@
 /// 2) Copy the 'data' folder from the 'tests' directory in the root of the source tree,
 ///    to the test programs directory.
 ///
-/// Usage: test_matching
+/// Usage: test_matcher
 ///
 
 

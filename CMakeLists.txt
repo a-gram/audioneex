@@ -353,6 +353,7 @@ file(WRITE _build/ax_export_env.cmake
    "set(AX_LIB_FFTSS \"${AX_LIB_FFTSS}\")\n"
    "set(AX_ANDROID_LIBC \"${AX_ANDROID_LIBC}\")\n"
    "set(MY_VC_INSTALL_DIR \"${MY_VC_INSTALL_DIR}\")\n"
+   "set(AX_DATASTORE_LIB \"${AX_DATASTORE_LIB}\")\n"
 )
 
 install(SCRIPT "cmake/install.cmake")

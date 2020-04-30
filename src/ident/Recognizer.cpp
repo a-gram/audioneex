@@ -324,7 +324,8 @@ Audioneex::RecognizerImpl::DoClassification(float Hu, float dT)
         Flush();
 
         // If the flush didn't produce results, return empty set.
-        if(m_IdMatches.empty()){
+        if(m_IdMatches.empty())
+        {
            m_IdMatches.clear();
            IdMatch match = {};
            m_IdMatches.push_back(match);

@@ -582,8 +582,8 @@ public:
     /// identification, so it must be fed with short chunks of audio, generally 
     /// 1-2 seconds long. If longer chunks are used, a buffer overflow with data 
     /// loss will occur. Snippets shorter than 500ms won't be processed. 
-    /// The audio must be 16 bit normalized in [-1,1], mono, 11025Hz. Note that
-    /// this call is synchronous (i.e. blocking).
+    /// The audio must be normalized in [-1,1], mono, 11025Hz. Note that this 
+    /// call is synchronous (i.e. blocking).
     ///
     /// @param[in]  audio  Pointer to the buffer containing the audio samples.
     ///                    The engine does not take ownership of the pointer.

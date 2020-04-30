@@ -98,7 +98,12 @@ class AUDIONEEX_API_TEST RecognizerImpl : public Audioneex::Recognizer
     /// Create results data.
     void 
     FillResults(int cresult=0);
-
+    
+    /// Reset the recognizer's internal state
+    void
+    Reset();
+    
+    
 public:
 
     RecognizerImpl();
@@ -188,9 +193,6 @@ public:
     
     void
     Flush();
-    
-    void
-    Reset();
     
 };
 

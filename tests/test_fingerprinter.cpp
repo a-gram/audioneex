@@ -14,6 +14,8 @@
 #include "AudioSource.h"
 #include "Tester.h"
 
+#include "test_fingerprinter.h"
+
 #ifdef PLOTTING_ENABLED
  #include "gnuplot.h"
 #endif
@@ -29,7 +31,7 @@
 /// 3) (Optional) Add a TESTING and PLOTTING_ENABLED compiler definition to generate
 ///    a plot of the fingerprint (requires gnuplot to be in the search PATH).
 ///
-/// Usage:  test_fingerprinting
+/// Usage:  test_fingerprinter
 ///
 
 TEST_CASE("Fingerprinter accessors") {
