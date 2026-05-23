@@ -20766,4 +20766,33 @@ a {
   -o-object-fit: cover;
   object-fit: cover;
 }
+
+.email-popup {
+  position: fixed;
+  background: #373d4e;
+  border: 1px solid #6e6e6e;
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 1.1rem;
+  z-index: 1000;
+}
+
+.email-popup .close-btn {
+  cursor: pointer;
+  font-weight: bold;
+  color: grey;
+  padding: 0 4px;
+  user-select: none;
+}
+
+.hidden {
+  display: none;
+}
+
+.reveal-email {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 /*# sourceMappingURL=theme.css.map */

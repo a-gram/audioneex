@@ -48,6 +48,33 @@ var getData = function getData(el, data) {
     return el.dataset[camelize(data)];
   }
 };
+
+var showContact = function showContact(event) {
+  event.preventDefault();
+
+  const user = "audioneex";
+  const domain = "albertogramaglia";
+  const tld = "com";
+  const email = `${user}@${domain}.${tld}`;
+
+  const popup = document.getElementById("email-popup");
+  const rect = event.target.getBoundingClientRect();
+
+  popup.style.top = `${rect.bottom + 8}px`;
+  popup.style.left = `${rect.left}px`;
+
+  popup.innerHTML = `
+    <a href="mailto:${email}" class="text-light">${email}</a>
+    <span class="close-btn">✕</span>
+  `;
+
+  popup.classList.remove("hidden");
+
+  popup.querySelector(".close-btn").addEventListener("click", () => {
+    popup.classList.add("hidden");
+  });
+};
+
 /* ----------------------------- Colors function ---------------------------- */
 
 
